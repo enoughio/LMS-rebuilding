@@ -146,7 +146,7 @@ export default function Navbar() {
               alt=""
               width={20}
               height={20}
-              className="w-5 h-6 object-contain"
+              className="w-5 h-5 object-contain"
             
             />
           </button>
