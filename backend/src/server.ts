@@ -4,7 +4,7 @@ import cors from 'cors';
 
 
 
-// import authRoutes from './routes/authRoutes';
+// import authRoutes from './routes/authRoutes.js';
 // // import roleRoutes from './routes/roleRoutes';
 // import forumRoutes from './routes/forumRoutes';
 // import libraryRoutes from './routes/libraryRoutes';
@@ -39,13 +39,13 @@ app.use(
 
 // // Routes
 // // app.use('/api/roles', roleRoutes);
-// app.use('/api/auth', authRoutes);
 // app.use('/api/forum', forumRoutes);
 // app.use('/api/library', libraryRoutes);
 // app.use('/api/bookings', bookingRoutes);
 // app.use('/api/memberships', membershipRoutes);
 // app.use('/api/books', bookRoutes);
 // app.use('/api/dashboard', dashboardRoutes);
+// app.use('/api/auth', authRoutes);
 app.use("/api/user", userRoutes)
 
 // Test route
