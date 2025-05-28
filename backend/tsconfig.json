@@ -115,8 +115,8 @@
   "include": ["src", "src/types"],
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ES2022",
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "outDir": "./dist",
     "rootDir": "./src",
     "typeRoots": ["./types", "./node_modules/@types"],

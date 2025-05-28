@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import prisma from "../lib/prisma"; 
-import { $Enums} from "../../generated/prisma";
+import prisma from "../lib/prisma.js"; 
+import { $Enums} from "../../generated/prisma/index.js";
 
 // Define interface for basic user data from Prisma (using Prisma-generated UserRole)
 
