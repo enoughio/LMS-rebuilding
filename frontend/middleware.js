@@ -13,7 +13,10 @@ export async function middleware(request) {
    if (request.nextUrl.pathname === ("/")) {
         return authRes;
     }
-   if (request.nextUrl.pathname === ("/about")) {
+
+    const publicRoutes = ["/about", "/libraries", "/about",'/forum', "/contact", "/privacy-policy", "/terms-of-service"];
+
+   if (publicRoutes.includes(request.nextUrl.pathname)) {
         return authRes;
     }
 
