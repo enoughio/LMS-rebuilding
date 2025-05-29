@@ -8,29 +8,6 @@ import CommentsSection from '@/components/CommentsSection';
 import { forumApi } from '@/lib/forum';
 
 
-// type ForumPost = {
-//   id: string;
-//   title: string;
-//   content: string;
-//   createdAt: string;
-//   updatedAt: string;
-//   viewCount: number;
-//   likeCount: number;
-//   isLikedByUser?: boolean;
-//   author: {
-//     id: string;
-//     name: string;
-//     avatar: string | null;
-//   };
-//   category: {
-//     id: string;
-//     name: string;
-//   };
-//   commentCount?: number;
-// };
-
-
-
 export default async function ForumPostPage({ params }: { params: Promise<{ id: string }> }) {
   const { id : postId} = await params;
 
