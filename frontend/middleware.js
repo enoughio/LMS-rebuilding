@@ -9,8 +9,23 @@ export async function middleware(request) {
         return authRes;
     }
 
-    // public routes — no need to check for session
-    if (request.nextUrl.pathname === ("/")) {
+     // public routes — no need to check for session
+   if (request.nextUrl.pathname === ("/")) {
+        return authRes;
+    }
+   if (request.nextUrl.pathname === ("/about")) {
+        return authRes;
+    }
+    
+   if (request.nextUrl.pathname === ("/contact")) {
+        return authRes;
+    }
+
+   if (request.nextUrl.pathname === ("/forum")) {
+        return authRes;
+    }
+
+   if (request.nextUrl.pathname === ("/libraries")) {
         return authRes;
     }
 
