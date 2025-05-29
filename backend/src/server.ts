@@ -31,7 +31,7 @@ const allowedOrigins = [
 app.use(
     cors({
         origin: allowedOrigins,
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
+        // methods: ['GET', 'POST', 'PUT', 'DELETE'],
         credentials: true,
     })
 )
@@ -52,10 +52,5 @@ app.use('/api/library', libraryRoutes);
 app.get('/api/test', (_req, res) => {
   res.json({ message: 'LMS API is working correctly!' });
 });
-
-
-
-
-
 
 export default app;
