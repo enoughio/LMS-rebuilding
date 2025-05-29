@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, UserIcon, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -18,6 +18,7 @@ export default function Navbar() {
   const navItems: NavItem[] = [
     { label: 'Home', href: '/' },
     { label: 'About Us', href: '/about' },
+    { label: 'forum', href: '/forum' },
     { label: 'Library Listing', href: '/libraries' },
     { label: 'Contact Us', href: '/contact' },
   ];
@@ -88,14 +89,7 @@ export default function Navbar() {
             <span className="font-bold text-[15.61px] leading-[22.71px] tracking-[0.14px] whitespace-nowrap">
               {isLoggedIn ? 'Sign Out' : 'Sign In'}
             </span>
-            <Image
-              src="/home/signin.png"
-              alt=""
-              width={20}
-              height={20}
-              className="w-5 h-5 object-contain"
-              aria-hidden="true"
-            />
+            <UserIcon size={20} className="hidden md:block" color="#FEEDC1" />
           </button>
         </div>
 

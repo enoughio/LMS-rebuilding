@@ -1,7 +1,5 @@
 // API utilities for communicating with the backend
 
-import { error } from "console";
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
