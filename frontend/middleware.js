@@ -14,7 +14,7 @@ export async function middleware(request) {
         return authRes;
     }
 
-    const publicRoutes = ["/about", "/libraries", "/about",'/forum', "/contact", "/privacy-policy", "/terms-of-service"];
+    const publicRoutes = ["/about", "/libraries", "/about", '/forum', "/contact", "/privacy-policy", "/terms-of-service"];
 
    if (publicRoutes.includes(request.nextUrl.pathname)) {
         return authRes;
