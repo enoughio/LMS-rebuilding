@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "nodemon --exec tsx src/index.ts",
     "build": "tsc",
-    "start": "npm install && prisma generate &&  node dist/index.js",
+    "start": "prisma generate &&  node dist/index.js",
     "prisma": "prisma"
   },
   "type": "module",

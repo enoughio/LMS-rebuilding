@@ -120,7 +120,7 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "typeRoots": ["./types", "./node_modules/@types"],
-    "strict": true,
+    "strict": false,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,

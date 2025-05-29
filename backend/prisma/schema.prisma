@@ -19,27 +19,27 @@ datasource db {
 
 model User {
   id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  auth0UserId   String?   @unique // <-- ADDED: Auth0 subject identifier
+  auth0UserId   String?   @unique
   name          String
   email         String    @unique
-  emailVerified DateTime? // Keep if you want to sync from Auth0, or remove
-  // password      String    // <-- REMOVED
+  emailVerified DateTime?
   varifiedBySuperAdmin   Boolean   @default(false) 
   role          UserRole  @default(MEMBER)
-  avatar        String?   // Auth0 can provide 'picture' claim
+  avatar        String?
   bio           String?
-  phone         String?   // Auth0 can provide 'phone_number'
+  phone         String?
   address       String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  // ... rest of your relationships
+  // ... all your existing relationships ...
   memberships       Membership[]
   seatBookings      SeatBooking[]
   bookBorrowings    BookBorrowing[]
   eBookAccesses     EBookAccess[]
   forumPosts        ForumPost[]
   forumComments     ForumComment[]
+  forumPostLikes    ForumPostLike[]  // New relationship for liked posts
   studySessions     StudySession[]
   tasks             Task[]
   habits            Habit[]
@@ -516,7 +516,7 @@ model ForumCategory {
 
 // Forum Posts
 model ForumPost {
-  id          String   @id @default(auto()) @map("_id")   @db.ObjectId
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   content     String
   image       String?
@@ -524,18 +524,35 @@ model ForumPost {
   isPinned    Boolean  @default(false)
   isLocked    Boolean  @default(false)
   viewCount   Int      @default(1)
-  likeCount   Int      @default(0)
+  likeCount   Int      @default(0) // Keep this for quick access, update via triggers or application logic
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
   // Relationships
-  author      User          @relation(fields: [authorId], references: [id])
-  authorId    String        @db.ObjectId
-  category    ForumCategory @relation(fields: [categoryId], references: [id])
-  categoryId  String        @db.ObjectId
+  author      User              @relation(fields: [authorId], references: [id])
+  authorId    String            @db.ObjectId
+  category    ForumCategory     @relation(fields: [categoryId], references: [id])
+  categoryId  String            @db.ObjectId
   comments    ForumComment[]
+  likes       ForumPostLike[]   // New relationship to track individual likes
 
   @@map("forum_posts")
+}
+
+
+model ForumPostLike {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @default(now())
+  
+  // Relationships
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String    @db.ObjectId
+  post      ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String    @db.ObjectId
+
+  // Ensure a user can only like a post once
+  @@unique([userId, postId])
+  @@map("forum_post_likes")
 }
 
 // Forum Comments
