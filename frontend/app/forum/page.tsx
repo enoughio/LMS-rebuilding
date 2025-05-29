@@ -170,8 +170,8 @@ export default function Forum() {
     { name: 'top', icon: '/forums/top.png', label: 'Top' },
   ];
   return (
-    <div className="min-h-screen py-4 max-w-[1920px] bg-[#ECE3DA] md:px-20 md:pb-20">
-      <div className="w-full mx-auto px-4 py-6">
+    <div className="min-h-screen w-full px-4  py-4 max-w-[1920px] bg-[#ECE3DA]  md:pb-20">
+      <div className="">
         <h1 className="text-2xl md:text-3xl font-light text-center text-gray-800 mb-6">
           India&apos;s <span className="font-medium">Smartest Student Forum</span> — Built by You
         </h1>

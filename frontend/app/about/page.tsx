@@ -5,9 +5,6 @@ import Footer from "@/components/footer";
 export default function Story() {
     return (
         <div className="bg-[#ECE3DA] min-h-screen w-full py-6 px-3 md:px-[1%] lg:px-[8%] font-urbanist">
-
-            <Navbar/>
-
             {/* about us section */}
             <section className="mb-4">
                 <div className="about_us text-center">
