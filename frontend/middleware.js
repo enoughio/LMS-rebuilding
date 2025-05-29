@@ -16,18 +16,6 @@ export async function middleware(request) {
    if (request.nextUrl.pathname === ("/about")) {
         return authRes;
     }
-    
-   if (request.nextUrl.pathname === ("/contact")) {
-        return authRes;
-    }
-
-   if (request.nextUrl.pathname === ("/forum")) {
-        return authRes;
-    }
-
-   if (request.nextUrl.pathname === ("/libraries")) {
-        return authRes;
-    }
 
     const { origin } = new URL(request.url)
     const session = await auth0.getSession()

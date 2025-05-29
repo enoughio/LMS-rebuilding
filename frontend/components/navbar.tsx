@@ -56,7 +56,7 @@ export default function Navbar() {
 
   return (
     <nav 
-      className={`sticky  max-w-[1920px] lg:overflow-x-auto top-0 z-50 transition-all duration-300 ${
+      className={`sticky w-full max-w-[1920px] lg:overflow-x-auto top-0 z-50 transition-all duration-300 ${
         scrolled ? 'bg-[#ECE3DA]/90 shadow-md backdrop-blur-sm' : 'bg-[#ECE3DA]'
       }`}
       aria-label="Main navigation"

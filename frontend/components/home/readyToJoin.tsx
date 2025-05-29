@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 
 export default function Ready() {
   return (
-    <div className="bg-[#ECE3DA]  max-w-[1920px] lg:overflow-x-auto overflow-x-hidden min-h-screen px-3 py-8 sm:py-10 sm:px-4 lg:px-16 xl:px-24 2xl:px-32">
+    <div className="bg-[#ECE3DA] min-h-[30vh]  max-w-[1920px] lg:overflow-x-auto overflow-x-hidden max-h-screen px-3 py-8 sm:py-10 sm:px-4 lg:px-16 xl:px-24 2xl:px-32">
       <div className="mx-auto text-center mb-4 sm:mb-8">
         <h2 className="text-[16.34px] sm:text-[28px] md:text-[40px] lg:text-[48px] xl:text-[54px] 2xl:text-[60px] font-bold leading-[19.35px] md:leading-[48px] tracking-[-0.04em] text-center mb-2">
           Ready to get started?

@@ -6,7 +6,7 @@ import Link from "next/link";
 
 const SmartLibrary = () => {
   return (
-    <section className=" max-w-[1920px] lg:overflow-x-auto  bg-[#ECE3DA] flex flex-col justify-center items-center px-6 md:px-10 lg:px-20 py-12">
+    <section className=" max-w-[1920px] lg:overflow-x-auto  bg-[#ECE3DA] lg:min-h-[50vh] flex flex-col justify-center items-center px-6 md:px-10 lg:px-20 py-12">
       {/* Top Quote */}
       <div className="text-center max-w-3xl">
        <p className="text-base md:text-lg lg:text-2xl leading-relaxed">

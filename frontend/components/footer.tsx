@@ -8,9 +8,9 @@ export default function Footer() {
   console.log(parms);
 
   return (
-    <footer className=" bg-[#ECE3DA] px-16">
+    <footer className=" bg-[#ECE3DA] w-full max-w-[1920px]">
       {/* Top Section */}
-      <div className="max-w-[1980px]   mx-9 flex flex-col md:flex-row justify-between gap-16 md:gap-28 mb-1 sm:mb-6 items-center md:items-start text-center md:text-left">
+      <div className=" mx-9 flex flex-col md:flex-row justify-between gap-16 md:gap-28 mb-1 sm:mb-6 items-center md:items-start text-center md:text-left">
         {/* Logo and Tagline */}
         <div className="flex flex-col items-center md:items-start w-full md:w-2/5">
           <Image

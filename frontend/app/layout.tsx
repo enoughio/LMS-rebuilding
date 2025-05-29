@@ -32,11 +32,12 @@ export default function RootLayout({
         
       >
         <Auth0Provider>
+        
+          <div className="flex flex-col justify-center items-center bg-[#EFEAE5] min-h-screen"> 
           <Navbar />
-          <div className="container mx-auto px-4 py-8"> 
           {children}
-          </div>
           <Footer />
+          </div>
         </Auth0Provider>
       </body>
     </html>

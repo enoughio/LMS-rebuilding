@@ -2,8 +2,8 @@ import Image from "next/image";
 
 export default function What() {
   return (
-    <section className="bg-[#ECE3DA] text-center max-w-[1920px] lg:overflow-x-auto items-center justify-center min-h-screen overflow-x-hidden py-2 px-2 md:px-14">
-      <div className="what px-2 sm:px-4 py-8 md:py-10 text-center">
+    <section className="bg-[#ECE3DA] text-center max-w-[1920px] lg:overflow-x-auto items-center justify-center  overflow-x-hidden py-2 px-2 md:px-14">
+      <div className=" px-2 sm:px-4 py-8 md:py-10 text-center">
         {/* Heading */}
         <h1 className="text-[20px] sm:text-[36px] md:text-[41px] lg:text-[45px] leading-[36px] sm:leading-[42px] md:leading-[48.55px] tracking-[-0.04em] font-bold text-center text-gray-800 font-['Plus_Jakarta_Sans'] mb-2 sm:mb-5 md:mb-6">
           What is Student Adda
