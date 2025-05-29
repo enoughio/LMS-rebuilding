@@ -67,3 +67,5 @@
 //         return NextResponse.json({ error: errorMessage }, { status: errorStatus });
 //     }
 //     }
+
+export {};
