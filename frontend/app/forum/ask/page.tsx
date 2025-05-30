@@ -18,7 +18,7 @@ const AskQuestion: React.FC = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('/api/categories');
+        const response = await fetch('/api/forum/categories');
         if (!response.ok) {
           throw new Error('Failed to fetch categories');
         }
