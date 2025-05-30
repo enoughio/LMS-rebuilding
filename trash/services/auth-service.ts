@@ -2,7 +2,7 @@
 // Used by the AuthProvider component
 
 // Define your API base URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_URL = process.env.NODE_BACKEND_URL || "http://localhost:5000/api";
 
 // Define interfaces for authentication data
 interface LoginCredentials {

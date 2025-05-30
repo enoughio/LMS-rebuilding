@@ -9,12 +9,11 @@ import { usePathname } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 // import { ModeToggle } from "@/components/mode-toggle.tsx";
-// import { useUser } from '@auth0/nextjs-auth0';
-import { useAuth } from '@/lib/context/AuthContext';
+import { useUser } from '@auth0/nextjs-auth0';
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { user } = useAuth(); 
+  const { user } = useUser(); // Removed unused isLoading variable
   // const { user : dbUser, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -231,13 +230,13 @@ export default function Navbar() {
                   ) : (
                     <>
                       <Link
-                        href="/login"
+                        href="/auth/login"
                         className="px-4 py-2 rounded-md transition duration-200 hover:bg-[#435058] hover:text-[#FEEDC1] focus:outline-none focus:ring-2 focus:ring-[#435058] focus:ring-opacity-50"
                         onClick={() => setIsOpen(false)}
                       >
                         Login
                       </Link>
-                      <Link href="/register" onClick={() => setIsOpen(false)}>
+                      <Link href="/auth/login" onClick={() => setIsOpen(false)}>
                         <button
                           className="mt-2 flex items-center justify-center gap-2 bg-[#435058] text-white px-4 py-2 rounded-full hover:bg-[#374349] transition duration-200 w-full"
                           aria-label="Sign Up"

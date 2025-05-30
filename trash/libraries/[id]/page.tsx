@@ -58,7 +58,7 @@ type PageProps = {
 async function FetchLibraryInfo(params: string): Promise<Library> {
   
   const libraryData = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/library/${params}`,
+    `${process.env.NODE_BACKEND_URL || "http://localhost:5000"}/api/library/${params}`,
     {
       method: "GET",
       credentials: "include",
