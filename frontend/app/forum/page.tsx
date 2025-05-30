@@ -23,7 +23,7 @@ export default function Forum() {
   const [error, setError] = useState<string | null>(null);
 
   const handleClick = () => {
-    router.push('/forum/user/ask');
+    router.push('/forum/ask');
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

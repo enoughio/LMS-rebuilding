@@ -1,199 +1,266 @@
-// 'use client';
 
-// import { useRef, useState, useEffect } from 'react';
-// import RichTextEditor from "@/components/forum/textEditor";
-// import { useAuth } from "@/lib/context/AuthContext";
-// import toast from "react-hot-toast";
-// import { useRouter } from "next/navigation";
-// export default function Community() {
-//   const [description, setDescription] = useState('');
-//   const [title, setTitle] = useState('');
-//   const [tags, setTags] = useState('');
-//   const [categories, setCategories] = useState('');
-//   const [notifyOnComment, setNotifyOnComment] = useState(false);
-//   const { user } = useAuth();
-//   const router = useRouter();
-//   const textareaRef = useRef<HTMLTextAreaElement>(null);
-//   const richTextEditorRef = useRef<any>(null);
+'use client';
 
-//   // Check if user is logged in
-//   useEffect(() => {
-//     if (!user) {
-//       toast.error('You need to log in before posting a question');
-//       router.push('/login');
-//     }
-//   }, [user, router]);
+import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 
-//   const applyFormat = (startTag: string, endTag: string) => {
-//     const textarea = textareaRef.current;
-//     if (!textarea) return;
+const AskQuestion: React.FC = () => {
+  const [title, setTitle] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [notify, setNotify] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+  const [success, setSuccess] = useState<string>('');
+  const [currentTag, setCurrentTag] = useState<string>('');
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
 
-//     const start = textarea.selectionStart;
-//     const end = textarea.selectionEnd;
-//     const selectedText = description.slice(start, end);
+  // Fetch categories from API on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories');
+        if (!response.ok) {
+          throw new Error('Failed to fetch categories');
+        }
+        const data: string[] = await response.json();
+        setCategories(data);
+      } catch (err) {
+        setError('Error fetching categories. Please try again.');
+        console.error('Error fetching categories:', err); 
+      }
+    };
+    fetchCategories();
+  }, []);
 
-//     const newText =
-//       description.slice(0, start) +
-//       startTag +
-//       selectedText +
-//       endTag +
-//       description.slice(end);
+  // Load draft from localStorage on mount
+  useEffect(() => {
+    const draft = JSON.parse(localStorage.getItem('questionDraft') || '{}') as {
+      title?: string;
+      description?: string;
+      tags?: string[];
+      notify?: boolean;
+      selectedCategory?: string;
+    };
+    setTitle(draft.title || '');
+    setDescription(draft.description || '');
+    setTags(draft.tags || []);
+    setNotify(draft.notify || false);
+    setSelectedCategory(draft.selectedCategory || '');
+  }, []);
 
-//     setDescription(newText);
+  // Save draft to localStorage whenever form changes
+  useEffect(() => {
+    const draft = { title, description, tags, notify, selectedCategory };
+    localStorage.setItem('questionDraft', JSON.stringify(draft));
+  }, [title, description, tags, notify, selectedCategory]);
 
-//     // Refocus and update cursor position
-//     setTimeout(() => {
-//       textarea.focus();
-//       textarea.setSelectionRange(start + startTag.length, end + startTag.length);
-//     }, 0);
-//   };
+  const handleTagAdd = (): void => {
+    if (tags.length >= 5) {
+      setError('You can only add up to 5 tags.');
+      return;
+    }
+    if (currentTag.trim() && !tags.includes(currentTag.trim())) {
+      setTags([...tags, currentTag.trim()]);
+      setCurrentTag('');
+    }
+  };
 
+  const handleTagRemove = (tag: string): void => {
+    setTags(tags.filter((t) => t !== tag));
+  };
 
-//   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-//     const file = e.target.files?.[0];
-//     if (file) {
-//       const imageUrl = URL.createObjectURL(file);
-//       const markdownImage = `![alt text](${imageUrl})`;
-//       setDescription((prev) => prev + '\n' + markdownImage + '\n');
-//     }
-//   };
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
 
-//   const handlePostQuestion = () => {
-//     if (!user) {
-//       toast.error('You need to log in before posting a question');
-//       router.push('/login');
-//       return;
-//     }
+    // Validation
+    if (!title.trim()) {
+      setError('Question title is required.');
+      return;
+    }
+    if (!description.trim()) {
+      setError('Description is required.');
+      return;
+    }
+    if (!selectedCategory) {
+      setError('Please select a category.');
+      return;
+    }
 
-//     // Add validation for required fields
-//     if (!title.trim()) {
-//       toast.error('Please provide a question title');
-//       return;
-//     }
+    try {
+      const response = await fetch('/api/questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description, tags, notify, category: selectedCategory }),
+      });
 
-//     // Assuming you have a way to get the content from the rich text editor
-//     const content = richTextEditorRef.current?.getContent() || description;
-//     if (!content.trim()) {
-//       toast.error('Please provide a question description');
-//       return;
-//     }
+      if (!response.ok) {
+        throw new Error('Failed to post question');
+      }
 
-//     // Here you would handle the API call to post the question
-//     toast.success('Your question has been posted!');
-//     // After successful post, redirect to the forum home page or the new question page
-//     router.push('/forum');
-//   };
+      setSuccess('Question posted successfully!');
+      // Clear form and draft
+      setTitle('');
+      setDescription('');
+      setTags([]);
+      setNotify(false);
+      setSelectedCategory('');
+      localStorage.removeItem('questionDraft');
+    } catch (err) {
+      setError('Error posting question. Please try again.');
+      console.error('Error posting question:', err);
+    }
+  };
 
-//   const handleSaveDraft = () => {
-//     if (!user) {
-//       toast.error('You need to log in before saving a draft');
-//       router.push('/login');
-//       return;
-//     }
+  const handleSaveDraft = (): void => {
+    setSuccess('Draft saved!');
+  };
 
-//     // Here you would handle saving the draft logic
-//     toast.success('Draft saved successfully');
-//   };
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
+    const { value } = e.target;
+    if (e.target.name === 'title') setTitle(value);
+    if (e.target.name === 'description') setDescription(value);
+    if (e.target.name === 'currentTag') setCurrentTag(value);
+  };
 
-//   return (
+  const handleCheckboxChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    setNotify(e.target.checked);
+  };
 
-//     <div className="min-h-screen flex flex-col bg-[#ECE3DA]">
-//       {/* <Navbar /> */}
+  const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>): void => {
+    setSelectedCategory(e.target.value);
+  };
 
-
-//       <main className="flex-grow w-full px-10 sm:px-14 md:px-20 lg:px-36 py-10">
-//         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-8">Ask the Community</h1>
-
-//         {/* Question Title */}
-//         <div className="mb-6">
-//           <label htmlFor="questionTitle" className="block text-lg font-medium mb-2">Question Title</label>
-//           <input
-//             id="questionTitle"
-//             type="text"
-//             placeholder="How do I manage my study streak?"
-//             className="w-full p-3 rounded-lg border border-gray-300 bg-[#EFEAE5] focus:outline-none focus:ring-2 focus:ring-black"
-//             value={title}
-//             onChange={(e) => setTitle(e.target.value)}
-//           />
-//           <p className="text-sm text-gray-600 mt-2">Be specific and imagine you're asking a question to another person.</p>
-//         </div>
-
-//         {/* Description with Toolbar */}
-//         <div className="mb-6 ">
-//           <label htmlFor="questionDescription" className="block text-lg font-medium mb-2">Description</label>
-
-//           {/* Toolbar */}
-//          <RichTextEditor ref={richTextEditorRef} onContentChange={setDescription} />
-//         </div>
-
-//         {/* Tags */}
-//         <div className="mb-6">
-//           <label htmlFor="tags" className="block text-lg font-medium mb-2">Tags</label>
-//           <input
-//             id="tags"
-//             type="text"
-//             placeholder="Add up to 5 tags (comma separated)"
-//             className="w-full p-3 rounded-lg border bg-[#EFEAE5] border-gray-300 focus:outline-none focus:ring-2 focus:ring-black"
-//             value={tags}
-//             onChange={(e) => setTags(e.target.value)}
-//           />
-//         </div>
-
-
-//         {/* Category */}
-//         <div className="mb-6">
-//           <label htmlFor="categories" className="block text-lg font-medium mb-2">Categories</label>
-//           <input
-//             id="categories"
-//             type="text"
-//             placeholder="Add categories"
-//             className="w-full p-3 rounded-lg border bg-[#EFEAE5] border-gray-300 focus:outline-none focus:ring-2 focus:ring-black"
-//             value={categories}
-//             onChange={(e) => setCategories(e.target.value)}
-//           />
-//         </div>
-
-//         {/* Privacy */}
-//         <div className="mb-8">
-//           <h2 className="text-lg font-medium mb-3">Privacy</h2>
-//           <label className="flex items-center gap-3">
-//             <input 
-//               type="checkbox" 
-//               className="h-4 w-4"
-//               checked={notifyOnComment}
-//               onChange={(e) => setNotifyOnComment(e.target.checked)}
-//             />
-//             <span>Notify me via email when someone comments</span>
-//           </label>
-//         </div>
-
-//         {/* Buttons */}
-//         <div className="flex gap-4 mb-10">
-//           <button 
-//             className="px-6 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition"
-//             onClick={handlePostQuestion}
-//           >
-//             Post Question
-//           </button>
-//           <button 
-//             className="px-6 py-2 text-black border border-black rounded-full hover:bg-gray-100 transition"
-//             onClick={handleSaveDraft}
-//           >
-//             Save as Draft
-//           </button>
-//         </div>
-//       </main>
-//     </div>
-//   );
-// }
-
-
-import React from 'react'
-
-const page = () => {
   return (
-    <div>page</div>
-  )
-}
+    <div className='w-full bg-[#ECE3DA] min-h-screen py-20'>
+      <div className="w-[70%] mx-auto p-4 ">
+        <h1 className="text-3xl font-bold mb-4">Ask the Community</h1>
 
-export default page
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        {success && <p className="text-green- frown mb-4">{success}</p>}
+
+        <form onSubmit={handleSubmit}>
+          {/* Question Title */}
+          <div className="mb-4 shadow-t-md p-4 rounded-lg">
+            <label className="block text-base font-medium mb-1 ">Question Title</label>
+            <input
+              type="text"
+              name="title"
+              value={title}
+              onChange={handleInputChange}
+              placeholder="How do I manage my study streak?"
+              className="w-full p-2 rounded-md focus:outline-none bg-[#EFEAE5] focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Be specific and imagine you’re asking a question to another person
+            </p>
+          </div>
+
+          {/* Description */}
+          <div className="mb-4 shadow-t-md p-4 rounded-lg">
+            <label className="block text-base font-medium mb-1">Description</label>
+            <textarea
+              name="description"
+              value={description}
+              onChange={handleInputChange}
+              placeholder="Describe your problem in detail. What have you tried? What did you expect?"
+              className="w-full p-2  rounded-md h-40 resize-y focus:outline-none focus:ring-2 bg-[#EFEAE5]  focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Tags */}
+          <div className="mb-4 shadow-t-md px-4 rounded-lg">
+            <label className="block text-sm font-medium mb-1">Tags</label>
+            <div className="flex flex-wrap gap-2 p-2 bg-[#E0D8D0] rounded-t-md ">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="bg-gray-200 px-2 py-1 rounded-full flex items-center gap-1 text-sm"
+                >
+                  #{tag}
+                  <button
+                    type="button"
+                    onClick={() => handleTagRemove(tag)}
+                    className="text-gray-600-500 hover:text-red-700"
+                  >
+                    ✕
+                  </button>
+                </span>
+              ))}
+            </div>
+            <div className="flex gap-2 ">
+              <input
+                type="text"
+                name="currentTag"
+                value={currentTag}
+                onChange={handleInputChange}
+                placeholder="Add up to 5 tags"
+                className="w-full p-2 rounded-md focus:outline-none bg-[#EFEAE5] focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="button"
+                onClick={handleTagAdd}
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+
+          {/* Category Dropdown */}
+          <div className="mb-4 shadow-t-md px-4 rounded-lg">
+            <label className="block text-sm font-medium mb-1">Category</label>
+            <select
+              value={selectedCategory}
+              onChange={handleCategoryChange}
+              className="w-full p-2 rounded-md focus:outline-none bg-[#EFEAE5] focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select a category</option>
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Privacy */}
+          <div className="mb-4 shadow-t-md px-4 rounded-lg">
+            <label className="block text-sm font-medium mb-1">Privacy</label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={notify}
+                onChange={handleCheckboxChange}
+                className="h-4 w-4"
+              />
+              <span className="text-sm">
+                Notify me via email when someone comments
+              </span>
+            </label>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-4 shadow-t-md px-4 rounded-lg">
+            <button
+              type="submit"
+              className="bg-black text-white px-6 py-2 rounded-full hover:bg-gray-800"
+            >
+              Post Question
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              className="border border-black px-6 py-2 rounded-full hover:bg-gray-100"
+            >
+              Save as Draft
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default AskQuestion;
