@@ -32,7 +32,6 @@ export const POST = async function syncUser() {
     }
 
     const result = await response.json();
-    console.log("Synced user result:", result);
     return NextResponse.json(result, res);
   } catch (error: unknown) {
     const errorMessage =

@@ -5,9 +5,7 @@ import { useUser } from "@auth0/nextjs-auth0"
 import { useRouter, usePathname } from "next/navigation"
 import type { User } from "@/types/user"
 import toast from "react-hot-toast"
-// import { auth0 } from "../auth0"
 
-// const API_URL = process.env.NODE_BACKEND_URL || "http://localhost:5000/api"
 
 type AuthContextType = {
   user: User | null
@@ -38,7 +36,6 @@ export function Auth0AuthProvider({ children }: { children: React.ReactNode }) {
             "Content-Type": "application/json",
           },
         })
-
 
         const response = await syncResponse.json()
         // console.log("Syncing user with backend...", auth0User)
@@ -73,8 +70,8 @@ export function Auth0AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
     } catch (error) {
-      console.error("Error syncing user:", error)
-      toast.error("Failed to sync user data")
+      // console.error("Error syncing user:", error)
+      toast.error(`Failed to sync user data ${error}`)
     }
   }
 
@@ -167,7 +164,7 @@ export function Auth0AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Handle Auth0 errors
   if (error) {
-    console.log("Auth0 User:", error)
+    // console.log("Auth0 User:", error)
     toast.error("Authentication error occurred")
   }
 
