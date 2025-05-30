@@ -23,7 +23,6 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
   'https://www.studentsadda.com',
-  'https://www.studentsadda.com/',
   'https://studentsadda.com',
   process.env.FRONTEND_URL,
 ].filter((origin): origin is string => Boolean(origin));
