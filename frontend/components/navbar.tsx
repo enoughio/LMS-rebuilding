@@ -9,11 +9,12 @@ import { usePathname } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 // import { ModeToggle } from "@/components/mode-toggle.tsx";
-import { useUser } from '@auth0/nextjs-auth0';
+// import { useUser } from '@auth0/nextjs-auth0';
+import { useAuth } from '@/lib/context/AuthContext';
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { user } = useUser(); // Removed unused isLoading variable
+  const { user } = useAuth(); 
   // const { user : dbUser, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);

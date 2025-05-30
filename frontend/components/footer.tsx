@@ -1,11 +1,7 @@
-'use client';
+
 import Image from "next/image";
 
-import { useParams } from "next/navigation";
-
 export default function Footer() {
-  const parms = useParams();
-
   return (
     <footer className=" bg-[#ECE3DA] w-full max-w-[1920px]">
       {/* Top Section */}
