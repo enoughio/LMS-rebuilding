@@ -20,8 +20,8 @@ export const POST = async function syncUser() {
     
         const res = new NextResponse();
         const { token: accessToken } = await auth0.getAccessToken();
-        const apiPort = process.env.NEXT_API_URL || 'http://localhost:5000';
-        const response = await fetch(`${apiPort}/api/user/sync-user`, {
+        const API_BASE_URL = process.env.NEXT_API_URL || 'http://localhost:5000';
+        const response = await fetch(`${API_BASE_URL}/api/user/sync-user`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

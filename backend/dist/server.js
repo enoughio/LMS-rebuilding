@@ -21,7 +21,7 @@ const allowedOrigins = [
 // CORS middleware for bear token authentication
 app.use(cors({
     origin: allowedOrigins,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    // methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
 }));
 // // Routes
