@@ -29,7 +29,7 @@ export function Auth0AuthProvider({ children }: { children: React.ReactNode }) {
     if (!auth0User) return
 
     try {
-      
+
         const syncResponse =  await fetch('/api/sync', {
           method: "POST",
           headers: {
@@ -71,7 +71,7 @@ export function Auth0AuthProvider({ children }: { children: React.ReactNode }) {
 
     } catch (error) {
       // console.error("Error syncing user:", error)
-      toast.error("Failed to sync user data")
+      toast.error(`Failed to sync user data ${error}`)
     }
   }
 
