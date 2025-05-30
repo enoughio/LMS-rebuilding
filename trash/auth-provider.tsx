@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const isSuperAdminRoute = pathname.startsWith("/dashboard/super-admin")
 
        
-         if ((user.role === "MEMBER" || user.role === "LOGGED_IN") && (isAdminRoute || isSuperAdminRoute)) {
+         if ((user.role === "SUPER_ADMIN") && (isAdminRoute || isSuperAdminRoute)) {
           router.push("/dashboard/member")
         } else if (user.role === "ADMIN" && (isMemberRoute || isSuperAdminRoute)) {
           router.push("/dashboard/admin")

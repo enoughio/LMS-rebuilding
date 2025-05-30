@@ -2,7 +2,7 @@
 
 // import { useRef, useState, useEffect } from 'react';
 // import RichTextEditor from "@/components/forum/textEditor";
-// import { useAuth } from "@/lib/auth-provider";
+// import { useAuth } from "@/lib/context/AuthContext";
 // import toast from "react-hot-toast";
 // import { useRouter } from "next/navigation";
 // export default function Community() {

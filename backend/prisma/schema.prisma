@@ -60,7 +60,6 @@ model User {
 }
 
 enum UserRole {
-  // LOGGED_IN // <-- REMOVED
   MEMBER
   ADMIN
   SUPER_ADMIN

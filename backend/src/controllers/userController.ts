@@ -1,21 +1,22 @@
 import { Request, Response } from "express";
-import prisma from "../lib/prisma.js"; 
-import { UserRole} from "../../generated/prisma/index.js";
+import prisma from "../lib/prisma.js";
+import { UserRole } from "../../generated/prisma/index.js";
 
 // Define interface for basic user data from Prisma (using Prisma-generated UserRole)
-
 
 interface ErrorResponse {
   error: string;
 }
 
-
 // Get basic user information
-export const getCurrentUser = async (req: Request, res: Response): Promise<void> => {
+export const getCurrentUser = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     // Type assertion for req to include auth property (from express-oauth2-jwt-bearer)
     const authReq = req as any;
-    
+
     if (!authReq.auth || !authReq.auth.payload || !authReq.auth.payload.sub) {
       res.status(401).json({ error: "Unauthorized" } as ErrorResponse);
       return;
@@ -49,37 +50,35 @@ export const getCurrentUser = async (req: Request, res: Response): Promise<void>
     }
 
     res.json({
-        succsess: true,
-        message: "User fetched successfully", 
-        data : user 
+      succsess: true,
+      message: "User fetched successfully",
+      data: user,
     });
-
-
   } catch (error) {
     console.error("Error fetching user:", error);
     res.status(500).json({ error: "Internal server error" } as ErrorResponse);
   }
 };
 
-
-
-
 // Sync user after login
 export const syncUser = async (req: Request, res: Response): Promise<void> => {
   try {
     // Type assertion for req to include auth property (from express-oauth2-jwt-bearer)
     const authReq = req as any;
-    
+
     if (!authReq.auth || !authReq.auth.payload || !authReq.auth.payload.sub) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
 
-    const userInfo = await fetch('https://dev-173h8fm3s2l6fjai.us.auth0.com/userinfo', {
-      headers: {
-        Authorization: `Bearer ${authReq.auth.token}`
+    const userInfo = await fetch(
+      "https://dev-173h8fm3s2l6fjai.us.auth0.com/userinfo",
+      {
+        headers: {
+          Authorization: `Bearer ${authReq.auth.token}`,
+        },
       }
-    }).then(res => res.json());
+    ).then((res) => res.json());
 
     // console.log("Auth0 user info:", userInfo);
 
@@ -99,13 +98,8 @@ export const syncUser = async (req: Request, res: Response): Promise<void> => {
     const isEmailVerified = Boolean(email_verified);
 
     // Check if user already exists by auth0UserId OR email
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { auth0UserId },
-          { email: userEmail }
-        ]
-      }
+    const existingUser = await prisma.user.findUnique({
+      where: { auth0UserId: auth0UserId },
     });
 
     if (existingUser) {
@@ -115,7 +109,7 @@ export const syncUser = async (req: Request, res: Response): Promise<void> => {
         data: {
           auth0UserId, // Update this in case iet was null befor
           name: userName, // Update name in case it changed
-          email: userEmail, // Update email in case it changed
+          // email: userEmail, // Update email in case it changed
           avatar: userPicture,
           emailVerified: isEmailVerified,
           lastLogin: new Date(),
@@ -137,12 +131,12 @@ export const syncUser = async (req: Request, res: Response): Promise<void> => {
           updatedAt: true,
         },
       });
-        
+
       // console.log("User synced successfully by update:", updatedUser);
-      res.status(200).json({ 
-        success: true, 
-        message: "User synced successfully", 
-        data: updatedUser 
+      res.status(200).json({
+        success: true,
+        message: "User synced successfully",
+        data: updatedUser,
       });
       return;
     }
@@ -177,12 +171,11 @@ export const syncUser = async (req: Request, res: Response): Promise<void> => {
     });
 
     // console.log("User synced successfully by creation:", user);
-    res.status(201).json({ 
-      success: true, 
-      message: "User synced successfully", 
-      data: user 
+    res.status(201).json({
+      success: true,
+      message: "User synced successfully",
+      data: user,
     });
-
   } catch (error) {
     console.error("Error syncing user:", error);
     res.status(500).json({ error: "Internal server error" });

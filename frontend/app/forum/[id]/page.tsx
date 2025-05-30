@@ -1,9 +1,4 @@
 
-
-
-
-
-
 import CommentsSection from '@/components/CommentsSection';
 import { forumApi } from '@/lib/forum';
 

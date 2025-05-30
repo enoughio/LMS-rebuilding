@@ -99,7 +99,7 @@ export default function Navbar() {
           
           {user ? (
             <>
-              <Link href={`/dashboard/${user.role}`}>
+              <Link href={`/dashboard`}>
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -205,7 +205,7 @@ export default function Navbar() {
                   {user ? (
                     <>
                       <Link
-                        href={`/dashboard/${user.role}`}
+                        href={`/dashboard`}
                         className="px-4 py-2 rounded-md transition duration-200 hover:bg-[#435058] hover:text-[#FEEDC1] focus:outline-none focus:ring-2 focus:ring-[#435058] focus:ring-opacity-50"
                         onClick={() => setIsOpen(false)}
                       >
