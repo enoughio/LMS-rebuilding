@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth0 } from '@/lib/auth0';
 
-const API_BASE_URL = process.env.NEXT_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.NODE_BACKEND_URL || 'http://localhost:5000';
 
 export async function GET(
   request: NextRequest,
@@ -23,7 +23,7 @@ export async function GET(
 
     const { token: accessToken } = await auth0.getAccessToken();
     
-    const response = await fetch(`${API_BASE_URL}/api/forum/posts/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/forum/${id}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -70,7 +70,7 @@ export async function PUT(
     const { token: accessToken } = await auth0.getAccessToken();
     const body = await request.json();
     
-    const response = await fetch(`${API_BASE_URL}/api/forum/posts/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/forum/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -116,7 +116,7 @@ export async function DELETE(
 
     const { token: accessToken } = await auth0.getAccessToken();
     
-    const response = await fetch(`${API_BASE_URL}/api/forum/posts/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/forum/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

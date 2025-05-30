@@ -17,7 +17,6 @@ export default function Navbar() {
   // const { user : dbUser, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  console.log("User:", user);
 
   const navItems = [
     { label: 'Home', href: '/' },

@@ -5,7 +5,6 @@ import { useParams } from "next/navigation";
 
 export default function Footer() {
   const parms = useParams();
-  console.log(parms);
 
   return (
     <footer className=" bg-[#ECE3DA] w-full max-w-[1920px]">

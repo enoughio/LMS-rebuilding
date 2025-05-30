@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth0 } from '@/lib/auth0';
 
-const API_BASE_URL = process.env.NEXT_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.NODE_BACKEND_URL || 'http://localhost:5000';
 
 export async function GET(
   request: NextRequest,
@@ -26,7 +26,7 @@ export async function GET(
     const page = searchParams.get('page') || '1';
     const limit = searchParams.get('limit') || '20';
     
-    const response = await fetch(`${API_BASE_URL}/api/forum/posts/${id}/comments?page=${page}&limit=${limit}`, {
+    const response = await fetch(`${API_BASE_URL}/api/forum/${id}/comments?page=${page}&limit=${limit}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ export async function POST(
     const { token: accessToken } = await auth0.getAccessToken();
     const body = await request.json();
     
-    const response = await fetch(`${API_BASE_URL}/api/forum/posts/${id}/comments`, {
+    const response = await fetch(`${API_BASE_URL}/api/forum/${id}/comments`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

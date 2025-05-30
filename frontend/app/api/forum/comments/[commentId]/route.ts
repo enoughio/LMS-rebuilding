@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth0 } from '@/lib/auth0';
 
-const API_BASE_URL = process.env.NEXT_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.NODE_BACKEND_URL || 'http://localhost:5000';
 
 // Using the standard Next.js App Router pattern for route handlers
 export async function PUT(
