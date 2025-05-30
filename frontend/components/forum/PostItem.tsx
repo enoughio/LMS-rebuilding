@@ -174,7 +174,7 @@ export default function PostItem({
               <span>{currentLikes}</span>
             </Button>
 
-            <Link href={`/forum/${id}`}>
+            {/* <Link href={`/forum/${id}`}> */}
               <Button
                 variant="ghost"
                 size="sm"
@@ -183,7 +183,7 @@ export default function PostItem({
                 <MessageSquare size={16} />
                 <span>{commentCount}</span>
               </Button>
-            </Link>
+            {/* </Link> */}
           </div>
         </CardFooter>
       </Link>

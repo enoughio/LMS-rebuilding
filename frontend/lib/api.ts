@@ -1,6 +1,6 @@
 // // API utilities for communicating with the backend
 
-// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+// const API_BASE_URL = process.env.NODE_BACKEND_URL || 'http://localhost:5000';
 
 // const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
 //   const url = `${API_BASE_URL}${endpoint}`;
