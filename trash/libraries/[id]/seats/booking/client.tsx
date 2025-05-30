@@ -107,7 +107,7 @@ export default function SeatBookingPage() {
       setIsLoading(true);
       try {
         const url = `${
-          process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
+          process.env.NODE_BACKEND_URL || 'http://localhost:5000'
         }/api/bookings/${libraryId}/seats?category=${encodeURIComponent(category)}`;
         const response = await fetch(url, {
           method: 'GET',
@@ -159,7 +159,7 @@ export default function SeatBookingPage() {
     setIsSubmitting(true);
 
     try {
-      const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/bookings`;
+      const url = `${process.env.NODE_BACKEND_URL || 'http://localhost:5000'}/api/bookings`;
       const response = await fetch(url, {
         method: 'POST',
         credentials: 'include',
