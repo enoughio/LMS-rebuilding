@@ -13,6 +13,7 @@ import libraryRoutes from './routes/libraryRoutes.js';
 // import bookRoutes from './routes/bookRoutes';
 // import dashboardRoutes from './routes/dashboardRoutes';
 import userRoutes from './routes/userRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
 
 
 const app = express();
@@ -47,7 +48,7 @@ app.use('/api/library', libraryRoutes);
 // app.use('/api/bookings', bookingRoutes);
 // app.use('/api/memberships', membershipRoutes);
 // app.use('/api/books', bookRoutes);
-// app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 // app.use('/api/auth', authRoutes);
 
 // Test route
