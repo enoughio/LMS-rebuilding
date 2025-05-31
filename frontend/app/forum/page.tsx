@@ -278,6 +278,7 @@ export default function Forum() {
                 createdAt={post.createdAt}
                 viewCount={post.viewCount}
                 likeCount={post.likeCount}
+                tags={post.tags}
                 commentCount={post.commentCount}
               />
             ))}

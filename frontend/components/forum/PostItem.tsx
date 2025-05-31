@@ -95,21 +95,15 @@ export default function PostItem({
               : plainTextContent}
           </p>
 
-          {tags.length > 0 ? (
+          {tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-3">
               {tags.map((tag, index) => (
-                <Badge key={index} variant="outline" className="text-xs">
+                <Badge key={index} variant="outline" className="text-xs font-thin rounded-full ">
                   {tag}
                 </Badge>
               ))}
             </div>
-          ) : (
-            <div className="flex flex-wrap gap-2 mt-3 ml-2">
-              <Badge variant="outline" className="text-xs font-thin rounded-full ">
-                # Random
-              </Badge>
-            </div>
-          )}
+          ) }
         </CardContent>
 
         <CardFooter className="flex items-center justify-between">
