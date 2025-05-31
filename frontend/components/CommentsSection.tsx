@@ -217,6 +217,7 @@ import toast from 'react-hot-toast';
 import CommentCard from './CommentCard';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
+import { Textarea } from './ui/textarea';
 
 type Comment = {
   id: string;
@@ -298,7 +299,7 @@ export default function PostComments({ postId }: PostCommentsProps) {
     <div className="mx-auto w-full max-w-[95%] sm:max-w-[90%] md:max-w-[80%] flex flex-col items-center gap-4 sm:gap-6 bg-[#EFEAE5]/60 p-4 sm:p-6 rounded-2xl">
       {/* Comment input */}
       <div className="w-full flex flex-col sm:flex-row items-center gap-2 sm:gap-3 md:max-w-[80%]">
-        <Input
+        <Textarea
           placeholder="Add a comment..."
           className="flex-grow bg-transparent p-3 sm:p-4 rounded-lg shadow-inner focus:ring-2 focus:ring-gray-500 text-[clamp(14px,3.5vw,16px)]"
           value={commentInput}
