@@ -5,6 +5,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Auth0Provider } from "@auth0/nextjs-auth0";
 import { Auth0AuthProvider } from "@/lib/context/AuthContext";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,6 +37,7 @@ export default function RootLayout({
             <div className="flex flex-col justify-center items-center bg-[#EFEAE5] min-h-screen">
               <Navbar />
               {children}
+              <Toaster />
               <Footer />
             </div>
           </Auth0AuthProvider>

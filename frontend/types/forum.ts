@@ -63,21 +63,21 @@ export interface Comment {
 
 export interface Post {
   id: string
-  title: string
-  content: string
-  image: string | null
-  tags: string[]
-  data: any
-  isPinned: boolean
-  isLocked: boolean
-  viewCount: number
-  likeCount: number
+  title?: string
+  content?: string
+  image?: string | null
+  tags?: string[]
+  data?: any
+  isPinned?: boolean
+  isLocked?: boolean
+  viewCount?: number
+  likeCount?: number
   createdAt: string
   updatedAt: string
   authorId: string
   categoryId: string
-  author: Author
-  category: Category
+  author?: Author
+  category?: Category
   comments?: Comment[]
   _count: {
     comments: number

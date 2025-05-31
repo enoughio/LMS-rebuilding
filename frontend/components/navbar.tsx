@@ -8,8 +8,8 @@ import { usePathname } from 'next/navigation';
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-// import { ModeToggle } from "@/components/mode-toggle.tsx";
 import { useUser } from '@auth0/nextjs-auth0';
+
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -25,6 +25,8 @@ export default function Navbar() {
     { label: 'Forum', href: '/forum' },
     { label: 'Contact Us', href: '/contact' },
   ];
+
+  // console.log("User:", dbUser); // Debugging line to check user object
 
   // Add active state to nav items
   const routes = navItems.map(item => ({

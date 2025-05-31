@@ -14,7 +14,7 @@ const AddCommet = ({postId} : {
 
   const handleSubmit = async (postId: string, content: string) => {
     try {
-      const response = await fetch(`/api/posts/${postId}/comments`, {
+      const response = await fetch(`/api/forum/posts/${postId}/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -34,11 +34,11 @@ const AddCommet = ({postId} : {
   };
 
   return (
-    <div className='flex items-center bg-[#EFEAE5] gap-3 justify-center  max-w-[80%] mx-auto h-full p-2'>
+    <div className='flex items-center bg-[#EFEAE5] gap-3 justify-center  w-[80%] MT  mx-auto h-full p-2 pt-4'>
       <Input
         type="text"
         placeholder="Add a comment..."
-        className="w-[60%] max-w-2xl p-4 bg-transparent rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-[70%] max-w-3xl p-4 bg-transparent rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         value={comment}
         onChange={(e) => setComment(e.target.value)}
       />
@@ -47,7 +47,7 @@ const AddCommet = ({postId} : {
         onClick={async () => {
           // Don't submit if the comment is empty
           if (!comment.trim()) {
-            toast.error('Please enter a comment');
+            toast('Please enter a comment');
             return;
           }
           
