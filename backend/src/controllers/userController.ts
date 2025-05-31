@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma.js"; 
-import { UserRole} from "../../generated/prisma/index.js";
+import { $Enums} from "../../generated/prisma/index.js";
 
 // Define interface for basic user data from Prisma (using Prisma-generated UserRole)
 
@@ -61,9 +61,6 @@ export const getCurrentUser = async (req: Request, res: Response): Promise<void>
   }
 };
 
-
-
-
 // Sync user after login
 export const syncUser = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -75,15 +72,7 @@ export const syncUser = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const userInfo = await fetch('https://dev-173h8fm3s2l6fjai.us.auth0.com/userinfo', {
-      headers: {
-        Authorization: `Bearer ${authReq.auth.token}`
-      }
-    }).then(res => res.json());
-
-    // console.log("Auth0 user info:", userInfo);
-
-    const { sub, name, email, picture, email_verified } = userInfo;
+    const { sub, email, name, picture, email_verified } = authReq.auth.payload;
 
     // Validate required fields
     if (!sub || !email || !name) {
@@ -98,66 +87,26 @@ export const syncUser = async (req: Request, res: Response): Promise<void> => {
     const userPicture = picture ? String(picture) : null;
     const isEmailVerified = Boolean(email_verified);
 
-    // Check if user already exists by auth0UserId OR email
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { auth0UserId },
-          { email: userEmail }
-        ]
-      }
-    });
-
-    if (existingUser) {
-      // Update existing user - make sure to update auth0UserId if it was null
-      const updatedUser = await prisma.user.update({
-        where: { id: existingUser.id },
-        data: {
-          auth0UserId, // Update this in case iet was null befor
-          name: userName, // Update name in case it changed
-          email: userEmail, // Update email in case it changed
-          avatar: userPicture,
-          emailVerified: isEmailVerified,
-          lastLogin: new Date(),
-          updatedAt: new Date(),
-        },
-        select: {
-          id: true,
-          auth0UserId: true,
-          name: true,
-          email: true,
-          emailVerified: true,
-          varifiedBySuperAdmin: true,
-          address: true,
-          phone: true,
-          bio: true,
-          role: true,
-          avatar: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      });
-        
-      // console.log("User synced successfully by update:", updatedUser);
-      res.status(200).json({ 
-        success: true, 
-        message: "User synced successfully", 
-        data: updatedUser 
-      });
-      return;
-    }
-
-    // Create new user if not exists
-    const user = await prisma.user.create({
-      data: {
+    // Upsert user in the database
+    const user = await prisma.user.upsert({
+      where: { auth0UserId },
+      update: {
+        email: userEmail,
+        name: userName,
+        avatar: userPicture,
+        emailVerified: isEmailVerified ? new Date() : null,
+        updatedAt: new Date(),
+      },
+      create: {
         auth0UserId,
         email: userEmail,
         name: userName,
         avatar: userPicture,
-        emailVerified: isEmailVerified,
-        role: UserRole.MEMBER, // Default role
+        emailVerified: isEmailVerified ? new Date() : null,
+        role: "MEMBER" as $Enums.UserRole, // Default role
         varifiedBySuperAdmin: false,
-        lastLogin: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       select: {
         id: true,
@@ -166,9 +115,6 @@ export const syncUser = async (req: Request, res: Response): Promise<void> => {
         email: true,
         emailVerified: true,
         varifiedBySuperAdmin: true,
-        address: true,
-        phone: true,
-        bio: true,
         role: true,
         avatar: true,
         createdAt: true,
@@ -176,15 +122,13 @@ export const syncUser = async (req: Request, res: Response): Promise<void> => {
       },
     });
 
-    // console.log("User synced successfully by creation:", user);
-    res.status(201).json({ 
-      success: true, 
-      message: "User synced successfully", 
-      data: user 
-    });
-
+    res.json({ user });
   } catch (error) {
     console.error("Error syncing user:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+// Mount routes
+
+

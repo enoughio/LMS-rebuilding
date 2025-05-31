@@ -47,7 +47,7 @@ const LibrarySeats = () => {
       setLoading(true);
     try {
   const response = await fetch(
-    `${process.env.NODE_BACKEND_URL || 'http://localhost5000'}/api/bookings/${libraryId}/seats`,
+    `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost5000'}/api/bookings/${libraryId}/seats`,
     {
       method: 'GET',
       headers: {

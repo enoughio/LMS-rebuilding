@@ -13,20 +13,12 @@ export type MembershipPlan = {
 }
 
 export type User = {
-  id?: string
-  name?: string
-  username?: string
-  auth0UserId?: string
-  email?: string
-  role?: UserRole
-  emailVerified?: boolean
-  verifiedBySuperAdmin?: boolean
+  id: string
+  name: string
+  email: string
+  role: UserRole
   avatar?: string
-  address?: string
-  bio?: string
-  phone?: string
-  createdAt?: any
-  updatedAt?: any
+  createdAt: string
   membership?: {
     planId: string
     planName: string

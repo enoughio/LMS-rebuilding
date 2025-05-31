@@ -52,7 +52,7 @@ export default function AllLibraries() {
         page,
         limit: 10,
       });
-      const response = await fetch(`${process.env.NODE_BACKEND_URL || 'http://localhost5000'}/api/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost5000'}/api/`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

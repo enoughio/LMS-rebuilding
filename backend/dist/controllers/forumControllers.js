@@ -143,39 +143,12 @@ export const createForumPost = async (req, res) => {
 /**
  * Get all forum posts with pagination
  */
-export const getCatagories = async (_req, res) => {
-    try {
-        const categories = await prisma.forumCategory.findMany({
-            orderBy: {
-                name: 'asc',
-            },
-            select: {
-                id: true,
-                name: true,
-                description: true,
-            },
-        });
-        res.json({
-            success: true,
-            data: categories,
-        });
-    }
-    catch (error) {
-        console.error('Error fetching forum categories:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to fetch forum categories'
-        });
-    }
-};
 export const getForumPosts = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const categoryId = req.query.categoryId;
         const search = req.query.search;
-        const sort = req.query.sort || 'new';
-        const period = req.query.period || 'all';
         const userId = req.user?.id;
         const skip = (page - 1) * limit;
         // Build where clause
@@ -190,56 +163,15 @@ export const getForumPosts = async (req, res) => {
                 { tags: { has: search } },
             ];
         }
-        // Add period filtering
-        if (period !== 'all') {
-            const now = new Date();
-            let startDate;
-            switch (period) {
-                case 'today':
-                    startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                    break;
-                case 'week':
-                    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-                    break;
-                case 'month':
-                    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-                    break;
-                case 'year':
-                    startDate = new Date(now.getFullYear(), 0, 1);
-                    break;
-                default:
-                    startDate = new Date(0); // Beginning of time
-            }
-            where.createdAt = {
-                gte: startDate
-            };
-        }
-        // Build orderBy clause based on sort
-        let orderBy = [{ isPinned: 'desc' }];
-        switch (sort) {
-            case 'hot':
-                // Hot posts: combination of likes, comments, and recency
-                orderBy.push({ likeCount: 'desc' });
-                orderBy.push({ viewCount: 'desc' });
-                orderBy.push({ createdAt: 'desc' });
-                break;
-            case 'top':
-                // Top posts: most liked first
-                orderBy.push({ likeCount: 'desc' });
-                orderBy.push({ viewCount: 'desc' });
-                break;
-            case 'new':
-            default:
-                // New posts: most recent first
-                orderBy.push({ createdAt: 'desc' });
-                break;
-        }
         const [posts, totalCount] = await Promise.all([
             prisma.forumPost.findMany({
                 where,
                 take: limit,
                 skip: skip,
-                orderBy,
+                orderBy: [
+                    { isPinned: 'desc' },
+                    { createdAt: 'desc' }
+                ],
                 include: {
                     author: {
                         select: {
@@ -282,7 +214,6 @@ export const getForumPosts = async (req, res) => {
             commentCount: post._count.comments,
             _count: undefined,
         }));
-        const totalPages = Math.ceil(totalCount / limit);
         res.json({
             success: true,
             data: formattedPosts,
@@ -290,8 +221,8 @@ export const getForumPosts = async (req, res) => {
                 page,
                 limit,
                 totalCount,
-                totalPages,
-                hasNextPage: page < totalPages,
+                totalPages: Math.ceil(totalCount / limit),
+                hasNextPage: page < Math.ceil(totalCount / limit),
                 hasPrevPage: page > 1,
             }
         });
@@ -327,20 +258,20 @@ export const getForumPostById = async (req, res) => {
                         name: true,
                     },
                 },
-                // comments: {
-                //   include: {
-                //     author: {
-                //       select: {
-                //         id: true,
-                //         name: true,
-                //         avatar: true,
-                //       },
-                //     },
-                //   },
-                //   orderBy: {
-                //     createdAt: 'asc',
-                //   },
-                // },
+                comments: {
+                    include: {
+                        author: {
+                            select: {
+                                id: true,
+                                name: true,
+                                avatar: true,
+                            },
+                        },
+                    },
+                    orderBy: {
+                        createdAt: 'asc',
+                    },
+                },
                 _count: {
                     select: {
                         likes: true,
@@ -381,7 +312,7 @@ export const getForumPostById = async (req, res) => {
                 isLikedByUser: userId ? post.likes?.length > 0 : false,
                 likes: undefined,
                 likeCount: post._count.likes,
-                // commentCount: post.comments.length,
+                commentCount: post.comments.length,
                 _count: undefined,
             }
         });
@@ -762,7 +693,7 @@ export const deleteForumComment = async (req, res) => {
  */
 export const getForumComments = async (req, res) => {
     try {
-        const { postId: id } = req.params; // post ID
+        const { id } = req.params; // post ID
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
         const skip = (page - 1) * limit;

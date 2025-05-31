@@ -21,15 +21,14 @@ model User {
   id            String    @id @default(auto()) @map("_id") @db.ObjectId
   auth0UserId   String?   @unique
   name          String
-  email         String    
-  emailVerified Boolean?
+  email         String    @unique
+  emailVerified DateTime?
   varifiedBySuperAdmin   Boolean   @default(false) 
   role          UserRole  @default(MEMBER)
   avatar        String?
   bio           String?
   phone         String?
   address       String?
-  lastLogin   DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

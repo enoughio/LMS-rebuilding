@@ -14,7 +14,7 @@ export async function middleware(request) {
         return authRes;
     }
 
-    const publicRoutes = ["/about", "/libraries", "/about", '/forum', "/contact", "/privacy-policy", "/terms-of-service"];
+    const publicRoutes = ["/about", "/libraries", "/about",'/forum', "/contact", "/privacy-policy", "/terms-of-service"];
 
    if (publicRoutes.includes(request.nextUrl.pathname)) {
         return authRes;
@@ -37,7 +37,7 @@ export const config = {
          * Match all request paths except for the ones starting with:
          * - _next/static (static files)
          * - _next/image (image optimization files)
-         * - favicon.ico, sitemap.xml, robots.txt (metadata files)
+         *  sitemap.xml, robots.txt (metadata files)
          * - api (API routes)
          */
         "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|api).*)",

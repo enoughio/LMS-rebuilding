@@ -17,6 +17,7 @@ export default function Navbar() {
   // const { user : dbUser, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  console.log("User:", user);
 
   const navItems = [
     { label: 'Home', href: '/' },
@@ -55,7 +56,7 @@ export default function Navbar() {
 
   return (
     <nav 
-      className={`sticky w-full max-w-[1920px] lg:overflow-x-auto top-0 z-50 transition-all duration-300 ${
+      className={` w-full lg:overflow-x-auto top-0 z-50 transition-all duration-300 ${
         scrolled ? 'bg-[#ECE3DA]/90 shadow-md backdrop-blur-sm' : 'bg-[#ECE3DA]'
       }`}
       aria-label="Main navigation"
@@ -230,13 +231,13 @@ export default function Navbar() {
                   ) : (
                     <>
                       <Link
-                        href="/auth/login"
+                        href="/login"
                         className="px-4 py-2 rounded-md transition duration-200 hover:bg-[#435058] hover:text-[#FEEDC1] focus:outline-none focus:ring-2 focus:ring-[#435058] focus:ring-opacity-50"
                         onClick={() => setIsOpen(false)}
                       >
                         Login
                       </Link>
-                      <Link href="/auth/login" onClick={() => setIsOpen(false)}>
+                      <Link href="/register" onClick={() => setIsOpen(false)}>
                         <button
                           className="mt-2 flex items-center justify-center gap-2 bg-[#435058] text-white px-4 py-2 rounded-full hover:bg-[#374349] transition duration-200 w-full"
                           aria-label="Sign Up"
