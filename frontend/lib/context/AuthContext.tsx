@@ -164,8 +164,8 @@ export function Auth0AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Handle Auth0 errors
   if (error) {
-    // console.log("Auth0 User:", error)
-    toast.error("Authentication error occurred")
+    console.log("Auth0 User:", error)
+    // toast.error("Authentication error occurred")
   }
 
   return (
