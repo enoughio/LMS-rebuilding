@@ -17,6 +17,7 @@ const allowedOrigins = [
     'http://127.0.0.1:3000',
     'https://www.studentsadda.com',
     'https://studentsadda.com',
+    "https://dev-173h8fm3s2l6fjai.us.auth0.com",
     process.env.FRONTEND_URL,
 ].filter((origin) => Boolean(origin));
 // CORS middleware for bear token authentication

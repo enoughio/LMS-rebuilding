@@ -21,7 +21,9 @@ export async function POST(
 
     const { token: accessToken } = await auth0.getAccessToken();
 
-    const response = await fetch(`${API_BASE_URL}/api/forum/${id}/like`, {
+    console.log('Toggling like for post ID:', id);
+
+    const response = await fetch(`${API_BASE_URL}/api/forum/like/${id}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -12,6 +12,7 @@ export const verifyToken = auth({
 export const authenticate = async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
     // Ensure the token was verified and req.auth is populated
+    console.log("verifyToken middleware executed");
     if (!req.auth || !req.auth.payload.sub) {
       res.status(401).json({ error: "Unauthorized: No valid token provided" });
       return;

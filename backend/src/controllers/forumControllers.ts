@@ -94,6 +94,12 @@ export const createForumPost = async (req: AuthenticatedRequest, res: Response) 
     const { title, content, categoryId, tags, image } = req.body;
     const userId = req.user.id;
 
+    console.log('Creating forum post with data:', {
+      title,
+      content,
+      categoryId,
+    });
+
     // Validation
     if (!title || !content || !categoryId) {
       res.status(400).json({
@@ -352,7 +358,9 @@ export const getForumPosts = async (req: AuthenticatedRequest, res: Response) =>
  * Get a single forum post by ID
  */
 export const getForumPostById = async (req: AuthenticatedRequest, res: Response) => {
+
   try {
+    console.log('someone is trying to get a forum post by id');
     const { id } = req.params;
     const userId = req.user?.id;
 
@@ -527,7 +535,7 @@ export const updateForumPost = async (req: AuthenticatedRequest, res: Response) 
  */
 export const deleteForumPost = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const { postId : id } = req.params;
     const userId = req.user.id;
 
     // Check if post exists and user owns it or is admin
@@ -574,8 +582,10 @@ export const deleteForumPost = async (req: AuthenticatedRequest, res: Response) 
  */
 export const toggleForumPostLike = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id } = req.params; // post ID
+    const { postId : id } = req.params; // post ID
     const userId = req.user.id;
+
+    console.log('Toggling like for post ID:', id, 'by user ID:', userId);
 
     // Check if post exists
     const post = await prisma.forumPost.findUnique({
@@ -668,9 +678,10 @@ export const toggleForumPostLike = async (req: AuthenticatedRequest, res: Respon
  */
 export const addForumComment = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { id } = req.params; // post ID
+    const { postId : id } = req.params; // post ID
     const { content } = req.body;
     const userId = req.user.id;
+        console.log('Request body:', req.body);
 
     if (!content || content.trim().length === 0) {
       res.status(400).json({
@@ -852,15 +863,10 @@ export const deleteForumComment = async (req: AuthenticatedRequest, res: Respons
 export const getForumComments = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { postId : id  } = req.params; // post ID
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 20;
-    const skip = (page - 1) * limit;
 
-    const [comments, totalCount] = await Promise.all([
+    const [comments] = await Promise.all([
       prisma.forumComment.findMany({
         where: { postId: id },
-        take: limit,
-        skip: skip,
         orderBy: { createdAt: 'asc' },
         include: {
           author: {
@@ -872,22 +878,12 @@ export const getForumComments = async (req: AuthenticatedRequest, res: Response)
           },
         },
       }),
-      prisma.forumComment.count({
-        where: { postId: id },
-      })
+     
     ]);
 
     res.json({
       success: true,
       data: comments,
-      pagination: {
-        page,
-        limit,
-        totalCount,
-        totalPages: Math.ceil(totalCount / limit),
-        hasNextPage: page < Math.ceil(totalCount / limit),
-        hasPrevPage: page > 1,
-      }
     });
   } catch (error) {
     console.error('Error fetching forum comments:', error);
@@ -897,3 +893,74 @@ export const getForumComments = async (req: AuthenticatedRequest, res: Response)
     });
   }
 };
+
+
+export const likeForumComment = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const { commentId } = req.params;
+    const userId = req.user.id;
+
+    const comment = await prisma.forumComment.findUnique({
+      where: { id: commentId },
+      select: { id: true },
+    });
+
+    if (!comment) {
+      res.status(404).json({ success: false, error: "Comment not found" });
+      return;
+    }
+
+    // Initialize with default values to prevent "used before being assigned" error
+    let isLiked = false;
+    let likeCount: number = 0;
+
+    await prisma.$transaction(async (tx) => {
+      const existingLike = await tx.forumCommentLike.findUnique({
+        where: {
+          userId_commentId: { userId, commentId }, // composite unique key name
+        },
+      });
+
+      if (existingLike) {
+        await tx.forumCommentLike.delete({
+          where: { id: existingLike.id },
+        });
+
+        const updated = await tx.forumComment.update({
+          where: { id: commentId },
+          data: { likeCount: { decrement: 1 } },
+        });
+
+        likeCount = updated.likeCount;
+        isLiked = false;
+      } else {
+        await tx.forumCommentLike.create({
+          data: { userId, commentId },
+        });
+
+        const updated = await tx.forumComment.update({
+          where: { id: commentId },
+          data: { likeCount: { increment: 1 } },
+        });
+
+        likeCount = updated.likeCount;
+        isLiked = true;
+      }
+    });
+
+    console.log("Comment liked status:", isLiked, "Like count:", likeCount);
+    
+
+    res.json({
+      success: true,
+      data: { isLiked, likeCount },
+    });
+  } catch (error) {
+    console.error("Error liking forum comment:", error);
+    res.status(500).json({ success: false, error: "Failed to like comment" });
+  }
+};
+

@@ -34,20 +34,13 @@ export type ForumComment = {
 }
 
 
-
-export interface Author {
-  id: string
-  name: string
-  avatar: string | null
-}
-
 export interface Category {
   id: string
   name: string
-  description: string
-  icon: string
-  order: number
-  isActive: boolean
+  // description: string
+  icon?: string
+  order?: number
+  isActive?: boolean
   createdAt?: string
   updatedAt?: string
 }
@@ -60,6 +53,13 @@ export interface Comment {
   likeCount: number
   author: Author
 }
+
+export interface Author {
+  id: string
+  name: string
+  avatar: string | null
+}
+
 
 export interface Post {
   id: string
@@ -78,11 +78,12 @@ export interface Post {
   categoryId: string
   author?: Author
   category?: Category
-  comments?: Comment[]
-  _count: {
+  isLiked?: boolean
+  _count?: {
     comments: number
   }
 }
+
 
 export interface ApiResponse<T> {
   success: boolean

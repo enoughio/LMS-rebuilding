@@ -119,7 +119,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return NextResponse.json({ error: "Failed to get access token" }, { status: 401 })
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/forum/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/forum/posts/${id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
