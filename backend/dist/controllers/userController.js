@@ -36,7 +36,7 @@ export const getCurrentUser = async (req, res) => {
         res.json({
             succsess: true,
             message: "User fetched successfully",
-            data: user
+            data: user,
         });
     }
     catch (error) {
@@ -53,11 +53,11 @@ export const syncUser = async (req, res) => {
             res.status(401).json({ error: "Unauthorized" });
             return;
         }
-        const userInfo = await fetch('https://dev-173h8fm3s2l6fjai.us.auth0.com/userinfo', {
+        const userInfo = await fetch("https://dev-173h8fm3s2l6fjai.us.auth0.com/userinfo", {
             headers: {
-                Authorization: `Bearer ${authReq.auth.token}`
-            }
-        }).then(res => res.json());
+                Authorization: `Bearer ${authReq.auth.token}`,
+            },
+        }).then((res) => res.json());
         // console.log("Auth0 user info:", userInfo);
         const { sub, name, email, picture, email_verified } = userInfo;
         // Validate required fields
@@ -72,13 +72,8 @@ export const syncUser = async (req, res) => {
         const userPicture = picture ? String(picture) : null;
         const isEmailVerified = Boolean(email_verified);
         // Check if user already exists by auth0UserId OR email
-        const existingUser = await prisma.user.findFirst({
-            where: {
-                OR: [
-                    { auth0UserId },
-                    { email: userEmail }
-                ]
-            }
+        const existingUser = await prisma.user.findUnique({
+            where: { auth0UserId: auth0UserId },
         });
         if (existingUser) {
             // Update existing user - make sure to update auth0UserId if it was null
@@ -87,7 +82,7 @@ export const syncUser = async (req, res) => {
                 data: {
                     auth0UserId, // Update this in case iet was null befor
                     name: userName, // Update name in case it changed
-                    email: userEmail, // Update email in case it changed
+                    // email: userEmail, // Update email in case it changed
                     avatar: userPicture,
                     emailVerified: isEmailVerified,
                     lastLogin: new Date(),
@@ -113,7 +108,7 @@ export const syncUser = async (req, res) => {
             res.status(200).json({
                 success: true,
                 message: "User synced successfully",
-                data: updatedUser
+                data: updatedUser,
             });
             return;
         }
@@ -149,7 +144,7 @@ export const syncUser = async (req, res) => {
         res.status(201).json({
             success: true,
             message: "User synced successfully",
-            data: user
+            data: user,
         });
     }
     catch (error) {

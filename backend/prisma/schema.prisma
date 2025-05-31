@@ -41,6 +41,7 @@ model User {
   forumPosts        ForumPost[]
   forumComments     ForumComment[]
   forumPostLikes    ForumPostLike[]  // New relationship for liked posts
+  forumCommentLike ForumCommentLike[] // New relationship for liked comments
   studySessions     StudySession[]
   tasks             Task[]
   habits            Habit[]
@@ -60,7 +61,6 @@ model User {
 }
 
 enum UserRole {
-  // LOGGED_IN // <-- REMOVED
   MEMBER
   ADMIN
   SUPER_ADMIN
@@ -532,12 +532,28 @@ model ForumPost {
   // Relationships
   author      User              @relation(fields: [authorId], references: [id])
   authorId    String            @db.ObjectId
+
   category    ForumCategory     @relation(fields: [categoryId], references: [id])
   categoryId  String            @db.ObjectId
   comments    ForumComment[]
   likes       ForumPostLike[]   // New relationship to track individual likes
 
   @@map("forum_posts")
+}
+
+model ForumCommentLike {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @default(now())
+  
+  // Relationships
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String    @db.ObjectId
+  comment   ForumComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  commentId String    @db.ObjectId
+
+  // Ensure a user can only like a comment once
+  @@unique([userId, commentId])
+  @@map("forum_comment_likes")
 }
 
 
@@ -561,6 +577,7 @@ model ForumComment {
   id          String   @id @default(auto()) @map("_id")   @db.ObjectId
   content     String
   likeCount   Int      @default(0)
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
@@ -569,6 +586,7 @@ model ForumComment {
   authorId    String     @db.ObjectId
   post        ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId      String     @db.ObjectId
+  likes       ForumCommentLike[] // New relationship to track individual likes
 
   @@map("forum_comments")
 }

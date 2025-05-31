@@ -8,8 +8,8 @@ import { usePathname } from 'next/navigation';
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-// import { ModeToggle } from "@/components/mode-toggle.tsx";
 import { useUser } from '@auth0/nextjs-auth0';
+
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -25,6 +25,8 @@ export default function Navbar() {
     { label: 'Forum', href: '/forum' },
     { label: 'Contact Us', href: '/contact' },
   ];
+
+  // console.log("User:", dbUser); // Debugging line to check user object
 
   // Add active state to nav items
   const routes = navItems.map(item => ({
@@ -99,7 +101,7 @@ export default function Navbar() {
           
           {user ? (
             <>
-              <Link href={`/dashboard/${user.role}`}>
+              <Link href={`/dashboard`}>
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -205,7 +207,7 @@ export default function Navbar() {
                   {user ? (
                     <>
                       <Link
-                        href={`/dashboard/${user.role}`}
+                        href={`/dashboard`}
                         className="px-4 py-2 rounded-md transition duration-200 hover:bg-[#435058] hover:text-[#FEEDC1] focus:outline-none focus:ring-2 focus:ring-[#435058] focus:ring-opacity-50"
                         onClick={() => setIsOpen(false)}
                       >

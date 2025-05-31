@@ -1,4 +1,4 @@
-export type UserRole =  | "MEMBER" | "ADMIN" | "SUPER_ADMIN"
+export type UserRole =  "MEMBER" | "ADMIN" | "SUPER_ADMIN"
 
 export type MembershipStatus = "active" | "expired" | "pending"
 
@@ -15,18 +15,12 @@ export type MembershipPlan = {
 export type User = {
   id: string
   name: string
-  username?: string
-  auth0UserId?: string
   email: string
   role: UserRole
-  emailVerified?: boolean
-  verifiedBySuperAdmin?: boolean
   avatar?: string
   address?: string
-  bio?: string
   phone?: string
-  createdAt?: any
-  updatedAt?: any
+  createdAt: string
   membership?: {
     planId: string
     planName: string

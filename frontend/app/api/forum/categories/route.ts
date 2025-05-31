@@ -6,18 +6,7 @@ const NODE_BACKEND_URL = process.env.NODE_BACKEND_URL || 'http://localhost:5000'
 
 export async function GET() {
   try {
-    // Get session for authentication
-    // const session = await getServerSession(authOptions);
 
-    // Prepare headers for Node.js backend
-    // const headers: Record<string, string> = {
-    //   'Content-Type': 'application/json',
-    // };
-
-    // Add auth token if user is authenticated
-    // if (session?.accessToken) {
-    //   headers['Authorization'] = `Bearer ${session.accessToken}`;
-    // }
 
     // Call Node.js backend
     const response = await fetch(`${NODE_BACKEND_URL}/api/forum/categories`, {

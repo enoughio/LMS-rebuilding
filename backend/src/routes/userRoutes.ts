@@ -1,6 +1,6 @@
 import express from 'express';
 import { getCurrentUser, syncUser } from '../controllers/userController.js';
-import {  verifyToken } from '../middleware/authMiddelware.js';
+import { verifyToken } from '../middelware/authMiddelware.js';
 
 
 

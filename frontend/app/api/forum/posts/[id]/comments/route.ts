@@ -22,17 +22,15 @@ export async function GET(
     }
 
     const { token: accessToken } = await auth0.getAccessToken();
-    const searchParams = request.nextUrl.searchParams;
-    const page = searchParams.get('page') || '1';
-    const limit = searchParams.get('limit') || '20';
-    
-    const response = await fetch(`${API_BASE_URL}/api/forum/${id}/comments?page=${page}&limit=${limit}`, {
+
+    const response = await fetch(`${API_BASE_URL}/api/forum/comments/${id}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken}`
       },
     });
+
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -70,8 +68,9 @@ export async function POST(
 
     const { token: accessToken } = await auth0.getAccessToken();
     const body = await request.json();
+
     
-    const response = await fetch(`${API_BASE_URL}/api/forum/${id}/comments`, {
+    const response = await fetch(`${API_BASE_URL}/api/forum/addcomment/${id}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -82,6 +81,7 @@ export async function POST(
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      
       return NextResponse.json(
         { error: errorData.error || 'Failed to add comment' },
         { status: response.status }
@@ -89,6 +89,7 @@ export async function POST(
     }
 
     const data = await response.json();
+    console.log('Comment added successfully:', data);
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error adding forum comment:', error);
