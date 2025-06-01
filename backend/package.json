@@ -8,6 +8,7 @@
     "start": "prisma generate &&  node dist/index.js",
     "prisma": "prisma"
   },
+  
   "type": "module",
   "keywords": [],
   "author": "",
