@@ -1,11 +1,5 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.registerLibrary = exports.getLibraryById = exports.getAllLibraries = void 0;
-const prisma_js_1 = __importDefault(require("../lib/prisma.js"));
-const getAllLibraries = async (req, res) => {
+import prisma from "../lib/prisma.js";
+export const getAllLibraries = async (req, res) => {
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.max(1, parseInt(req.query.limit) || 10);
     const skip = (page - 1) * limit;
@@ -54,8 +48,8 @@ const getAllLibraries = async (req, res) => {
             // We'll handle seat count in the aggregation
         }
         // Get total count for pagination
-        const totalCount = await prisma_js_1.default.library.count({ where: filter });
-        const libraries = await prisma_js_1.default.library.findMany({
+        const totalCount = await prisma.library.count({ where: filter });
+        const libraries = await prisma.library.findMany({
             where: filter,
             select: {
                 id: true,
@@ -142,11 +136,10 @@ const getAllLibraries = async (req, res) => {
         });
     }
 };
-exports.getAllLibraries = getAllLibraries;
-const getLibraryById = async (req, res) => {
+export const getLibraryById = async (req, res) => {
     const { id } = req.params;
     try {
-        const library = await prisma_js_1.default.library.findUnique({
+        const library = await prisma.library.findUnique({
             where: { id },
             select: {
                 id: true,
@@ -252,12 +245,11 @@ const getLibraryById = async (req, res) => {
         });
     }
 };
-exports.getLibraryById = getLibraryById;
-const registerLibrary = async (req, res) => {
+export const registerLibrary = async (req, res) => {
     try {
         const { name, description, address, city, state, country, postalCode, email, phone, images, amenities, totalSeats, additionalInformation, adminBio, adminCompleteAddress, adminPhone, adminGovernmentId, adminPhoto, openingHours, adminId, userEmail, userName } = req.body;
         // Check for existing library outside transaction first
-        const existingLibraryCheck = await prisma_js_1.default.library.findFirst({
+        const existingLibraryCheck = await prisma.library.findFirst({
             where: {
                 OR: [
                     { name: name },
@@ -273,7 +265,7 @@ const registerLibrary = async (req, res) => {
             });
             return;
         }
-        const result = await prisma_js_1.default.$transaction(async (tx) => {
+        const result = await prisma.$transaction(async (tx) => {
             // 1. Check if user exists, if not create one
             let user = await tx.user.findUnique({
                 where: { auth0UserId: adminId }
@@ -372,5 +364,4 @@ const registerLibrary = async (req, res) => {
         });
     }
 };
-exports.registerLibrary = registerLibrary;
 //# sourceMappingURL=libraryController.js.map

@@ -1,17 +1,11 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.authorizeRoles = exports.authenticate = exports.verifyToken = void 0;
-const express_oauth2_jwt_bearer_1 = require("express-oauth2-jwt-bearer");
-const prisma_js_1 = __importDefault(require("../lib/prisma.js")); // Adjust the import path as necessary
-exports.verifyToken = (0, express_oauth2_jwt_bearer_1.auth)({
+import { auth } from "express-oauth2-jwt-bearer";
+import prisma from "../lib/prisma.js"; // Adjust the import path as necessary
+export const verifyToken = auth({
     audience: "https://api.studentsapp.com",
     issuerBaseURL: "https://dev-173h8fm3s2l6fjai.us.auth0.com/",
     tokenSigningAlg: "RS256",
 });
-const authenticate = async (req, res, next) => {
+export const authenticate = async (req, res, next) => {
     try {
         // Ensure the token was verified and req.auth is populated
         console.log("verifyToken middleware executed");
@@ -21,7 +15,7 @@ const authenticate = async (req, res, next) => {
         }
         const auth0UserId = req.auth.payload.sub;
         // Fetch user from the database with relevant fields and relationships
-        const user = await prisma_js_1.default.user.findUnique({
+        const user = await prisma.user.findUnique({
             where: { auth0UserId },
             select: {
                 id: true,
@@ -76,8 +70,7 @@ const authenticate = async (req, res, next) => {
         res.status(401).json({ error: "Unauthorized" });
     }
 };
-exports.authenticate = authenticate;
-const authorizeRoles = (roles) => {
+export const authorizeRoles = (roles) => {
     return (req, res, next) => {
         try {
             if (!req.user) {
@@ -117,5 +110,4 @@ const authorizeRoles = (roles) => {
         }
     };
 };
-exports.authorizeRoles = authorizeRoles;
 //# sourceMappingURL=authMiddelware.js.map
