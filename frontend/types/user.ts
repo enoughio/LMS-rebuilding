@@ -22,11 +22,7 @@ export type User = {
   emailVerified?: boolean
   verifiedBySuperAdmin?: boolean
   avatar?: string
-  address?: string
-  bio?: string
-  phone?: string
-  createdAt?: any
-  updatedAt?: any
+  createdAt: string
   membership?: {
     planId: string
     planName: string

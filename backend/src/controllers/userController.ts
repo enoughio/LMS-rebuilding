@@ -148,10 +148,11 @@ export const syncUser = async (req: Request, res: Response): Promise<void> => {
         email: userEmail,
         name: userName,
         avatar: userPicture,
-        emailVerified: isEmailVerified,
-        role: UserRole.MEMBER, // Default role
+        emailVerified: isEmailVerified ? new Date() : null,
+        role: "MEMBER" as $Enums.UserRole, // Default role
         varifiedBySuperAdmin: false,
-        lastLogin: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       select: {
         id: true,
@@ -160,9 +161,6 @@ export const syncUser = async (req: Request, res: Response): Promise<void> => {
         email: true,
         emailVerified: true,
         varifiedBySuperAdmin: true,
-        address: true,
-        phone: true,
-        bio: true,
         role: true,
         avatar: true,
         createdAt: true,

@@ -3,7 +3,6 @@ import { getForumPosts, getForumPostById, createForumPost, updateForumPost, dele
 import { verifyToken, authenticate } from "../middelware/authMiddelware.js";
 const router = express.Router();
 router.get("/", getForumPosts); //public route to get all forum posts
-router.get("/categories", getCatagories); //public route to get forum posts by category
 router.get("/:id", verifyToken, authenticate, getForumPostById); //public route to get a specific forum post by ID
 router.post("/posts", verifyToken, authenticate, createForumPost); //admin route to create a new forum post
 router.put("/updatepost/:id", verifyToken, authenticate, updateForumPost);

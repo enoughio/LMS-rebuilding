@@ -1,5 +1,4 @@
 import prisma from "../lib/prisma.js";
-import { UserRole } from "../../generated/prisma/index.js";
 // Get basic user information
 export const getCurrentUser = async (req, res) => {
     try {
@@ -119,10 +118,11 @@ export const syncUser = async (req, res) => {
                 email: userEmail,
                 name: userName,
                 avatar: userPicture,
-                emailVerified: isEmailVerified,
-                role: UserRole.MEMBER, // Default role
+                emailVerified: isEmailVerified ? new Date() : null,
+                role: "MEMBER", // Default role
                 varifiedBySuperAdmin: false,
-                lastLogin: new Date(),
+                createdAt: new Date(),
+                updatedAt: new Date(),
             },
             select: {
                 id: true,
@@ -131,9 +131,6 @@ export const syncUser = async (req, res) => {
                 email: true,
                 emailVerified: true,
                 varifiedBySuperAdmin: true,
-                address: true,
-                phone: true,
-                bio: true,
                 role: true,
                 avatar: true,
                 createdAt: true,
@@ -152,4 +149,5 @@ export const syncUser = async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 };
+// Mount routes
 //# sourceMappingURL=userController.js.map

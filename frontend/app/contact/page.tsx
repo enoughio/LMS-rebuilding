@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, ChangeEvent, FormEvent } from 'react';
-import {  FacebookIcon, LinkedinIcon, TwitterIcon } from 'lucide-react';
+import { Facebook, FacebookIcon, LinkedinIcon, TwitterIcon } from 'lucide-react';
 
 interface FormData {
   name: string;

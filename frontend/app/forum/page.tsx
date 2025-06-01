@@ -2,11 +2,48 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Search, Loader2, FilterX, Newspaper, ArrowUpLeft } from 'lucide-react';
+import Image from 'next/image';
+import { Plus, Search, Loader2 } from 'lucide-react';
 
 import PostItem from '@/components/forum/PostItem';
 import { Button } from '@/components/ui/button';
-import { forumApi, type Post, type Category, type Pagination, type GetPostsParams } from '@/lib/api';
+import { forumApi } from '@/lib/api';
+
+type Author = {
+  id: string;
+  name: string;
+  avatar: string | null;
+};
+
+type Category = {
+  id: string;
+  name: string;
+  description?: string;
+};
+
+type Post = {
+  id: string;
+  title: string;
+  content: string;
+  author: Author;
+  category: Category;
+  createdAt: string;
+  updatedAt: string;
+  viewCount: number;
+  likeCount: number;
+  _count: {
+    comments: number;
+  };
+};
+
+type Pagination = {
+  page: number;
+  limit: number;
+  totalPages: number;
+  totalPosts: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+};
 
 export default function Forum() {
   const router = useRouter();
@@ -39,7 +76,7 @@ export default function Forum() {
     try {
       const result = await forumApi.searchPosts(input.trim(), 1, 20);
       setPosts(result.data || []);
-      setPagination(result.pagination || null);
+      setPagination(result.meta || null);
       setCurrentPage(1);
     } catch (err) {
       console.error('Error searching posts:', err);
@@ -66,22 +103,20 @@ export default function Forum() {
   };
 
   const fetchPosts = useCallback(async (page = 1) => {
-    try {
-      const params: GetPostsParams = {
+    if (selectedCategory) {
+      const result = await forumApi.getPostsByCategory(selectedCategory, page, 10, selectedTab);
+      setPosts(result.data || []);
+      setPagination(result.meta || null);
+    } else {
+      const result = await forumApi.getPosts({
         page,
         limit: 10,
         sort: selectedTab,
         period,
-        ...(selectedCategory && { categoryId: selectedCategory }),
-        ...(input.trim() && { search: input.trim() }),
-      };
-
-      const result = await forumApi.getPosts(params);
+        search: input.trim() || undefined,
+      });
       setPosts(result.data || []);
-      setPagination(result.pagination || null);
-    } catch (err) {
-      console.error('Error fetching posts:', err);
-      throw err;
+      setPagination(result.meta || null);
     }
   }, [selectedCategory, selectedTab, period, input]);
 
@@ -99,7 +134,7 @@ export default function Forum() {
     const initialize = async () => {
       setLoading(true);
       try {
-        await Promise.all([fetchPosts(), fetchCategories()]);
+        await Promise.all([await fetchPosts(), await fetchCategories()]);
       } catch (err) {
         console.error('Error initializing forum page:', err);
         setError('Failed to load forum content. Please refresh the page.');
@@ -129,21 +164,20 @@ export default function Forum() {
     refetchPosts();
   }, [selectedTab, period, selectedCategory, fetchPosts]);
 
-  const tabs: { name: 'hot' | 'new' | 'top'; icon: React.ReactNode; label: string }[] = [
-    { name: 'hot', icon: <FilterX size={16} />, label: 'Hot' },
-    { name: 'new', icon: <Newspaper size={16} />, label: 'New' },
-    { name: 'top', icon: <ArrowUpLeft size={16} />, label: 'Top' },
+  const tabs: { name: 'hot' | 'new' | 'top'; icon: string; label: string }[] = [
+    { name: 'hot', icon: '/forums/hot.png', label: 'Hot' },
+    { name: 'new', icon: '/forums/new.png', label: 'New' },
+    { name: 'top', icon: '/forums/top.png', label: 'Top' },
   ];
-
   return (
-    <div className="min-h-screen w-full px-4 md:px-2 py-4 max-w-[1920px] bg-[#ECE3DA] md:pb-20">
-      <div className=" flex flex-col items-center">
+    <div className="min-h-screen w-full px-4  py-4 max-w-[1920px] bg-[#ECE3DA]  md:pb-20">
+      <div className="">
         <h1 className="text-2xl md:text-3xl font-light text-center text-gray-800 mb-6">
           India&apos;s <span className="font-medium">Smartest Student Forum</span> — Built by You
         </h1>
 
         {/* Search & Ask Section */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 mb-10 justify-center w-full ">
+        <div className="flex flex-col sm:flex-row items-center gap-4 mb-10 justify-center">
           <div className="flex items-center px-3 py-2 bg-[#EFEAE5] rounded-full w-full sm:w-[60%] shadow-inner">
             <input
               type="text"
@@ -183,12 +217,12 @@ export default function Forum() {
               <button
                 key={tab.name}
                 onClick={() => setSelectedTab(tab.name)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-100 shadow-sm transition-colors ${
-                  selectedTab === tab.name ? 'bg-gray-200' : 'bg-white'
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-100 shadow-sm ${
+                  selectedTab === tab.name ? 'bg-gray-200' : ''
                 }`}
                 disabled={loading}
               >
-                {tab.icon}
+                <Image src={tab?.icon} alt={tab.label} width={20} height={20} />
                 {tab.label}
               </button>
             ))}
@@ -217,7 +251,7 @@ export default function Forum() {
         {/* Category Filters */}
         <div className="flex flex-wrap justify-center gap-3 mb-8">
           <div 
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium cursor-pointer transition-colors
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium cursor-pointer
             ${!selectedCategory ? 'bg-gray-200' : 'bg-[#EFEAE5] hover:bg-gray-100'} shadow-sm`}
             onClick={() => setSelectedCategory(null)}
           >
@@ -227,10 +261,17 @@ export default function Forum() {
           {categories.map((category) => (
             <div
               key={category.id}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium cursor-pointer transition-colors
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium cursor-pointer
                 ${selectedCategory === category.id ? 'bg-gray-200' : 'bg-[#EFEAE5] hover:bg-gray-100'} shadow-sm`}
               onClick={() => setSelectedCategory(category.id)}
             >
+              {/* If you have category icons, use this: */}
+              {/* <Image
+                src={`/forums/${category.icon || 'default-category.png'}`}
+                alt={category.name}
+                width={20}
+                height={20}
+              /> */}
               <span>{category.name}</span>
             </div>
           ))}
@@ -266,7 +307,7 @@ export default function Forum() {
         )}
 
         {!loading && posts.length > 0 && (
-          <div className="space-y-4 w-full max-w-[900px]">
+          <div className="space-y-4">
             {posts.map((post) => (
               <PostItem
                 key={post.id}
@@ -297,27 +338,17 @@ export default function Forum() {
               Previous
             </Button>
             
-            {Array.from({ length: Math.min(pagination.totalPages, 10) }, (_, i) => {
-              const page = i + 1;
-              const shouldShow = 
-                page === 1 || 
-                page === pagination.totalPages || 
-                (page >= currentPage - 2 && page <= currentPage + 2);
-              
-              if (!shouldShow) return null;
-              
-              return (
-                <Button
-                  key={page}
-                  onClick={() => handlePageChange(page)}
-                  variant={currentPage === page ? "default" : "outline"}
-                  size="sm"
-                  disabled={loading}
-                >
-                  {page}
-                </Button>
-              );
-            })}
+            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+              <Button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                variant={currentPage === page ? "default" : "outline"}
+                size="sm"
+                disabled={loading}
+              >
+                {page}
+              </Button>
+            ))}
             
             <Button
               onClick={() => handlePageChange(currentPage + 1)}

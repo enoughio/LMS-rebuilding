@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import { useState } from "react";
 import { MessageSquare, ThumbsUp, Eye } from "lucide-react";
@@ -52,32 +52,32 @@ export default function PostItem({
   isPinned = false,
   tags = [],
 }: PostItemProps) {
-  const [isLiking, setIsLiking] = useState(false);
-  const [currentLikes, setCurrentLikes] = useState(likeCount);
-  const [likeError, setLikeError] = useState<string | null>(null);
+  const [isLiking, setIsLiking] = useState(false)
+  const [currentLikes, setCurrentLikes] = useState(likeCount)
+  const [likeError, setLikeError] = useState<string | null>(null)
 
   const truncateContent = (text: string, maxLength = 150) => {
     if (text.length <= maxLength) return text;
-    return text.substr(0, maxLength).trim() + "...";
+    return text.substr(0, maxLength).trim() + '...';
   };
 
   // Strip HTML tags from content for plain text display
-  const plainTextContent = content.replace(/<[^>]*>/g, "");
+  const plainTextContent = content.replace(/<[^>]*>/g, '');
 
   const handleLike = async () => {
     try {
-      setIsLiking(true);
-      setLikeError(null);
+      setIsLiking(true)
+      setLikeError(null)
       // Here you would call your API to like the post
       // For now, we'll just increment the count client-side
-      setCurrentLikes((prev) => prev + 1);
+      setCurrentLikes(prev => prev + 1)
     } catch (error) {
-      console.error("Error liking post:", error);
-      setLikeError("Failed to like post. Please try again.");
+      console.error("Error liking post:", error)
+      setLikeError("Failed to like post. Please try again.")
     } finally {
-      setIsLiking(false);
+      setIsLiking(false)
     }
-  };
+  }
 
   return (
     <Card className=" mb-4 border-0  max-h-[250px] hover:shadow-lg shadow-md transition-shadow px-2 bg-[#EFEAE5]">
