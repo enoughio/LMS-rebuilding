@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import prisma from '../lib/prisma';
-import { PaymentType } from '../../generated/prisma';
+import prisma from '../lib/prisma.js'; 
+import { PaymentType } from '../../generated/prisma/index.js';
 
 
 export const getSuperAdminDashboard = async (_req: Request, res: Response) => {

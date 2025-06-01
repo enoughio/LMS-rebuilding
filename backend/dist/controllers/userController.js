@@ -1,13 +1,7 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.syncUser = exports.getCurrentUser = void 0;
-const prisma_js_1 = __importDefault(require("../lib/prisma.js"));
-const index_js_1 = require("../../generated/prisma/index.js");
+import prisma from "../lib/prisma.js";
+import { UserRole } from "../../generated/prisma/index.js";
 // Get basic user information
-const getCurrentUser = async (req, res) => {
+export const getCurrentUser = async (req, res) => {
     try {
         // Type assertion for req to include auth property (from express-oauth2-jwt-bearer)
         const authReq = req;
@@ -17,7 +11,7 @@ const getCurrentUser = async (req, res) => {
         }
         const auth0UserId = authReq.auth.payload.sub;
         // Fetch basic user data
-        const user = await prisma_js_1.default.user.findUnique({
+        const user = await prisma.user.findUnique({
             where: { auth0UserId },
             select: {
                 id: true,
@@ -50,9 +44,8 @@ const getCurrentUser = async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 };
-exports.getCurrentUser = getCurrentUser;
 // Sync user after login
-const syncUser = async (req, res) => {
+export const syncUser = async (req, res) => {
     try {
         // Type assertion for req to include auth property (from express-oauth2-jwt-bearer)
         const authReq = req;
@@ -79,12 +72,12 @@ const syncUser = async (req, res) => {
         const userPicture = picture ? String(picture) : null;
         const isEmailVerified = Boolean(email_verified);
         // Check if user already exists by auth0UserId OR email
-        const existingUser = await prisma_js_1.default.user.findUnique({
+        const existingUser = await prisma.user.findUnique({
             where: { auth0UserId: auth0UserId },
         });
         if (existingUser) {
             // Update existing user - make sure to update auth0UserId if it was null
-            const updatedUser = await prisma_js_1.default.user.update({
+            const updatedUser = await prisma.user.update({
                 where: { id: existingUser.id },
                 data: {
                     auth0UserId, // Update this in case iet was null befor
@@ -120,14 +113,14 @@ const syncUser = async (req, res) => {
             return;
         }
         // Create new user if not exists
-        const user = await prisma_js_1.default.user.create({
+        const user = await prisma.user.create({
             data: {
                 auth0UserId,
                 email: userEmail,
                 name: userName,
                 avatar: userPicture,
                 emailVerified: isEmailVerified,
-                role: index_js_1.UserRole.MEMBER, // Default role
+                role: UserRole.MEMBER, // Default role
                 varifiedBySuperAdmin: false,
                 lastLogin: new Date(),
             },
@@ -159,5 +152,4 @@ const syncUser = async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 };
-exports.syncUser = syncUser;
 //# sourceMappingURL=userController.js.map

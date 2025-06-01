@@ -1,41 +1,35 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMemberDashboard = exports.getAdminDashboard = exports.getSuperAdminDashboard = void 0;
-const prisma_1 = __importDefault(require("../lib/prisma"));
-const prisma_2 = require("../../generated/prisma");
-const getSuperAdminDashboard = async (_req, res) => {
+import prisma from '../lib/prisma.js';
+import { PaymentType } from '../../generated/prisma/index.js';
+export const getSuperAdminDashboard = async (_req, res) => {
     try {
         // Totals
         const [totalLibraries, totalMembers] = await Promise.all([
-            prisma_1.default.library.count(),
-            prisma_1.default.user.count({ where: { role: 'MEMBER' } }),
+            prisma.library.count(),
+            prisma.user.count({ where: { role: 'MEMBER' } }),
         ]);
         // Monthly revenue (from 1st day of current month)
         const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-        const monthlyRevenueResult = await prisma_1.default.payment.aggregate({
+        const monthlyRevenueResult = await prisma.payment.aggregate({
             _sum: { amount: true },
             where: { createdAt: { gte: startOfMonth } },
         });
         const monthlyRevenue = monthlyRevenueResult._sum.amount ?? 0;
         // Revenue breakdown by payment type using enum
         const paymentTypes = [
-            prisma_2.PaymentType.MEMBERSHIP,
-            prisma_2.PaymentType.SEAT_BOOKING,
-            prisma_2.PaymentType.PENALTY,
-            prisma_2.PaymentType.EBOOK_PURCHASE,
-            prisma_2.PaymentType.OTHER,
+            PaymentType.MEMBERSHIP,
+            PaymentType.SEAT_BOOKING,
+            PaymentType.PENALTY,
+            PaymentType.EBOOK_PURCHASE,
+            PaymentType.OTHER,
         ];
         const revenueBreakdown = {
-            [prisma_2.PaymentType.MEMBERSHIP]: 0,
-            [prisma_2.PaymentType.SEAT_BOOKING]: 0,
-            [prisma_2.PaymentType.PENALTY]: 0,
-            [prisma_2.PaymentType.EBOOK_PURCHASE]: 0,
-            [prisma_2.PaymentType.OTHER]: 0,
+            [PaymentType.MEMBERSHIP]: 0,
+            [PaymentType.SEAT_BOOKING]: 0,
+            [PaymentType.PENALTY]: 0,
+            [PaymentType.EBOOK_PURCHASE]: 0,
+            [PaymentType.OTHER]: 0,
         };
-        const revenueResults = await Promise.all(paymentTypes.map((type) => prisma_1.default.payment.aggregate({
+        const revenueResults = await Promise.all(paymentTypes.map((type) => prisma.payment.aggregate({
             _sum: { amount: true },
             where: { type },
         })));
@@ -44,7 +38,7 @@ const getSuperAdminDashboard = async (_req, res) => {
         });
         const totalRevenue = Object.values(revenueBreakdown).reduce((a, b) => a + b, 0);
         // Top libraries based on seat booking payments
-        const libraries = await prisma_1.default.library.findMany({
+        const libraries = await prisma.library.findMany({
             include: {
                 seatBookings: {
                     include: {
@@ -89,13 +83,12 @@ const getSuperAdminDashboard = async (_req, res) => {
         });
     }
 };
-exports.getSuperAdminDashboard = getSuperAdminDashboard;
 /**
  * @route GET /api/dashboard/admin
  * @desc Get admin dashboard stats from database
  * @access Private (Admin)
  */
-const getAdminDashboard = async (req, res) => {
+export const getAdminDashboard = async (req, res) => {
     try {
         const libraryId = req.libraryId;
         const role = req.role;
@@ -111,7 +104,7 @@ const getAdminDashboard = async (req, res) => {
         const tomorrow = new Date(today);
         tomorrow.setDate(today.getDate() + 1);
         const [todayBookings, activeMembers, revenueResult, checkedOutBooks, totalSeats, totalBooks, availableBooks,] = await Promise.all([
-            prisma_1.default.seatBooking.count({
+            prisma.seatBooking.count({
                 where: {
                     libraryId,
                     date: {
@@ -120,7 +113,7 @@ const getAdminDashboard = async (req, res) => {
                     },
                 },
             }),
-            prisma_1.default.user.count({
+            prisma.user.count({
                 where: {
                     role: 'MEMBER',
                     memberships: {
@@ -130,7 +123,7 @@ const getAdminDashboard = async (req, res) => {
                     },
                 },
             }),
-            prisma_1.default.payment.aggregate({
+            prisma.payment.aggregate({
                 _sum: {
                     amount: true,
                 },
@@ -144,19 +137,19 @@ const getAdminDashboard = async (req, res) => {
                     },
                 },
             }),
-            prisma_1.default.eBook.count({
+            prisma.eBook.count({
                 where: {
                     libraryId,
                     status: 'CHECKED_OUT',
                 },
             }),
-            prisma_1.default.seat.count({
+            prisma.seat.count({
                 where: { libraryId },
             }),
-            prisma_1.default.eBook.count({
+            prisma.eBook.count({
                 where: { libraryId },
             }),
-            prisma_1.default.eBook.count({
+            prisma.eBook.count({
                 where: {
                     libraryId,
                     status: 'AVAILABLE',
@@ -195,20 +188,19 @@ const getAdminDashboard = async (req, res) => {
         return;
     }
 };
-exports.getAdminDashboard = getAdminDashboard;
 /**
  * @desc Get member dashboard stats
  * @route GET /api/dashboard/member
  * @access Private (Member only)
  */
-const getMemberDashboard = async (req, res) => {
+export const getMemberDashboard = async (req, res) => {
     try {
         const userId = req.user?.id;
         if (!userId) {
             res.status(401).json({ message: 'Unauthorized' });
             return;
         }
-        const user = await prisma_1.default.user.findUnique({
+        const user = await prisma.user.findUnique({
             where: { id: userId },
         });
         if (!user) {
@@ -216,7 +208,7 @@ const getMemberDashboard = async (req, res) => {
             return;
         }
         const [upcomingBookings, booksReadCount, readingHistory] = await Promise.all([
-            prisma_1.default.seatBooking.findMany({
+            prisma.seatBooking.findMany({
                 where: {
                     userId,
                     date: {
@@ -226,13 +218,13 @@ const getMemberDashboard = async (req, res) => {
                 orderBy: { date: 'asc' },
                 take: 1,
             }),
-            prisma_1.default.readingHistory.count({
+            prisma.readingHistory.count({
                 where: {
                     userId,
                     isCompleted: true,
                 },
             }),
-            prisma_1.default.readingHistory.findMany({
+            prisma.readingHistory.findMany({
                 where: {
                     userId,
                     isCompleted: false,
@@ -293,5 +285,4 @@ const getMemberDashboard = async (req, res) => {
         });
     }
 };
-exports.getMemberDashboard = getMemberDashboard;
 //# sourceMappingURL=dashboardController.js.map
