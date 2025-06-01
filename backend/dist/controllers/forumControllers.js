@@ -1,5 +1,11 @@
-import prisma from "../lib/prisma.js";
-export const getAllPosts = async (req, res) => {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.likeForumComment = exports.getForumComments = exports.deleteForumComment = exports.updateForumComment = exports.addForumComment = exports.toggleForumPostLike = exports.deleteForumPost = exports.updateForumPost = exports.getForumPostById = exports.getForumPosts = exports.getCatagories = exports.createForumPost = exports.getAllPosts = void 0;
+const prisma_js_1 = __importDefault(require("../lib/prisma.js"));
+const getAllPosts = async (req, res) => {
     const page = Math.max(1, Number(req.query.page) || 1);
     const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
     const skip = (page - 1) * limit;
@@ -35,7 +41,7 @@ export const getAllPosts = async (req, res) => {
                     break;
             }
         }
-        const posts = await prisma.forumPost.findMany({
+        const posts = await prisma_js_1.default.forumPost.findMany({
             where: {
                 ...filters,
             },
@@ -67,7 +73,8 @@ export const getAllPosts = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
-export const createForumPost = async (req, res) => {
+exports.getAllPosts = getAllPosts;
+const createForumPost = async (req, res) => {
     try {
         const { title, content, categoryId, tags, image } = req.body;
         const userId = req.user.id;
@@ -85,7 +92,7 @@ export const createForumPost = async (req, res) => {
             return;
         }
         // Check if category exists
-        const category = await prisma.forumCategory.findUnique({
+        const category = await prisma_js_1.default.forumCategory.findUnique({
             where: { id: categoryId }
         });
         if (!category) {
@@ -95,7 +102,7 @@ export const createForumPost = async (req, res) => {
             });
             return;
         }
-        const post = await prisma.forumPost.create({
+        const post = await prisma_js_1.default.forumPost.create({
             data: {
                 title,
                 content,
@@ -145,12 +152,13 @@ export const createForumPost = async (req, res) => {
         });
     }
 };
+exports.createForumPost = createForumPost;
 /**
  * Get all forum posts with pagination
  */
-export const getCatagories = async (_req, res) => {
+const getCatagories = async (_req, res) => {
     try {
-        const categories = await prisma.forumCategory.findMany({
+        const categories = await prisma_js_1.default.forumCategory.findMany({
             orderBy: {
                 name: 'asc',
             },
@@ -173,7 +181,8 @@ export const getCatagories = async (_req, res) => {
         });
     }
 };
-export const getForumPosts = async (req, res) => {
+exports.getCatagories = getCatagories;
+const getForumPosts = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
@@ -240,7 +249,7 @@ export const getForumPosts = async (req, res) => {
                 break;
         }
         const [posts, totalCount] = await Promise.all([
-            prisma.forumPost.findMany({
+            prisma_js_1.default.forumPost.findMany({
                 where,
                 take: limit,
                 skip: skip,
@@ -277,7 +286,7 @@ export const getForumPosts = async (req, res) => {
                     }),
                 },
             }),
-            prisma.forumPost.count({ where })
+            prisma_js_1.default.forumPost.count({ where })
         ]);
         const formattedPosts = posts.map(post => ({
             ...post,
@@ -309,15 +318,16 @@ export const getForumPosts = async (req, res) => {
         });
     }
 };
+exports.getForumPosts = getForumPosts;
 /**
  * Get a single forum post by ID
  */
-export const getForumPostById = async (req, res) => {
+const getForumPostById = async (req, res) => {
     try {
         console.log('someone is trying to get a forum post by id');
         const { id } = req.params;
         const userId = req.user?.id;
-        const post = await prisma.forumPost.findUnique({
+        const post = await prisma_js_1.default.forumPost.findUnique({
             where: { id },
             include: {
                 author: {
@@ -372,7 +382,7 @@ export const getForumPostById = async (req, res) => {
             return;
         }
         // Increment view count
-        await prisma.forumPost.update({
+        await prisma_js_1.default.forumPost.update({
             where: { id },
             data: {
                 viewCount: {
@@ -400,16 +410,17 @@ export const getForumPostById = async (req, res) => {
         });
     }
 };
+exports.getForumPostById = getForumPostById;
 /**
  * Update a forum post
  */
-export const updateForumPost = async (req, res) => {
+const updateForumPost = async (req, res) => {
     try {
         const { id } = req.params;
         const { title, content, tags, image } = req.body;
         const userId = req.user.id;
         // Check if post exists and user owns it or is admin
-        const existingPost = await prisma.forumPost.findUnique({
+        const existingPost = await prisma_js_1.default.forumPost.findUnique({
             where: { id },
             select: { authorId: true },
         });
@@ -427,7 +438,7 @@ export const updateForumPost = async (req, res) => {
             });
             return;
         }
-        const updatedPost = await prisma.forumPost.update({
+        const updatedPost = await prisma_js_1.default.forumPost.update({
             where: { id },
             data: {
                 ...(title && { title }),
@@ -475,15 +486,16 @@ export const updateForumPost = async (req, res) => {
         });
     }
 };
+exports.updateForumPost = updateForumPost;
 /**
  * Delete a forum post
  */
-export const deleteForumPost = async (req, res) => {
+const deleteForumPost = async (req, res) => {
     try {
         const { postId: id } = req.params;
         const userId = req.user.id;
         // Check if post exists and user owns it or is admin
-        const existingPost = await prisma.forumPost.findUnique({
+        const existingPost = await prisma_js_1.default.forumPost.findUnique({
             where: { id },
             select: { authorId: true },
         });
@@ -501,7 +513,7 @@ export const deleteForumPost = async (req, res) => {
             });
             return;
         }
-        await prisma.forumPost.delete({
+        await prisma_js_1.default.forumPost.delete({
             where: { id },
         });
         res.json({
@@ -517,16 +529,17 @@ export const deleteForumPost = async (req, res) => {
         });
     }
 };
+exports.deleteForumPost = deleteForumPost;
 /**
  * Toggle like on a forum post
  */
-export const toggleForumPostLike = async (req, res) => {
+const toggleForumPostLike = async (req, res) => {
     try {
         const { postId: id } = req.params; // post ID
         const userId = req.user.id;
         console.log('Toggling like for post ID:', id, 'by user ID:', userId);
         // Check if post exists
-        const post = await prisma.forumPost.findUnique({
+        const post = await prisma_js_1.default.forumPost.findUnique({
             where: { id },
             select: { id: true },
         });
@@ -538,7 +551,7 @@ export const toggleForumPostLike = async (req, res) => {
             return;
         }
         // Check if user has already liked this post
-        const existingLike = await prisma.forumPostLike.findUnique({
+        const existingLike = await prisma_js_1.default.forumPostLike.findUnique({
             where: {
                 userId_postId: {
                     userId,
@@ -550,7 +563,7 @@ export const toggleForumPostLike = async (req, res) => {
         let likeCount = 0;
         if (existingLike) {
             // Unlike the post
-            await prisma.$transaction(async (tx) => {
+            await prisma_js_1.default.$transaction(async (tx) => {
                 await tx.forumPostLike.delete({
                     where: { id: existingLike.id },
                 });
@@ -566,7 +579,7 @@ export const toggleForumPostLike = async (req, res) => {
         }
         else {
             // Like the post
-            await prisma.$transaction(async (tx) => {
+            await prisma_js_1.default.$transaction(async (tx) => {
                 await tx.forumPostLike.create({
                     data: {
                         userId,
@@ -599,10 +612,11 @@ export const toggleForumPostLike = async (req, res) => {
         });
     }
 };
+exports.toggleForumPostLike = toggleForumPostLike;
 /**
  * Add a comment to a forum post
  */
-export const addForumComment = async (req, res) => {
+const addForumComment = async (req, res) => {
     try {
         const { postId: id } = req.params; // post ID
         const { content } = req.body;
@@ -616,7 +630,7 @@ export const addForumComment = async (req, res) => {
             return;
         }
         // Check if post exists
-        const post = await prisma.forumPost.findUnique({
+        const post = await prisma_js_1.default.forumPost.findUnique({
             where: { id },
             select: { id: true, isLocked: true },
         });
@@ -634,7 +648,7 @@ export const addForumComment = async (req, res) => {
             });
             return;
         }
-        const comment = await prisma.forumComment.create({
+        const comment = await prisma_js_1.default.forumComment.create({
             data: {
                 content: content.trim(),
                 authorId: userId,
@@ -663,10 +677,11 @@ export const addForumComment = async (req, res) => {
         });
     }
 };
+exports.addForumComment = addForumComment;
 /**
  * Update a forum comment
  */
-export const updateForumComment = async (req, res) => {
+const updateForumComment = async (req, res) => {
     try {
         const { commentId } = req.params;
         const { content } = req.body;
@@ -679,7 +694,7 @@ export const updateForumComment = async (req, res) => {
             return;
         }
         // Check if comment exists and user owns it
-        const existingComment = await prisma.forumComment.findUnique({
+        const existingComment = await prisma_js_1.default.forumComment.findUnique({
             where: { id: commentId },
             select: { authorId: true },
         });
@@ -697,7 +712,7 @@ export const updateForumComment = async (req, res) => {
             });
             return;
         }
-        const updatedComment = await prisma.forumComment.update({
+        const updatedComment = await prisma_js_1.default.forumComment.update({
             where: { id: commentId },
             data: { content: content.trim() },
             include: {
@@ -723,15 +738,16 @@ export const updateForumComment = async (req, res) => {
         });
     }
 };
+exports.updateForumComment = updateForumComment;
 /**
  * Delete a forum comment
  */
-export const deleteForumComment = async (req, res) => {
+const deleteForumComment = async (req, res) => {
     try {
         const { commentId } = req.params;
         const userId = req.user.id;
         // Check if comment exists and user owns it
-        const existingComment = await prisma.forumComment.findUnique({
+        const existingComment = await prisma_js_1.default.forumComment.findUnique({
             where: { id: commentId },
             select: { authorId: true },
         });
@@ -749,7 +765,7 @@ export const deleteForumComment = async (req, res) => {
             });
             return;
         }
-        await prisma.forumComment.delete({
+        await prisma_js_1.default.forumComment.delete({
             where: { id: commentId },
         });
         res.json({
@@ -765,14 +781,15 @@ export const deleteForumComment = async (req, res) => {
         });
     }
 };
+exports.deleteForumComment = deleteForumComment;
 /**
  * Get comments for a forum post
  */
-export const getForumComments = async (req, res) => {
+const getForumComments = async (req, res) => {
     try {
         const { postId: id } = req.params; // post ID
         const [comments] = await Promise.all([
-            prisma.forumComment.findMany({
+            prisma_js_1.default.forumComment.findMany({
                 where: { postId: id },
                 orderBy: { createdAt: 'asc' },
                 include: {
@@ -799,11 +816,12 @@ export const getForumComments = async (req, res) => {
         });
     }
 };
-export const likeForumComment = async (req, res) => {
+exports.getForumComments = getForumComments;
+const likeForumComment = async (req, res) => {
     try {
         const { commentId } = req.params;
         const userId = req.user.id;
-        const comment = await prisma.forumComment.findUnique({
+        const comment = await prisma_js_1.default.forumComment.findUnique({
             where: { id: commentId },
             select: { id: true },
         });
@@ -814,7 +832,7 @@ export const likeForumComment = async (req, res) => {
         // Initialize with default values to prevent "used before being assigned" error
         let isLiked = false;
         let likeCount = 0;
-        await prisma.$transaction(async (tx) => {
+        await prisma_js_1.default.$transaction(async (tx) => {
             const existingLike = await tx.forumCommentLike.findUnique({
                 where: {
                     userId_commentId: { userId, commentId }, // composite unique key name
@@ -854,4 +872,5 @@ export const likeForumComment = async (req, res) => {
         res.status(500).json({ success: false, error: "Failed to like comment" });
     }
 };
+exports.likeForumComment = likeForumComment;
 //# sourceMappingURL=forumControllers.js.map

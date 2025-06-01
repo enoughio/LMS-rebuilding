@@ -85,12 +85,17 @@ model Library {
   postalCode  String
   email       String
   phone       String
-  // website     String?   
   images      String[]
   rating      Float    @default(0)
   reviewCount Int      @default(0)
   amenities   String[] // Stored as JSON array of amenity codes
   totalSeats  Int
+  additinalInformation String?
+  AdminGovernmentId String? 
+  AdminBio String? 
+  AdminCompleteAddress String? 
+  AdminPhone String? 
+  AdminPhoto String? 
   status      LibraryStatus @default(PENDING) // Added status for approval workflow
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -99,7 +104,7 @@ model Library {
   // Relationships
   admin             User               @relation("LibraryAdmin", fields: [adminId], references: [id])
   adminId           String             @unique  @db.ObjectId
-  // staff             LibraryStaff[]
+  // staff          LibraryStaff[]
   openingHours      OpeningHour[]
   membershipPlans   MembershipPlan[]
   memberships       Membership[]
@@ -107,6 +112,7 @@ model Library {
   seatBookings      SeatBooking[]
   physicalBooks     PhysicalBook[]
   bookBorrowings    BookBorrowing[]
+  eBooks            EBook[]
   events            Event[]
   announcements     Announcement[]
   maintenanceRecords MaintenanceRecord[]
@@ -116,7 +122,6 @@ model Library {
   seatPrices       SeatPrice[]        // Library-specific seat type pricing
 
   @@map("libraries")
-  EBook EBook[]
 }
 
 model LibraryStaff {

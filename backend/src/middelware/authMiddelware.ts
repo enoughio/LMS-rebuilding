@@ -90,10 +90,10 @@ export const authorizeRoles = (roles: UserRole | UserRole[]) => {
         return;
       }
 
-      if (!req.user.isActive) {
+      if (!req.user.emailVerified) {
         res.status(403).json({
           success: false,
-          message: "You need to activate your account to access this resource",
+          message: "You need to verify your account to access this resource",
         });
         return;
       }

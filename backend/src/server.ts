@@ -44,7 +44,7 @@ app.use(
 // // app.use('/api/roles', roleRoutes);
 app.use("/api/user", userRoutes)
 app.use('/api/forum', forumRoutes);
-app.use('/api/library', libraryRoutes);
+app.use('/api/libraries', libraryRoutes);
 // app.use('/api/bookings', bookingRoutes);
 // app.use('/api/memberships', membershipRoutes);
 // app.use('/api/books', bookRoutes);

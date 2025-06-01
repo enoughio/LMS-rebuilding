@@ -1,11 +1,17 @@
-import { auth } from "express-oauth2-jwt-bearer";
-import prisma from "../lib/prisma.js"; // Adjust the import path as necessary
-export const verifyToken = auth({
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.authorizeRoles = exports.authenticate = exports.verifyToken = void 0;
+const express_oauth2_jwt_bearer_1 = require("express-oauth2-jwt-bearer");
+const prisma_js_1 = __importDefault(require("../lib/prisma.js")); // Adjust the import path as necessary
+exports.verifyToken = (0, express_oauth2_jwt_bearer_1.auth)({
     audience: "https://api.studentsapp.com",
     issuerBaseURL: "https://dev-173h8fm3s2l6fjai.us.auth0.com/",
     tokenSigningAlg: "RS256",
 });
-export const authenticate = async (req, res, next) => {
+const authenticate = async (req, res, next) => {
     try {
         // Ensure the token was verified and req.auth is populated
         console.log("verifyToken middleware executed");
@@ -15,7 +21,7 @@ export const authenticate = async (req, res, next) => {
         }
         const auth0UserId = req.auth.payload.sub;
         // Fetch user from the database with relevant fields and relationships
-        const user = await prisma.user.findUnique({
+        const user = await prisma_js_1.default.user.findUnique({
             where: { auth0UserId },
             select: {
                 id: true,
@@ -70,7 +76,8 @@ export const authenticate = async (req, res, next) => {
         res.status(401).json({ error: "Unauthorized" });
     }
 };
-export const authorizeRoles = (roles) => {
+exports.authenticate = authenticate;
+const authorizeRoles = (roles) => {
     return (req, res, next) => {
         try {
             if (!req.user) {
@@ -80,10 +87,10 @@ export const authorizeRoles = (roles) => {
                 });
                 return;
             }
-            if (!req.user.isActive) {
+            if (!req.user.emailVerified) {
                 res.status(403).json({
                     success: false,
-                    message: "You need to activate your account to access this resource",
+                    message: "You need to verify your account to access this resource",
                 });
                 return;
             }
@@ -110,4 +117,5 @@ export const authorizeRoles = (roles) => {
         }
     };
 };
+exports.authorizeRoles = authorizeRoles;
 //# sourceMappingURL=authMiddelware.js.map
