@@ -19,7 +19,7 @@ export default function App() {
           </div>
 
           <SmartLibrary />
-           <div className="min-h-[6rem] mb-3 xl:hidden w-[80%] mx-auto flex justify-center items-center bg-white">
+           <div className="min-h-[6rem] mb-2 xl:hidden w-[80%] mx-auto flex justify-center items-center bg-white">
             adv
           </div>
           <div className="min-h-[6rem] xl:hidden w-[80%] mx-auto flex justify-center items-center bg-white">
