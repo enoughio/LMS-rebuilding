@@ -799,7 +799,7 @@ export const rejectLibrary = async (req: Request, res: Response) => {
 
 
 
-export const getTopLibraries = async (res: Response) => {
+export const getTopLibraries = async (_req: Request, res: Response) => {
   // This function should be called on a route like GET /api/libraries/top
   // Make sure it's not conflicting with GET /api/libraries/:id routes
   try {
