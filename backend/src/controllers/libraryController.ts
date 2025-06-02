@@ -476,7 +476,7 @@ export const registerLibrary = async (req: LibraryRegistrationRequest, res: Resp
 
 
 
-export const getLibraryRequests = async (_req: Request, res: Response) => {
+export const getLibraryRequests = async (req: Request, res: Response) => {
 
   // console.log("USer role:", req.user?.role)
 
@@ -799,7 +799,7 @@ export const rejectLibrary = async (req: Request, res: Response) => {
 
 
 
-export const getTopLibraries = async (_req: Request, res: Response) => {
+export const getTopLibraries = async (req: Request, res: Response) => {
   // This function should be called on a route like GET /api/libraries/top
   // Make sure it's not conflicting with GET /api/libraries/:id routes
   try {
