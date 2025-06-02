@@ -16,6 +16,7 @@ import userRoutes from './routes/userRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 
 
+
 const app = express();
 app.use(express.json());
 
@@ -48,6 +49,7 @@ app.use('/api/libraries', libraryRoutes);
 // app.use('/api/bookings', bookingRoutes);
 // app.use('/api/memberships', membershipRoutes);
 // app.use('/api/books', bookRoutes);
+// app.use('/api/seed', seedDatabase);
 app.use('/api/dashboard', dashboardRoutes);
 // app.use('/api/auth', authRoutes);
 

@@ -1,22 +1,11 @@
-import { UserRole } from "../auth";
+import { User } from '@prisma/client';
 
 declare global {
-    namespace Express {
-        interface User {
-            id: string;
-            name: string;
-            email: string;
-            role: UserRole;
-            permissions?: string[];
-            [key: string]: any;
-        }
-
-        interface Request {
-            user?: User;
-            role?: UserRole;
-            libraryId?: string; // Only applicable for ADMIN roles
-        }
+  namespace Express {
+    interface Request {
+      user?: User;
     }
+  }
 }
 
-export { };
+export {};
