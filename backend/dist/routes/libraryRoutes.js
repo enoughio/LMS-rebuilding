@@ -8,6 +8,7 @@ import { UserRole } from '../../generated/prisma/index.js';
 // import { ALL_PERMISSIONS } from '../utils/permissions';
 const router = express.Router();
 // // Public routes for library listings
+router.get('/requests', verifyToken, authenticate, authorizeRoles(UserRole.SUPER_ADMIN), libraryController.getLibraryRequests);
 router.get('/', libraryController.getAllLibraries); // Anyone can view approved libraries
 // router.get('/featured', libraryController.getFeaturedLibraries); // Get featured libraries for homepage
 // router.get('/search', libraryController.searchLibraries); // Search libraries by name, location, etc.
@@ -29,10 +30,9 @@ router.post('/register', verifyToken, authenticate, authorizeRoles(UserRole.MEMB
 // router.post('/:id/books', authenticate, authorizeRoles(UserRole.ADMIN), libraryController.addBook);
 // router.get('/:id/members', authenticate, authorizeRoles(UserRole.ADMIN), libraryController.getLibraryMembers);
 // // Super Admin routes
-// router.get('/admin/requests', authenticate, authorizeRoles(UserRole.SUPER_ADMIN), libraryController.getLibraryRequests);
 // router.get('/admin/requests/:id', authenticate, authorizeRoles(UserRole.SUPER_ADMIN), libraryController.getLibraryRequestById);
-// router.patch('/:id/approve', authenticate, authorizeRoles(UserRole.SUPER_ADMIN), libraryController.approveLibrary);
-// router.patch('/:id/reject', authenticate, authorizeRoles(UserRole.SUPER_ADMIN), libraryController.rejectLibrary);
+router.patch('/:libraryId/approve', verifyToken, authenticate, authorizeRoles(UserRole.SUPER_ADMIN), libraryController.approvLibrary);
+router.patch('/:libraryId/reject', verifyToken, authenticate, authorizeRoles(UserRole.SUPER_ADMIN), libraryController.rejectLibrary);
 // router.delete('/:id', authenticate, authorizeRoles(UserRole.SUPER_ADMIN), libraryController.deleteLibrary);
 export default router;
 //# sourceMappingURL=libraryRoutes.js.map

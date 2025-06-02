@@ -14,6 +14,8 @@ interface OpeningHour {
   isClosed: boolean;
 }
 
+
+
 interface Library {
   id: string;
   name: string;
@@ -70,7 +72,7 @@ const LibraryCard = memo(({ lib }: { lib: Library }) => {
     >
       <div className="relative w-full sm:w-64 h-40 sm:h-40 flex-shrink-0">
         <Image
-          src={lib.images[0] || "/libraries/libraries2.jpg"}
+          src={ "/libraries/libraries2.jpg"}
           alt={lib.name}
           fill
           className="w-full h-full object-cover rounded-xl"
