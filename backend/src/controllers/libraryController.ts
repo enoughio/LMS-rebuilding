@@ -476,7 +476,7 @@ export const registerLibrary = async (req: LibraryRegistrationRequest, res: Resp
 
 
 
-export const getLibraryRequests = async ( res: Response) => {
+export const getLibraryRequests = async (_req: Request, res: Response) => {
 
   // console.log("USer role:", req.user?.role)
 
