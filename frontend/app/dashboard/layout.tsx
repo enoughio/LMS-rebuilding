@@ -60,7 +60,7 @@
 //   const getNavItems = () => {
 //     if (!user) return []
 
-//   //   if (user.role === "MEMBER") {
+//   //   if (user.role ==="MEMBER") {
 //   //     return [
 //   //       {
 //   //         href: "/dashboard/member",
@@ -151,43 +151,43 @@
 //   //       },
 //   //     ]
 //     // } else
-//      if (user.role === "SUPER_ADMIN" || user.role === "ADMIN" || user.role === "MEMBER") {
+//      if (user.role === "SUPER_ADMIN" || user.role === "ADMIN" || user.role ==="MEMBER") {
 //       return [
 //         {
-//           href: "/dashboard/super-admin",
+//           href: "/dashboard/SUPER_ADMIN",
 //           label: "Dashboard",
 //           icon: <LayoutDashboard className="h-4 w-4" />,
-//           active: pathname === "/dashboard/super-admin",
+//           active: pathname === "/dashboard/SUPER_ADMIN",
 //         },
 //         {
-//           href: "/dashboard/super-admin/libraries",
+//           href: "/dashboard/SUPER_ADMIN/libraries",
 //           label: "Libraries",
 //           icon: <Library className="h-4 w-4" />,
-//           active: pathname === "/dashboard/super-admin/libraries",
+//           active: pathname === "/dashboard/SUPER_ADMIN/libraries",
 //         },
 //         {
-//           href: "/dashboard/super-admin/users",
+//           href: "/dashboard/SUPER_ADMIN/users",
 //           label: "Users",
 //           icon: <Users className="h-4 w-4" />,
-//           active: pathname === "/dashboard/super-admin/users",
+//           active: pathname === "/dashboard/SUPER_ADMIN/users",
 //         },
 //         {
-//           href: "/dashboard/super-admin/payments",
+//           href: "/dashboard/SUPER_ADMIN/payments",
 //           label: "Payments",
 //           icon: <CreditCard className="h-4 w-4" />,
-//           active: pathname === "/dashboard/super-admin/payments",
+//           active: pathname === "/dashboard/SUPER_ADMIN/payments",
 //         },
 //         {
-//           href: "/dashboard/super-admin/reports",
+//           href: "/dashboard/SUPER_ADMIN/reports",
 //           label: "Reports",
 //           icon: <BarChart3 className="h-4 w-4" />,
-//           active: pathname === "/dashboard/super-admin/reports",
+//           active: pathname === "/dashboard/SUPER_ADMIN/reports",
 //         },
 //         {
-//           href: "/dashboard/super-admin/settings",
+//           href: "/dashboard/SUPER_ADMIN/settings",
 //           label: "Settings",
 //           icon: <Settings className="h-4 w-4" />,
-//           active: pathname === "/dashboard/super-admin/settings",
+//           active: pathname === "/dashboard/SUPER_ADMIN/settings",
 //         },
 //       ]
 //     }
@@ -250,19 +250,35 @@
 //   )
 // }
 
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
+// import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+// import { AppSidebar } from "@/components/app-sidebar";
 
-export default function Layout({ children }: { children: React.ReactNode }) {
-  return (
+// export default function Layout({ children }: { children: React.ReactNode }) {
+//   return (
     
-      <SidebarProvider>
-        <AppSidebar />
-        <main >
-          <SidebarTrigger />
-          {children}
-        </main>
-      </SidebarProvider>
+//       <SidebarProvider>
+//         <AppSidebar />
+//         <main >
+//           <SidebarTrigger />
+//           {children}
+//         </main>
+//       </SidebarProvider>
 
-  );
+//   );
+// }
+
+
+
+import type React from "react"
+import { DashboardSidebar } from "@/components/app-sidebar" 
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex min-h-screen">
+      <DashboardSidebar />
+      <div className="flex-1 overflow-auto">
+        <main className="w-full p-6">{children}</main>
+      </div>
+    </div>
+  )
 }

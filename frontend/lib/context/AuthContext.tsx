@@ -135,14 +135,14 @@ export function Auth0AuthProvider({ children }: { children: React.ReactNode }) {
       if (user) {
         const isMemberRoute = pathname.startsWith("/dashboard/member")
         const isAdminRoute = pathname.startsWith("/dashboard/admin")
-        const isSuperAdminRoute = pathname.startsWith("/dashboard/super-admin")
+        const isSuperAdminRoute = pathname.startsWith("/dashboard/SUPER_ADMIN")
 
         if ((user.role === "SUPER_ADMIN" ) && (isAdminRoute || isSuperAdminRoute)) {
           router.push("/dashboard/member")
         } else if (user.role === "ADMIN" && (isMemberRoute || isSuperAdminRoute)) {
           router.push("/dashboard/admin")
         } else if (user.role === "SUPER_ADMIN" && (isMemberRoute || isAdminRoute)) {
-          router.push("/dashboard/super-admin")
+          router.push("/dashboard/SUPER_ADMIN")
         }
       }
     }

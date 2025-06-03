@@ -27,7 +27,7 @@ export type admin = {
   id: string;
   name: string;
   email: string;
-  role: "MEMBER" ,
+  role:"MEMBER" ,
   createdAt: string;
   auth0UserId?: string | null; // Optional field for Auth0 user ID
 }

@@ -1,4 +1,4 @@
-export type UserRole =  | "MEMBER" | "ADMIN" | "SUPER_ADMIN"
+export type UserRole =  |"MEMBER" | "ADMIN" | "SUPER_ADMIN"
 
 export type MembershipStatus = "active" | "expired" | "pending"
 

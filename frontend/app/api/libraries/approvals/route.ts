@@ -18,6 +18,13 @@ export async function GET() {
     // Get access token
     const { token: accessToken } = await auth0.getAccessToken();
 
+    if (!accessToken) {
+      return NextResponse.json(
+        { message: "Unauthorized. Access token not found." },
+        { status: 401 }
+      );
+    }
+
     // Send request to backend
     const response = await fetch(`${API_URL}/api/libraries/requests`, {
       method: "GET",

@@ -104,7 +104,7 @@ const TopLibraries: React.FC = () => {
       </CardContent>
       <CardFooter>
         <Button variant="ghost" size="sm" className="w-full" asChild>
-          <Link href="/dashboard/super-admin/libraries">
+          <Link href="/dashboard/SUPER_ADMIN/libraries">
             View all libraries
             <ArrowRight className="ml-1 h-4 w-4" />
           </Link>
