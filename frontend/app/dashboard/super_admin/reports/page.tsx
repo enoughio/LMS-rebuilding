@@ -63,11 +63,20 @@ export default function ReportsPage() {
           reportsApi.getUserActivityReports(filters),
           reportsApi.getLibraryPerformanceReports(filters)
         ])
+        // setOverviewData(overview.data)
+        // setRevenueData(revenue.data)
+        // setUserActivityData(userActivity.data)
+        // setLibraryPerformanceData(libraryPerformance.data)
+        
+//-------------------------------------------------------        
+        // Enhance data with random values for testing
+        setOverviewData(enhanceWithRandomData(overview.data))
+        setRevenueData(enhanceWithRandomData(revenue.data))
+        setUserActivityData(enhanceWithRandomData(userActivity.data))
+        setLibraryPerformanceData(enhanceWithRandomData(libraryPerformance.data))
+//-------------------------------------------------------
 
-        setOverviewData(overview.data)
-        setRevenueData(revenue.data)
-        setUserActivityData(userActivity.data)
-        setLibraryPerformanceData(libraryPerformance.data)
+
       } catch (err) {
         console.error('Failed to fetch reports data:', err)
         setError('Failed to load reports data')
@@ -78,6 +87,82 @@ export default function ReportsPage() {
 
     fetchData()
   }, [date, libraryFilter])
+
+
+//-------------------------------------------------------
+  // Helper function to generate random numbers
+  const randomNumber = (min: number, max: number) => {
+    return Math.floor(Math.random() * (max - min + 1) + min)
+  }
+
+  // Helper function to enhance data with random values where data is zero
+  const enhanceWithRandomData = (data: any) => {
+    if (!data) {
+      // Create default data structure if data is null
+      return {
+        summary: {
+          monthlyRevenue: randomNumber(50000, 200000),
+          monthlyBookings: randomNumber(1000, 5000),
+          activeUsers: randomNumber(5000, 20000),
+          newUsers: randomNumber(500, 2000)
+        },
+        monthlyRevenue: generateMonthlyRevenueData()
+      }
+    }
+    
+    // Create a deep copy to avoid mutating the original data
+    const enhancedData = JSON.parse(JSON.stringify(data))
+    
+    // Add monthlyRevenue array if it doesn't exist or is empty
+    if (!enhancedData.monthlyRevenue || enhancedData.monthlyRevenue.length === 0) {
+      enhancedData.monthlyRevenue = generateMonthlyRevenueData()
+    }
+    
+    // Replace zero values with random numbers
+    const replaceZeros = (obj: any) => {
+      if (!obj || typeof obj !== 'object') return
+      
+      Object.keys(obj).forEach(key => {
+        if (obj[key] === 0) {
+          // Generate appropriate random value based on field name
+          if (key.includes('Revenue') || key.includes('revenue')) {
+            obj[key] = randomNumber(10000, 200000)
+          } else if (key.includes('Booking') || key.includes('booking')) {
+            obj[key] = randomNumber(100, 2000)
+          } else if (key.includes('User') || key.includes('user') || key.includes('member')) {
+            obj[key] = randomNumber(500, 5000)
+          } else {
+            // Default random value for other fields
+            obj[key] = randomNumber(50, 1000)
+          }
+        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+          replaceZeros(obj[key])
+        }
+      })
+    }
+    
+    replaceZeros(enhancedData)
+    return enhancedData
+  }
+
+  // Helper function to generate monthly revenue data
+  const generateMonthlyRevenueData = () => {
+    // Generate monthly data for the last 12 months
+    const months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+    
+    return months.map((month, i) => {
+      // Create slightly variable revenue with occasional peaks and valleys for realism
+      const baseRevenue = randomNumber(60000, 90000);
+      const variability = Math.sin(i * 0.8) * 20000; // Create some waves in the data
+      
+      return {
+        month,
+        revenue: Math.max(10000, Math.round(baseRevenue + variability))
+      }
+    });
+  }
+//-------------------------------------------------------
+
 
   if (loading) {
     return (
@@ -108,7 +193,7 @@ export default function ReportsPage() {
 
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap gap-2">
-          <Select value={reportType} onValueChange={setReportType}>
+          {/* <Select value={reportType} onValueChange={setReportType}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Report type" />
             </SelectTrigger>
@@ -118,7 +203,7 @@ export default function ReportsPage() {
               <SelectItem value="libraries">Library Performance</SelectItem>
               <SelectItem value="bookings">Booking Analytics</SelectItem>
             </SelectContent>
-          </Select>
+          </Select> */}
 
           <Select value={libraryFilter} onValueChange={setLibraryFilter}>
             <SelectTrigger className="w-[180px]">
@@ -133,7 +218,7 @@ export default function ReportsPage() {
             </SelectContent>
           </Select>
 
-          <DatePickerWithRange date={date} setDate={setDate} />
+          {/* <DatePickerWithRange date={date} setDate={setDate} /> */}
         </div>
 
         <div className="flex gap-2">
@@ -209,29 +294,206 @@ export default function ReportsPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Revenue Overview</CardTitle>
-                    <CardDescription>Monthly revenue for the past year</CardDescription>
+                    <CardDescription>Member and library growth over time</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="h-[300px] w-full">
-                      <div className="flex h-full w-full items-end justify-between gap-2">
-                        {revenueData?.monthlyRevenue?.map((data: any, i: number) => {
-                          const height = (data.revenue / Math.max(...revenueData.monthlyRevenue.map((d: any) => d.revenue))) * 100
-                          return (
-                            <div key={i} className="relative flex h-full flex-1 flex-col justify-end">
-                              <div 
-                                className="w-full rounded-md bg-primary" 
-                                style={{ height: `${height}%` }}
-                                title={`${data.month}: ₹${data.revenue}`}
-                              ></div>
-                              <span className="mt-2 text-center text-xs text-muted-foreground">{data.month}</span>
-                            </div>
-                          )
-                        })}
+                  <CardContent className="p-6">
+                    <div className="h-[300px] relative">
+                      {/* Y-axis labels */}
+                      <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-sm text-muted-foreground">
+                        <div>100k</div>
+                        <div>50k</div>
+                        <div>20k</div>
+                        <div>10k</div>
+                        <div>0</div>
+                      </div>
+                      
+                      {/* Chart area with grid lines */}
+                      <div className="ml-12 h-full border-b border-l relative">
+                        {/* Horizontal grid lines */}
+                        <div className="absolute inset-0 grid grid-rows-4 w-full h-full">
+                          {[0, 1, 2, 3, 4].map((i) => (
+                            <div key={i} className="border-t border-muted/30 w-full"></div>
+                          ))}
+                        </div>
+                        
+                        {/* Vertical grid lines and X-axis labels */}
+                        <div className="absolute inset-0 flex w-full h-full">
+                          {[...Array(12)].map((_, i) => {
+                            return (
+                              <div key={i} className="flex-1 border-r border-muted/30 flex flex-col justify-between">
+                                <div className="h-full"></div>
+                                <div className="text-xs text-muted-foreground text-center mt-2">
+                                  {overviewData.monthlyRevenue && i < overviewData.monthlyRevenue.length
+                                    ? overviewData.monthlyRevenue[i].month
+                                    : ''
+                                  }
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        
+                        {/* Revenue line chart */}
+                        {overviewData?.monthlyRevenue && (
+                          <svg className="absolute inset-0 w-full h-full overflow-visible" preserveAspectRatio="none">
+                            <defs>
+                              <linearGradient id="revenue-gradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="rgb(220, 130, 30)" stopOpacity="0.2"/>
+                                <stop offset="100%" stopColor="rgb(220, 130, 30)" stopOpacity="0.05"/>
+                              </linearGradient>
+                            </defs>
+                            
+                            {/* Draw the line */}
+                            <path
+                              d={`M ${overviewData.monthlyRevenue.map((d: any, i: number) => {
+                                const x = (i / (overviewData.monthlyRevenue.length - 1)) * 100;
+                                const maxRevenue = Math.max(...overviewData.monthlyRevenue.map((d: any) => d.revenue));
+                                const y = 100 - (d.revenue / maxRevenue * 80 + 10);
+                                return `${x} ${y}`;
+                              }).join(' L ')}`}
+                              fill="none"
+                              stroke="rgb(220, 130, 30)"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeDasharray="4,2"
+                            />
+                            
+                            {/* Area under the line */}
+                            <path
+                              d={`M ${overviewData.monthlyRevenue.map((d: any, i: number) => {
+                                const x = (i / (overviewData.monthlyRevenue.length - 1)) * 100;
+                                const maxRevenue = Math.max(...overviewData.monthlyRevenue.map((d: any) => d.revenue));
+                                const y = 100 - (d.revenue / maxRevenue * 80 + 10);
+                                return `${x} ${y}`;
+                              }).join(' L ')} L 100 100 L 0 100 Z`}
+                              fill="url(#revenue-gradient)"
+                            />
+                            
+                            {/* Add dots at each data point */}
+                            {overviewData.monthlyRevenue.map((d: any, i: number) => {
+                              const x = (i / (overviewData.monthlyRevenue.length - 1)) * 100;
+                              const maxRevenue = Math.max(...overviewData.monthlyRevenue.map((d: any) => d.revenue));
+                              const y = 100 - (d.revenue / maxRevenue * 80 + 10);
+                              return (
+                                <circle 
+                                  key={i} 
+                                  cx={x} 
+                                  cy={y} 
+                                  r="2" 
+                                  fill="rgb(220, 130, 30)" 
+                                  stroke="white" 
+                                  strokeWidth="1"
+                                />
+                              );
+                            })}
+                          </svg>
+                        )}
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
+                <Card>
+                  <CardHeader>
+                    <CardTitle>User Growth</CardTitle>
+                    <CardDescription>Monthly user growth for the past year</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="h-[300px] relative">
+                      {/* Y-axis labels */}
+                      <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-sm text-muted-foreground">
+                        <div>100</div>
+                        <div>80</div>
+                        <div>60</div>
+                        <div>40</div>
+                        <div>20</div>
+                      </div>
+                      
+                      {/* Chart area with grid lines */}
+                      <div className="ml-12 h-full border-b border-l relative">
+                        {/* Horizontal grid lines */}
+                        <div className="absolute inset-0 grid grid-rows-4 w-full h-full">
+                          {[0, 1, 2, 3, 4].map((i) => (
+                            <div key={i} className="border-t border-muted/30 w-full"></div>
+                          ))}
+                        </div>
+                        
+                        {/* Vertical grid lines and X-axis labels */}
+                        <div className="absolute inset-0 flex w-full h-full">
+                          {['Jan', 'Mar', 'May', 'Jul', 'Sep', 'Nov'].map((month, i) => (
+                            <div key={i} className="flex-1 border-r border-muted/30 flex flex-col justify-between">
+                              <div className="h-full"></div>
+                              <div className="text-xs text-muted-foreground text-center mt-2">
+                                {month}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* User growth lines */}
+                        <svg className="absolute inset-0 w-full h-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
+                          {/* Dynamic user activity line using actual data */}
+                          {userActivityData?.dailyActivity && (
+                            <path
+                              d={`M ${userActivityData.dailyActivity.slice(-6).map((activity: any, i: number) => {
+                                const x = (i / (userActivityData.dailyActivity.slice(-6).length - 1)) * 100;
+                                const maxUsers = Math.max(...userActivityData.dailyActivity.slice(-6).map((d: any) => d.activeUsers));
+                                const y = 100 - (activity.activeUsers / maxUsers * 80 + 10);
+                                return `${x} ${y}`;
+                              }).join(' L ')}`}
+                              fill="none"
+                              stroke="#8B4513"
+                              strokeWidth="0.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              vectorEffect="non-scaling-stroke"
+                            />
+                          )}
+                          
+                          {/* New users line */}
+                          {userActivityData?.dailyActivity && (
+                            <path
+                              d={`M ${userActivityData.dailyActivity.slice(-6).map((activity: any, i: number) => {
+                                const x = (i / (userActivityData.dailyActivity.slice(-6).length - 1)) * 100;
+                                const maxUsers = Math.max(...userActivityData.dailyActivity.slice(-6).map((d: any) => d.newUsers));
+                                const y = 100 - (activity.newUsers / maxUsers * 80 + 10);
+                                return `${x} ${y}`;
+                              }).join(' L ')}`}
+                              fill="none"
+                              stroke="#A0865E"
+                              strokeWidth="0.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              vectorEffect="non-scaling-stroke"
+                            />
+                          )}
+                          
+                          {/* Bookings line */}
+                          {userActivityData?.dailyActivity && (
+                            <path
+                              d={`M ${userActivityData.dailyActivity.slice(-6).map((activity: any, i: number) => {
+                                const x = (i / (userActivityData.dailyActivity.slice(-6).length - 1)) * 100;
+                                const maxBookings = Math.max(...userActivityData.dailyActivity.slice(-6).map((d: any) => d.bookings));
+                                const y = 100 - (activity.bookings / maxBookings * 80 + 10);
+                                return `${x} ${y}`;
+                              }).join(' L ')}`}
+                              fill="none"
+                              stroke="#654321"
+                              strokeWidth="0.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              vectorEffect="non-scaling-stroke"
+                            />
+                          )}
+                        </svg>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <Card>
                   <CardHeader>
                     <CardTitle>Top Performing Libraries</CardTitle>
