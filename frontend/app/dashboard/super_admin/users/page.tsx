@@ -1,14 +1,13 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { Edit, Loader2, MoreHorizontal, Plus, Search, Shield, Trash, Users } from "lucide-react";
 
-import { useState, useEffect } from "react"
-import { Edit, Loader2, MoreHorizontal, Plus, Search, Shield, Trash, Users } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -17,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,13 +24,32 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Label } from "@/components/ui/label"
-import { useToast } from "@/components/ui/use-toast"
-// import { useAuth } from "@/lib/context/AuthContext" 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import type { User, UserRole } from "@/types/user"
+} from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/use-toast";
+// import { useAuth } from "@/lib/context/AuthContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
+// Define User and UserRole types for TypeScript
+export type UserRole = "MEMBER" | "ADMIN" | "SUPER_ADMIN";
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  avatar?: string;
+  createdAt: string;
+  membership?: {
+    planId: string;
+    planName: string;
+    status: string;
+    expiresAt: string;
+  };
+  libraryId?: string;
+  libraryName?: string;
+}
 
 // Mock users data
 const mockUsers: User[] = [
@@ -143,72 +161,68 @@ const mockUsers: User[] = [
     libraryId: "lib-3",
     libraryName: "Tech Knowledge Center",
   },
-]
+];
 
 export default function UsersPage() {
-
-    // const { user, isLoading } = useAuth()
-
-    const { toast } = useToast()
-  const [users, setUsers] = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [roleFilter, setRoleFilter] = useState<string>("all")
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  // const { user, isLoading } = useAuth();
+  const { toast } = useToast();
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
     role: "MEMBER" as UserRole,
     libraryId: "",
-  })
+  });
 
   // Mock libraries for dropdown
   const mockLibraries = [
     { id: "lib-1", name: "Central Library" },
     { id: "lib-2", name: "Riverside Reading Hub" },
     { id: "lib-3", name: "Tech Knowledge Center" },
-  ]
+  ];
 
   useEffect(() => {
     // Simulate API call to fetch users
     const fetchUsers = async () => {
-      setLoading(true)
+      setLoading(true);
       try {
         // In a real app, this would fetch data from an API
-        setUsers(mockUsers)
+        setUsers(mockUsers);
       } catch (error) {
-        console.error("Error fetching users:", error)
+        console.error("Error fetching users:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchUsers()
-  }, [])
+    fetchUsers();
+  }, []);
 
   // Apply filters
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase())
-
-    const matchesRole = roleFilter === "all" || user.role === roleFilter
-
-    return matchesSearch && matchesRole
-  })
+      user.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = roleFilter === "all" || user.role === roleFilter;
+    return matchesSearch && matchesRole;
+  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setNewUser((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setNewUser((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleRoleChange = (value: string) => {
-    setNewUser((prev) => ({ ...prev, role: value as UserRole }))
-  }
+    setNewUser((prev) => ({ ...prev, role: value as UserRole }));
+  };
 
   const handleLibraryChange = (value: string) => {
-    setNewUser((prev) => ({ ...prev, libraryId: value }))
-  }
+    setNewUser((prev) => ({ ...prev, libraryId: value }));
+  };
 
   const handleAddUser = () => {
     if (!newUser.name || !newUser.email || !newUser.role) {
@@ -216,8 +230,8 @@ export default function UsersPage() {
         title: "Missing Information",
         description: "Please fill in all required fields",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     if (newUser.role === "ADMIN" && !newUser.libraryId) {
@@ -225,12 +239,14 @@ export default function UsersPage() {
         title: "Missing Library",
         description: "Please select a library for the admin user",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     // In a real app, this would add the user to the database
-    const libraryName = newUser.libraryId ? mockLibraries.find((lib) => lib.id === newUser.libraryId)?.name || "" : ""
+    const libraryName = newUser.libraryId
+      ? mockLibraries.find((lib) => lib.id === newUser.libraryId)?.name || ""
+      : "";
 
     const newUserWithId: User = {
       id: `user-${Date.now()}`,
@@ -251,15 +267,15 @@ export default function UsersPage() {
           expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         },
       }),
-    }
+    };
 
-    setUsers([...users, newUserWithId])
-    setIsAddDialogOpen(false)
+    setUsers([...users, newUserWithId]);
+    setIsAddDialogOpen(false);
 
     toast({
       title: "User Added",
       description: `${newUser.name} has been added as a ${newUser.role}.`,
-    })
+    });
 
     // Reset form
     setNewUser({
@@ -267,18 +283,18 @@ export default function UsersPage() {
       email: "",
       role: "MEMBER",
       libraryId: "",
-    })
-  }
+    });
+  };
 
   const handleDeleteUser = (userId: string) => {
     // In a real app, this would delete the user from the database
-    setUsers(users.filter((user) => user.id !== userId))
+    setUsers(users.filter((user) => user.id !== userId));
 
     toast({
       title: "User Deleted",
       description: "The user has been deleted successfully.",
-    })
-  }
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -351,7 +367,7 @@ export default function UsersPage() {
                 <div className="space-y-2">
                   <Label htmlFor="role">Role *</Label>
                   <Select value={newUser.role} onValueChange={handleRoleChange}>
-                    <SelectTrigger>
+                    <SelectTrigger id="role">
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
@@ -365,7 +381,7 @@ export default function UsersPage() {
                   <div className="space-y-2">
                     <Label htmlFor="library">Library *</Label>
                     <Select value={newUser.libraryId} onValueChange={handleLibraryChange}>
-                      <SelectTrigger>
+                      <SelectTrigger id="library">
                         <SelectValue placeholder="Select library" />
                       </SelectTrigger>
                       <SelectContent>
@@ -395,7 +411,7 @@ export default function UsersPage() {
           <TabsTrigger value="all">All Users</TabsTrigger>
           <TabsTrigger value="members">Members</TabsTrigger>
           <TabsTrigger value="admins">Admins</TabsTrigger>
-          <TabsTrigger value="SUPER_ADMINs">Super Admins</TabsTrigger>
+          <TabsTrigger value="super_admins">Super Admins</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="mt-4">
@@ -633,7 +649,7 @@ export default function UsersPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="SUPER_ADMINs" className="mt-4">
+        <TabsContent value="super_admins" className="mt-4">
           <div className="rounded-md border">
             <div className="grid grid-cols-12 gap-4 border-b bg-muted/50 p-4 font-medium">
               <div className="col-span-5">User</div>
@@ -691,7 +707,5 @@ export default function UsersPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
-
-
