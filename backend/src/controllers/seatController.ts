@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma.js';
-import { BookingStatus, SeatType } from '../../generated/prisma/index.js';
+import { BookingStatus} from '../../generated/prisma/index.js';
 
 // Get all seats in a library
 export const getLibrarySeats = async (req: Request, res: Response) => {
@@ -39,7 +39,8 @@ export const getSeatAvailability = async (req: Request, res: Response) => {
     const { date } = req.query;
 
     if (!date || typeof date !== 'string') {
-      return res.status(400).json({ success: false, error: 'Date is required' });
+      res.status(400).json({ success: false, error: 'Date is required' });
+      return;
     }
 
     const queryDate = new Date(date);
@@ -158,10 +159,11 @@ export const bookSeat = async (req: Request, res: Response) => {
     });
 
     if (!userMembership) {
-      return res.status(403).json({
+      res.status(403).json({
         success: false,
         error: 'Active membership required for booking',
       });
+      return
     }
 
     // Get seat details and pricing
@@ -177,10 +179,11 @@ export const bookSeat = async (req: Request, res: Response) => {
     });
 
     if (!seatDetails) {
-      return res.status(404).json({
+       res.status(404).json({
         success: false,
         error: 'Seat not found',
       });
+      return
     }
 
     // Calculate duration and price
@@ -217,10 +220,11 @@ export const bookSeat = async (req: Request, res: Response) => {
     });
 
     if (existingBooking) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'Seat is not available for the requested time slot',
       });
+      return;
     }
 
     // Create the booking

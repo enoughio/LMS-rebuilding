@@ -14,6 +14,7 @@ import membershipRoutes from './routes/membershipRoutes.js';
 // import dashboardRoutes from './routes/dashboardRoutes';
 import userRoutes from './routes/userRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
+import reportsRoutes from './routes/reportsRoutes.js';
 
 
 
@@ -52,6 +53,7 @@ app.use('/api/memberships', membershipRoutes);
 // app.use('/api/books', bookRoutes);
 // app.use('/api/seed', seedDatabase);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/reports', reportsRoutes);
 // app.use('/api/auth', authRoutes);
 
 // Test route

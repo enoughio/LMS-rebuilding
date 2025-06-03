@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma.js';
-import { MembershipStatus, Prisma } from '../../generated/prisma/index.js';
+import { MembershipStatus } from '../../generated/prisma/index.js';
 
 // Get all membership plans for a library
 export const getLibraryMembershipPlans = async (req: Request, res: Response) => {
@@ -228,7 +228,8 @@ export const renewMembership = async (req: Request, res: Response) => {
     });
 
     if (!membership) {
-      return res.status(404).json({ success: false, error: 'Membership not found' });
+      res.status(404).json({ success: false, error: 'Membership not found' });
+      return
     }
 
     const newEndDate = new Date(membership.endDate);
