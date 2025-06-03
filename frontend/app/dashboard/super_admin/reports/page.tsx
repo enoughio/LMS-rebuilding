@@ -4,12 +4,13 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator, SelectLabel } from "@/components/ui/select"
 import { DatePickerWithRange } from "@/components/ui/date-range-picker"
 import { Download, Printer, FileText, Filter } from "lucide-react"
 import { addDays } from "date-fns"
 import { DateRange } from "react-day-picker"
 import { reportsApi, type Library, type ReportsFilters } from "@/lib/reports-api"
+import { SelectGroup } from "@radix-ui/react-select"
 
 export default function ReportsPage() {
   const [date, setDate] = useState<DateRange>({
@@ -57,29 +58,38 @@ export default function ReportsPage() {
           libraryId: libraryFilter !== "all" ? libraryFilter : undefined
         }
 
+        console.log('Fetching reports with filters:', filters)
+
         const [overview, revenue, userActivity, libraryPerformance] = await Promise.all([
-          reportsApi.getReportsOverview({ libraryId: filters.libraryId }),
-          reportsApi.getRevenueReports(filters),
-          reportsApi.getUserActivityReports(filters),
-          reportsApi.getLibraryPerformanceReports(filters)
+          reportsApi.getReportsOverview({ libraryId: filters.libraryId }).catch(err => {
+            console.error('Overview API failed:', err)
+            return { data: null }
+          }),
+          reportsApi.getRevenueReports(filters).catch(err => {
+            console.error('Revenue API failed:', err)
+            return { data: null }
+          }),
+          reportsApi.getUserActivityReports(filters).catch(err => {
+            console.error('User Activity API failed:', err)
+            return { data: null }
+          }),
+          reportsApi.getLibraryPerformanceReports(filters).catch(err => {
+            console.error('Library Performance API failed:', err)
+            return { data: null }
+          })
         ])
-        // setOverviewData(overview.data)
-        // setRevenueData(revenue.data)
-        // setUserActivityData(userActivity.data)
-        // setLibraryPerformanceData(libraryPerformance.data)
+
+        console.log('API responses:', { overview, revenue, userActivity, libraryPerformance })
         
-//-------------------------------------------------------        
         // Enhance data with random values for testing
         setOverviewData(enhanceWithRandomData(overview.data))
         setRevenueData(enhanceWithRandomData(revenue.data))
         setUserActivityData(enhanceWithRandomData(userActivity.data))
         setLibraryPerformanceData(enhanceWithRandomData(libraryPerformance.data))
-//-------------------------------------------------------
-
 
       } catch (err) {
         console.error('Failed to fetch reports data:', err)
-        setError('Failed to load reports data')
+        setError(`Failed to load reports data: ${err instanceof Error ? err.message : 'Unknown error'}`)
       } finally {
         setLoading(false)
       }
@@ -95,10 +105,10 @@ export default function ReportsPage() {
     return Math.floor(Math.random() * (max - min + 1) + min)
   }
 
-  // Helper function to enhance data with random values where data is zero
+  // Enhanced helper function to create mock data when API fails
   const enhanceWithRandomData = (data: any) => {
     if (!data) {
-      // Create default data structure if data is null
+      // Create comprehensive mock data structure
       return {
         summary: {
           monthlyRevenue: randomNumber(50000, 200000),
@@ -106,16 +116,39 @@ export default function ReportsPage() {
           activeUsers: randomNumber(5000, 20000),
           newUsers: randomNumber(500, 2000)
         },
-        monthlyRevenue: generateMonthlyRevenueData()
+        monthlyRevenue: generateMonthlyRevenueData(),
+        topLibraries: generateMockLibraries(),
+        revenueBreakdown: {
+          membership: randomNumber(30000, 80000),
+          seatBooking: randomNumber(20000, 60000),
+          penalty: randomNumber(1000, 5000),
+          eBookPurchase: randomNumber(5000, 15000),
+          other: randomNumber(2000, 10000)
+        },
+        totalRevenue: randomNumber(100000, 300000),
+        dailyActivity: generateMockDailyActivity(),
+        libraryPerformance: generateMockLibraryPerformance()
       }
     }
     
     // Create a deep copy to avoid mutating the original data
     const enhancedData = JSON.parse(JSON.stringify(data))
     
-    // Add monthlyRevenue array if it doesn't exist or is empty
+    // Add missing data structures
     if (!enhancedData.monthlyRevenue || enhancedData.monthlyRevenue.length === 0) {
       enhancedData.monthlyRevenue = generateMonthlyRevenueData()
+    }
+    
+    if (!enhancedData.topLibraries || enhancedData.topLibraries.length === 0) {
+      enhancedData.topLibraries = generateMockLibraries()
+    }
+    
+    if (!enhancedData.dailyActivity || enhancedData.dailyActivity.length === 0) {
+      enhancedData.dailyActivity = generateMockDailyActivity()
+    }
+    
+    if (!enhancedData.libraryPerformance || enhancedData.libraryPerformance.length === 0) {
+      enhancedData.libraryPerformance = generateMockLibraryPerformance()
     }
     
     // Replace zero values with random numbers
@@ -161,6 +194,47 @@ export default function ReportsPage() {
       }
     });
   }
+
+  // Helper function to generate mock libraries
+  const generateMockLibraries = () => {
+    const libraryNames = ['Central Library', 'Eastside Library', 'Westside Library', 'Downtown Library', 'University Library']
+    const cities = ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Pune']
+    
+    return libraryNames.map((name, i) => ({
+      id: `lib-${i}`,
+      name,
+      city: cities[i % cities.length],
+      members: randomNumber(500, 2000),
+      bookings: randomNumber(100, 500),
+      rating: (randomNumber(35, 50) / 10).toFixed(1),
+      revenue: randomNumber(50000, 150000),
+      occupancyRate: randomNumber(60, 95)
+    }))
+  }
+
+  // Helper function to generate mock daily activity
+  const generateMockDailyActivity = () => {
+    const days = []
+    for (let i = 30; i >= 0; i--) {
+      const date = new Date()
+      date.setDate(date.getDate() - i)
+      days.push({
+        date: date.toISOString(),
+        activeUsers: randomNumber(100, 500),
+        newUsers: randomNumber(10, 50),
+        bookings: randomNumber(50, 200)
+      })
+    }
+    return days
+  }
+
+  // Helper function to generate mock library performance
+  const generateMockLibraryPerformance = () => {
+    return generateMockLibraries().map(lib => ({
+      ...lib,
+      state: 'Maharashtra'
+    }))
+  }
 //-------------------------------------------------------
 
 
@@ -177,12 +251,46 @@ export default function ReportsPage() {
   if (error) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-center h-64">
+        <div className="flex flex-col items-center justify-center h-64 space-y-4">
           <div className="text-lg text-red-600">{error}</div>
+          <Button 
+            onClick={() => window.location.reload()} 
+            variant="outline"
+          >
+            Retry
+          </Button>
         </div>
       </div>
     )
   }
+
+  // Add a function to filter data based on selected library
+  const getFilteredData = (data: any, libraryId: string) => {
+    if (!data || libraryId === "all") return data;
+    
+    // Filter the data to show only selected library's data
+    const filteredData = { ...data };
+    
+    // Filter top libraries to show only selected library
+    if (filteredData.topLibraries) {
+      filteredData.topLibraries = filteredData.topLibraries.filter(
+        (lib: any) => lib.id === libraryId
+      );
+    }
+    
+    // Filter library performance data
+    if (filteredData.libraryPerformance) {
+      filteredData.libraryPerformance = filteredData.libraryPerformance.filter(
+        (lib: any) => lib.id === libraryId
+      );
+    }
+    
+    return filteredData;
+  };
+
+  // Update the data display to use filtered data
+  const filteredOverviewData = getFilteredData(overviewData, libraryFilter);
+  const filteredLibraryPerformanceData = getFilteredData(libraryPerformanceData, libraryFilter);
 
   return (
     <div className="space-y-6">
@@ -210,6 +318,9 @@ export default function ReportsPage() {
               <SelectValue placeholder="Filter by library" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">All Libraries</SelectItem>
+              <SelectSeparator />
+              <SelectGroup><SelectLabel>Available Libraries</SelectLabel></SelectGroup>
               {libraries.map((library) => (
                 <SelectItem key={library.id} value={library.id}>
                   {library.name}
@@ -242,8 +353,22 @@ export default function ReportsPage() {
         </TabsList>
 
         <TabsContent value="overview" className="mt-4 space-y-6">
-          {overviewData && (
+          {filteredOverviewData && (
             <>
+              {/* Show library-specific header when a library is selected */}
+              {libraryFilter !== "all" && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>
+                      {libraries.find(lib => lib.id === libraryFilter)?.name || "Selected Library"} - Overview
+                    </CardTitle>
+                    <CardDescription>
+                      Performance metrics for selected library
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              )}
+
               <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
                 <Card>
                   <CardHeader>
@@ -251,7 +376,7 @@ export default function ReportsPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      ₹{overviewData.summary.monthlyRevenue?.toLocaleString()}
+                      ₹{filteredOverviewData.summary.monthlyRevenue?.toLocaleString()}
                     </div>
                   </CardContent>
                 </Card>
@@ -262,7 +387,7 @@ export default function ReportsPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {overviewData.summary.monthlyBookings?.toLocaleString()}
+                      {filteredOverviewData.summary.monthlyBookings?.toLocaleString()}
                     </div>
                   </CardContent>
                 </Card>
@@ -273,7 +398,7 @@ export default function ReportsPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {overviewData.summary.activeUsers?.toLocaleString()}
+                      {filteredOverviewData.summary.activeUsers?.toLocaleString()}
                     </div>
                   </CardContent>
                 </Card>
@@ -284,19 +409,26 @@ export default function ReportsPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {overviewData.summary.newUsers?.toLocaleString()}
+                      {filteredOverviewData.summary.newUsers?.toLocaleString()}
                     </div>
                   </CardContent>
                 </Card>
               </div>
 
+              {/* Keep the charts using filteredOverviewData */}
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <Card>
                   <CardHeader>
                     <CardTitle>Revenue Overview</CardTitle>
-                    <CardDescription>Member and library growth over time</CardDescription>
+                    <CardDescription>
+                      {libraryFilter === "all" 
+                        ? "Member and library growth over time" 
+                        : `Revenue trends for ${libraries.find(lib => lib.id === libraryFilter)?.name}`
+                      }
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="p-6">
+                    {/* Chart using filteredOverviewData.monthlyRevenue */}
                     <div className="h-[300px] relative">
                       {/* Y-axis labels */}
                       <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-sm text-muted-foreground">
@@ -323,8 +455,8 @@ export default function ReportsPage() {
                               <div key={i} className="flex-1 border-r border-muted/30 flex flex-col justify-between">
                                 <div className="h-full"></div>
                                 <div className="text-xs text-muted-foreground text-center mt-2">
-                                  {overviewData.monthlyRevenue && i < overviewData.monthlyRevenue.length
-                                    ? overviewData.monthlyRevenue[i].month
+                                  {filteredOverviewData.monthlyRevenue && i < filteredOverviewData.monthlyRevenue.length
+                                    ? filteredOverviewData.monthlyRevenue[i].month
                                     : ''
                                   }
                                 </div>
@@ -334,7 +466,7 @@ export default function ReportsPage() {
                         </div>
                         
                         {/* Revenue line chart */}
-                        {overviewData?.monthlyRevenue && (
+                        {filteredOverviewData?.monthlyRevenue && (
                           <svg className="absolute inset-0 w-full h-full overflow-visible" preserveAspectRatio="none">
                             <defs>
                               <linearGradient id="revenue-gradient" x1="0" y1="0" x2="0" y2="1">
@@ -345,9 +477,9 @@ export default function ReportsPage() {
                             
                             {/* Draw the line */}
                             <path
-                              d={`M ${overviewData.monthlyRevenue.map((d: any, i: number) => {
-                                const x = (i / (overviewData.monthlyRevenue.length - 1)) * 100;
-                                const maxRevenue = Math.max(...overviewData.monthlyRevenue.map((d: any) => d.revenue));
+                              d={`M ${filteredOverviewData.monthlyRevenue.map((d: any, i: number) => {
+                                const x = (i / (filteredOverviewData.monthlyRevenue.length - 1)) * 100;
+                                const maxRevenue = Math.max(...filteredOverviewData.monthlyRevenue.map((d: any) => d.revenue));
                                 const y = 100 - (d.revenue / maxRevenue * 80 + 10);
                                 return `${x} ${y}`;
                               }).join(' L ')}`}
@@ -361,9 +493,9 @@ export default function ReportsPage() {
                             
                             {/* Area under the line */}
                             <path
-                              d={`M ${overviewData.monthlyRevenue.map((d: any, i: number) => {
-                                const x = (i / (overviewData.monthlyRevenue.length - 1)) * 100;
-                                const maxRevenue = Math.max(...overviewData.monthlyRevenue.map((d: any) => d.revenue));
+                              d={`M ${filteredOverviewData.monthlyRevenue.map((d: any, i: number) => {
+                                const x = (i / (filteredOverviewData.monthlyRevenue.length - 1)) * 100;
+                                const maxRevenue = Math.max(...filteredOverviewData.monthlyRevenue.map((d: any) => d.revenue));
                                 const y = 100 - (d.revenue / maxRevenue * 80 + 10);
                                 return `${x} ${y}`;
                               }).join(' L ')} L 100 100 L 0 100 Z`}
@@ -371,9 +503,9 @@ export default function ReportsPage() {
                             />
                             
                             {/* Add dots at each data point */}
-                            {overviewData.monthlyRevenue.map((d: any, i: number) => {
-                              const x = (i / (overviewData.monthlyRevenue.length - 1)) * 100;
-                              const maxRevenue = Math.max(...overviewData.monthlyRevenue.map((d: any) => d.revenue));
+                            {filteredOverviewData.monthlyRevenue.map((d: any, i: number) => {
+                              const x = (i / (filteredOverviewData.monthlyRevenue.length - 1)) * 100;
+                              const maxRevenue = Math.max(...filteredOverviewData.monthlyRevenue.map((d: any) => d.revenue));
                               const y = 100 - (d.revenue / maxRevenue * 80 + 10);
                               return (
                                 <circle 
@@ -393,7 +525,7 @@ export default function ReportsPage() {
                     </div>
                   </CardContent>
                 </Card>
-
+                
                 <Card>
                   <CardHeader>
                     <CardTitle>User Growth</CardTitle>
@@ -496,12 +628,19 @@ export default function ReportsPage() {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Top Performing Libraries</CardTitle>
-                    <CardDescription>Libraries with highest ratings</CardDescription>
+                    <CardTitle>
+                      {libraryFilter === "all" ? "Top Performing Libraries" : "Library Details"}
+                    </CardTitle>
+                    <CardDescription>
+                      {libraryFilter === "all" 
+                        ? "Libraries with highest ratings" 
+                        : "Performance details for selected library"
+                      }
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {overviewData.topLibraries?.map((library: any, i: number) => (
+                      {filteredOverviewData.topLibraries?.map((library: any, i: number) => (
                         <div key={i} className="flex items-center justify-between rounded-lg bg-muted/50 p-4">
                           <div>
                             <h3 className="font-medium">{library.name}</h3>
@@ -646,15 +785,22 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="libraries" className="mt-4 space-y-6">
-          {libraryPerformanceData && (
+          {filteredLibraryPerformanceData && (
             <Card>
               <CardHeader>
-                <CardTitle>Library Performance</CardTitle>
-                <CardDescription>Performance metrics for all libraries</CardDescription>
+                <CardTitle>
+                  {libraryFilter === "all" ? "Library Performance" : "Selected Library Performance"}
+                </CardTitle>
+                <CardDescription>
+                  {libraryFilter === "all" 
+                    ? "Performance metrics for all libraries" 
+                    : `Detailed metrics for ${libraries.find(lib => lib.id === libraryFilter)?.name}`
+                  }
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {libraryPerformanceData.libraryPerformance?.map((library: any, i: number) => (
+                  {filteredLibraryPerformanceData.libraryPerformance?.map((library: any, i: number) => (
                     <div key={i} className="flex items-center justify-between rounded-lg bg-muted/50 p-4">
                       <div>
                         <h3 className="font-medium">{library.name}</h3>
