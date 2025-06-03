@@ -73,7 +73,7 @@ export const RegisterUser = async (userData: UserData) => {
 
 export const RegisterAdmin = async (userData: UserData) => {
   try {
-    const response = await fetch(`${API_URL}/auth/register-super-admin`, {
+    const response = await fetch(`${API_URL}/auth/register-SUPER_ADMIN`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -225,7 +225,7 @@ export const GetCurrentUser = async () => {
 //    * Register a super admin user
 //    */
 //   registerSuperAdmin: async (userData: any) => {
-//     const response = await fetch(`${API_URL}/auth/register-super-admin`, {
+//     const response = await fetch(`${API_URL}/auth/register-SUPER_ADMIN`, {
 //       method: 'POST',
 //       ...fetchOptions,
 //       body: JSON.stringify(userData)

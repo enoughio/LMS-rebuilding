@@ -11,7 +11,7 @@ const router = express.Router();
  * GET /api/dashboard/member
  * Member dashboard route (Only accessible by authenticated users with MEMBER role)
  */
-router.get('/super-admin', verifyToken, authenticate, authorizeRoles(UserRole.SUPER_ADMIN), getSuperAdminDashboard);
+router.get('/SUPER_ADMIN', verifyToken, authenticate, authorizeRoles(UserRole.SUPER_ADMIN), getSuperAdminDashboard);
 router.get("/top", verifyToken, authenticate, authorizeRoles(UserRole.SUPER_ADMIN), getTopLibraries); // Get top libraries for super admin dashboard
 // router.get("/revenue",  getRevenue); // Get revenue for super admin dashboard
 router.get('/stats', verifyToken, authenticate, authorizeRoles(UserRole.SUPER_ADMIN), getStatsController);

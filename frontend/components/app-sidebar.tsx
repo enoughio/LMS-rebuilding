@@ -339,40 +339,40 @@ export function DashboardSidebar() {
     } else if (user.role === "SUPER_ADMIN") {
       return [
         {
-          href: "/dashboard/SUPER_ADMIN",
+          href: "/dashboard/super_admin",
           label: "Dashboard",
           icon: <LayoutDashboard className="h-4 w-4" />,
-          active: pathname === "/dashboard/SUPER_ADMIN",
+          active: pathname === "/dashboard/super_admin",
         },
         {
-          href: "/dashboard/SUPER_ADMIN/libraries",
+          href: "/dashboard/super_admin/libraries",
           label: "Libraries",
           icon: <Library className="h-4 w-4" />,
-          active: pathname === "/dashboard/SUPER_ADMIN/libraries",
+          active: pathname === "/dashboard/super_admin/libraries",
         },
         {
-          href: "/dashboard/SUPER_ADMIN/users",
+          href: "/dashboard/super_admin/users",
           label: "Users",
           icon: <Users className="h-4 w-4" />,
-          active: pathname === "/dashboard/SUPER_ADMIN/users",
+          active: pathname === "/dashboard/super_admin/users",
         },
         {
-          href: "/dashboard/SUPER_ADMIN/payments",
+          href: "/dashboard/super_admin/payments",
           label: "Payments",
           icon: <CreditCard className="h-4 w-4" />,
-          active: pathname === "/dashboard/SUPER_ADMIN/payments",
+          active: pathname === "/dashboard/super_admin/payments",
         },
         {
-          href: "/dashboard/SUPER_ADMIN/reports",
+          href: "/dashboard/super_admin/reports",
           label: "Reports",
           icon: <BarChart3 className="h-4 w-4" />,
-          active: pathname === "/dashboard/SUPER_ADMIN/reports",
+          active: pathname === "/dashboard/super_admin/reports",
         },
         {
-          href: "/dashboard/SUPER_ADMIN/settings",
+          href: "/dashboard/super_admin/settings",
           label: "Settings",
           icon: <Settings className="h-4 w-4" />,
-          active: pathname === "/dashboard/SUPER_ADMIN/settings",
+          active: pathname === "/dashboard/super_admin/settings",
         },
       ]
     }

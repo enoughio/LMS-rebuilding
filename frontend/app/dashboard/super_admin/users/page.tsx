@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/components/ui/use-toast"
-import { useAuth } from "@/lib/context/AuthContext" 
+// import { useAuth } from "@/lib/context/AuthContext" 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { User, UserRole } from "@/types/user"
@@ -147,7 +147,7 @@ const mockUsers: User[] = [
 
 export default function UsersPage() {
 
-    const { user, isLoading } = useAuth()
+    // const { user, isLoading } = useAuth()
 
     const { toast } = useToast()
   const [users, setUsers] = useState<User[]>([])
@@ -351,7 +351,7 @@ export default function UsersPage() {
                 <div className="space-y-2">
                   <Label htmlFor="role">Role *</Label>
                   <Select value={newUser.role} onValueChange={handleRoleChange}>
-                    <SelectTrigger id="role">
+                    <SelectTrigger>
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
@@ -363,9 +363,9 @@ export default function UsersPage() {
                 </div>
                 {newUser.role === "ADMIN" && (
                   <div className="space-y-2">
-                    <Label htmlFor="libraryId">Library *</Label>
+                    <Label htmlFor="library">Library *</Label>
                     <Select value={newUser.libraryId} onValueChange={handleLibraryChange}>
-                      <SelectTrigger id="libraryId">
+                      <SelectTrigger>
                         <SelectValue placeholder="Select library" />
                       </SelectTrigger>
                       <SelectContent>
