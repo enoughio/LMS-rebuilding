@@ -30,6 +30,7 @@ import { useToast } from "@/components/ui/use-toast";
 // import { useAuth } from "@/lib/context/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { UserTableSkeleton } from "@/components/ui/user-table-skeleton";
 
 // Define User and UserRole types for TypeScript
 export type UserRole = "MEMBER" | "ADMIN" | "SUPER_ADMIN";
@@ -165,10 +166,10 @@ const mockUsers: User[] = [
 
 export default function UsersPage() {
   // const { user, isLoading } = useAuth();
-  const { toast } = useToast();
-  const [users, setUsers] = useState<User[]>([]);
+  const { toast } = useToast();  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newUser, setNewUser] = useState({
@@ -183,33 +184,68 @@ export default function UsersPage() {
     { id: "lib-1", name: "Central Library" },
     { id: "lib-2", name: "Riverside Reading Hub" },
     { id: "lib-3", name: "Tech Knowledge Center" },
-  ];
+  ];  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   useEffect(() => {
-    // Simulate API call to fetch users
+    // Fetch users from API with filters
     const fetchUsers = async () => {
       setLoading(true);
       try {
-        // In a real app, this would fetch data from an API
-        setUsers(mockUsers);
+        // Build query parameters
+        const params = new URLSearchParams();
+        if (roleFilter !== 'all') {
+          params.append('role', roleFilter);
+        }
+        if (debouncedSearchQuery) {
+          params.append('search', debouncedSearchQuery);
+        }
+        params.append('page', '1');
+        params.append('limit', '50');
+
+        // Make API call to backend
+        const response = await fetch(`/api/users/all?${params.toString()}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch users');
+        }
+
+        const result = await response.json();
+        
+        if (result.success) {
+          setUsers(result.data);
+        } else {
+          throw new Error(result.error || 'Failed to fetch users');
+        }
       } catch (error) {
         console.error("Error fetching users:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch users. Using fallback data.",
+          variant: "destructive",
+        });
+        // Fallback to mock data if API fails
+        setUsers(mockUsers);
       } finally {
         setLoading(false);
       }
     };
 
     fetchUsers();
-  }, []);
-
-  // Apply filters
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    return matchesSearch && matchesRole;
-  });
+  }, [roleFilter, debouncedSearchQuery, toast]); // Re-fetch when filters change
+  // Users are already filtered on the server, so we can use them directly
+  const filteredUsers = users;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -412,12 +448,17 @@ export default function UsersPage() {
           <TabsTrigger value="members">Members</TabsTrigger>
           <TabsTrigger value="admins">Admins</TabsTrigger>
           <TabsTrigger value="super_admins">Super Admins</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="all" className="mt-4">
+        </TabsList>        <TabsContent value="all" className="mt-4">
           {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="rounded-md border">
+              <div className="grid grid-cols-12 gap-4 border-b bg-muted/50 p-4 font-medium">
+                <div className="col-span-4">User</div>
+                <div className="col-span-2">Role</div>
+                <div className="col-span-2">Status</div>
+                <div className="col-span-2">Joined</div>
+                <div className="col-span-2">Actions</div>
+              </div>
+              <UserTableSkeleton />
             </div>
           ) : filteredUsers.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-lg border py-8 text-center">
