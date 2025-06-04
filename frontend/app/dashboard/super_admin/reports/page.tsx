@@ -6,10 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DatePickerWithRange } from "@/components/ui/date-range-picker"
-import { Download, Printer, FileText, Filter } from "lucide-react"
+import { Download, Printer } from "lucide-react"
 import { addDays } from "date-fns"
 import { DateRange } from "react-day-picker"
-import { reportsApi, type Library, type ReportsFilters } from "@/lib/reports-api"
+import { reportsApi, type Library, type ReportsFilters, type RevenueReportsResponse, type UserActivityReportsResponse, type LibraryPerformanceReportsResponse, type ReportsOverviewResponse, type RevenueData, type UserActivityData, type LibraryPerformanceData, type TopLibrary } from "@/lib/reports-api"
 
 export default function ReportsPage() {
   const [date, setDate] = useState<DateRange>({
@@ -20,13 +20,11 @@ export default function ReportsPage() {
   const [reportType, setReportType] = useState<string>("revenue")
   const [libraries, setLibraries] = useState<Library[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  // Data states
-  const [revenueData, setRevenueData] = useState<any>(null)
-  const [userActivityData, setUserActivityData] = useState<any>(null)
-  const [libraryPerformanceData, setLibraryPerformanceData] = useState<any>(null)
-  const [overviewData, setOverviewData] = useState<any>(null)
+  const [error, setError] = useState<string | null>(null)  // Data states
+  const [revenueData, setRevenueData] = useState<RevenueReportsResponse | null>(null)
+  const [userActivityData, setUserActivityData] = useState<UserActivityReportsResponse | null>(null)
+  const [libraryPerformanceData, setLibraryPerformanceData] = useState<LibraryPerformanceReportsResponse | null>(null)
+  const [overviewData, setOverviewData] = useState<ReportsOverviewResponse | null>(null)
 
   // Fetch libraries for dropdown
   useEffect(() => {
@@ -81,7 +79,7 @@ export default function ReportsPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 min-w-[70vw]">
         <div className="flex items-center justify-center h-64">
           <div className="text-lg">Loading reports...</div>
         </div>
@@ -91,7 +89,7 @@ export default function ReportsPage() {
 
   if (error) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 min-w-[70vw]">
         <div className="flex items-center justify-center h-64">
           <div className="text-lg text-red-600">{error}</div>
         </div>
@@ -100,7 +98,7 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-[70vw]">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
         <p className="text-muted-foreground">View and generate platform reports</p>
@@ -213,9 +211,8 @@ export default function ReportsPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="h-[300px] w-full">
-                      <div className="flex h-full w-full items-end justify-between gap-2">
-                        {revenueData?.monthlyRevenue?.map((data: any, i: number) => {
-                          const height = (data.revenue / Math.max(...revenueData.monthlyRevenue.map((d: any) => d.revenue))) * 100
+                      <div className="flex h-full w-full items-end justify-between gap-2">                        {revenueData?.monthlyRevenue?.map((data: RevenueData, i: number) => {
+                          const height = (data.revenue / Math.max(...revenueData.monthlyRevenue.map((d: RevenueData) => d.revenue))) * 100
                           return (
                             <div key={i} className="relative flex h-full flex-1 flex-col justify-end">
                               <div 
@@ -239,7 +236,7 @@ export default function ReportsPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {overviewData.topLibraries?.map((library: any, i: number) => (
+                      {overviewData.topLibraries?.map((library: TopLibrary, i: number) => (
                         <div key={i} className="flex items-center justify-between rounded-lg bg-muted/50 p-4">
                           <div>
                             <h3 className="font-medium">{library.name}</h3>
@@ -298,8 +295,8 @@ export default function ReportsPage() {
                   
                   <div className="h-[300px] w-full">
                     <div className="flex h-full w-full items-end justify-between gap-2">
-                      {revenueData.monthlyRevenue?.map((data: any, i: number) => {
-                        const height = (data.revenue / Math.max(...revenueData.monthlyRevenue.map((d: any) => d.revenue))) * 100
+                      {revenueData.monthlyRevenue?.map((data: RevenueData, i: number) => {
+                        const height = (data.revenue / Math.max(...revenueData.monthlyRevenue.map((d: RevenueData) => d.revenue))) * 100
                         return (
                           <div key={i} className="relative flex h-full flex-1 flex-col justify-end">
                             <div 
@@ -364,7 +361,7 @@ export default function ReportsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {userActivityData.dailyActivity?.slice(-7).map((activity: any, i: number) => (
+                    {userActivityData.dailyActivity?.slice(-7).map((activity: UserActivityData, i: number) => (
                       <div key={i} className="flex items-center justify-between rounded-lg bg-muted/50 p-4">
                         <div>
                           <h3 className="font-medium">{new Date(activity.date).toLocaleDateString()}</h3>
@@ -392,7 +389,7 @@ export default function ReportsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {libraryPerformanceData.libraryPerformance?.map((library: any, i: number) => (
+                  {libraryPerformanceData.libraryPerformance?.map((library: LibraryPerformanceData, i: number) => (
                     <div key={i} className="flex items-center justify-between rounded-lg bg-muted/50 p-4">
                       <div>
                         <h3 className="font-medium">{library.name}</h3>

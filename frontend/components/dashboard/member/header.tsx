@@ -1,7 +1,7 @@
 "use client"
 
 import { Bell, Search } from 'lucide-react'
-import { useAuth } from '@/lib/auth-provider'
+import { useAuth } from '@/lib/context/AuthContext' 
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,7 +37,7 @@ export function Header() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">
               <Avatar>
-                <AvatarImage src={user?.image} alt={user?.name || ''} />
+                <AvatarImage src={user?.avatar} alt={user?.name || ''} />
                 <AvatarFallback>
                   {user?.name?.charAt(0) || user?.email?.charAt(0)}
                 </AvatarFallback>

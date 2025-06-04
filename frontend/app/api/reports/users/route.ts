@@ -57,10 +57,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data, { status: 200 });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('User activity reports API error:', error);
     return NextResponse.json(
-      { success: false, message: 'Internal server error', error: error.message },
+      { success: false, message: 'Internal server error', error: error },
       { status: 500 }
     );
   }

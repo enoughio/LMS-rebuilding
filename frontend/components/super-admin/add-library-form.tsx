@@ -15,8 +15,31 @@ import { Switch } from "@/components/ui/switch"
 import { Card, CardContent } from "@/components/ui/card"
 import type { LibraryAmenity } from "@/types/library"
 
+interface LibraryFormData {
+  name: string
+  description: string
+  address: string
+  city: string
+  state: string
+  country: string
+  postalCode: string
+  email: string
+  phone: string
+  images: string[]
+  amenities: LibraryAmenity[]
+  totalSeats: number
+  additionalInformation?: string
+  openingHours: {
+    [key: string]: {
+      open: string
+      close: string
+      isClosed: boolean
+    }
+  }
+}
+
 export type AddLibraryFormProps = {
-  onSubmit: (data: any) => void
+  onSubmit: (data: LibraryFormData) => void
   onCancel: () => void
 }
 
@@ -29,10 +52,15 @@ export function AddLibraryForm({ onSubmit, onCancel }: AddLibraryFormProps) {
     name: "",
     description: "",
     address: "",
+    city: "",
+    state: "",
+    country: "",
+    postalCode: "",
 
     // Contact info
     ownerName: "",
     ownerEmail: "",
+    email: "",
     phone: "",
     website: "",
 
@@ -40,7 +68,7 @@ export function AddLibraryForm({ onSubmit, onCancel }: AddLibraryFormProps) {
     amenities: [] as LibraryAmenity[],
 
     // Opening hours
-    openingHours: Object.fromEntries(DAYS_OF_WEEK.map((day) => [day, { open: "09:00", close: "18:00" }])),
+    openingHours: Object.fromEntries(DAYS_OF_WEEK.map((day) => [day, { open: "09:00", close: "18:00", isClosed: false }])),
 
     // Seats
     totalSeats: "50",
@@ -167,7 +195,7 @@ export function AddLibraryForm({ onSubmit, onCancel }: AddLibraryFormProps) {
     e.preventDefault()
 
     // Validation
-    if (!formData.name || !formData.address || !formData.ownerEmail) {
+    if (!formData.name || !formData.address || !formData.ownerEmail || !formData.city || !formData.state || !formData.country || !formData.email) {
       toast.error("Please fill in all required fields")
       return
     }
@@ -184,18 +212,28 @@ export function AddLibraryForm({ onSubmit, onCancel }: AddLibraryFormProps) {
 
     // Process the data into the correct format
     const processedData = {
-      ...formData,
+      name: formData.name,
+      description: formData.description,
+      address: formData.address,
+      city: formData.city,
+      state: formData.state,
+      country: formData.country,
+      postalCode: formData.postalCode,
+      email: formData.email,
+      phone: formData.phone,
+      amenities: formData.amenities,
       totalSeats: Number.parseInt(formData.totalSeats),
-      availableSeats: Number.parseInt(formData.totalSeats), // Initially all seats are available
-      membershipPlans: formData.membershipPlans.map((plan) => ({
-        ...plan,
-        price: Number.parseInt(plan.price),
-        duration: Number.parseInt(plan.duration),
-        allowedBookingsPerMonth: Number.parseInt(plan.allowedBookingsPerMonth),
-      })),
+      openingHours: Object.fromEntries(
+        Object.entries(formData.openingHours).map(([day, value]) => [
+          day,
+          {
+            open: value.open,
+            close: value.close,
+            isClosed: typeof value.isClosed === "boolean" ? value.isClosed : false,
+          },
+        ])
+      ),
       images: ["/placeholder.svg?height=400&width=600"],
-      rating: 0,
-      reviewCount: 0,
     }
 
     onSubmit(processedData)
@@ -247,6 +285,70 @@ export function AddLibraryForm({ onSubmit, onCancel }: AddLibraryFormProps) {
               placeholder="Enter full address"
               required
               rows={2}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="city">City *</Label>
+              <Input
+                id="city"
+                name="city"
+                value={formData.city}
+                onChange={handleInputChange}
+                placeholder="Enter city"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="state">State *</Label>
+              <Input
+                id="state"
+                name="state"
+                value={formData.state}
+                onChange={handleInputChange}
+                placeholder="Enter state"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="country">Country *</Label>
+              <Input
+                id="country"
+                name="country"
+                value={formData.country}
+                onChange={handleInputChange}
+                placeholder="Enter country"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="postalCode">Postal Code</Label>
+              <Input
+                id="postalCode"
+                name="postalCode"
+                value={formData.postalCode}
+                onChange={handleInputChange}
+                placeholder="Enter postal code"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email">Library Email *</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              placeholder="Enter library email"
+              required
             />
           </div>
 

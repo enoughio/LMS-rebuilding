@@ -109,8 +109,8 @@ export default function AdminDashboardPage() {
     const fetchData = async () => {
       setLoading(true)
       try {
-        if (user?.libraryId) {
-          const bookings = await mockLibraryService.getLibraryBookings(user.libraryId)
+        if (user) {
+          const bookings = await mockLibraryService.getLibraryBookings("libraryId")
 
           // Sort by date (newest first) and take the most recent 5
           const recentBookings = [...bookings]

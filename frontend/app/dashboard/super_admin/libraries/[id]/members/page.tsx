@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import {
   ArrowLeft,
@@ -89,8 +89,7 @@ export default function LibraryMembersPage() {
     expiredMembers: 0,
     suspendedMembers: 0,
   })
-
-  const fetchMembers = async (page = 1, search = "", status = "all", membershipType = "all") => {
+  const fetchMembers = useCallback(async (page = 1, search = "", status = "all", membershipType = "all") => {
     if (!params?.id) return
 
     try {
@@ -122,11 +121,10 @@ export default function LibraryMembersPage() {
     } finally {
       setLoading(false)
     }
-  }
-
+  }, [params?.id])
   useEffect(() => {
     fetchMembers(currentPage, searchQuery, statusFilter, membershipTypeFilter)
-  }, [params?.id, currentPage, searchQuery, statusFilter, membershipTypeFilter])
+  }, [fetchMembers, currentPage, searchQuery, statusFilter, membershipTypeFilter])
 
   const handleSearch = (value: string) => {
     setSearchQuery(value)

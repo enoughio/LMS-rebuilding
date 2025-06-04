@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import {
   ArrowLeft,
@@ -108,8 +108,7 @@ export default function LibraryBookingsPage() {
     noShowBookings: 0,
     totalRevenue: 0,
   })
-
-  const fetchBookings = async (page = 1, search = "", status = "all", dateRange = "all") => {
+  const fetchBookings = useCallback(async (page = 1, search = "", status = "all", dateRange = "all") => {
     if (!params?.id) return
 
     try {
@@ -141,11 +140,10 @@ export default function LibraryBookingsPage() {
     } finally {
       setLoading(false)
     }
-  }
-
+  }, [params?.id])
   useEffect(() => {
     fetchBookings(currentPage, searchQuery, statusFilter, dateFilter)
-  }, [params?.id, currentPage, searchQuery, statusFilter, dateFilter])
+  }, [fetchBookings, currentPage, searchQuery, statusFilter, dateFilter])
 
   const handleSearch = (value: string) => {
     setSearchQuery(value)

@@ -30,9 +30,7 @@ export default function Navbar() {
   // console.log("User:", dbUser); // Debugging line to check user object
   
   // Debug logging to understand the user object
-  console.log("Navbar - User:", user);
-  console.log("Navbar - IsLoading:", isLoading);
-  console.log("Navbar - User Role:", user?.role);
+  
 
   // Add active state to nav items
   const routes = navItems.map(item => ({
@@ -130,11 +128,6 @@ export default function Navbar() {
               <Link href="/auth/login">
                 <Button variant="ghost" size="sm" className="hidden md:flex">
                   Login
-                </Button>
-              </Link>
-              <Link href="/auth/register">
-                <Button size="sm" className="hidden md:flex">
-                  Sign Up
                 </Button>
               </Link>
             </>

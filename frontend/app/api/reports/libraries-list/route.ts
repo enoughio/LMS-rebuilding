@@ -45,10 +45,10 @@ export async function GET() {
 
     return NextResponse.json(data, { status: 200 });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Libraries list API error:', error);
     return NextResponse.json(
-      { success: false, message: 'Internal server error', error: error.message },
+      { success: false, message: 'Internal server error', error},
       { status: 500 }
     );
   }

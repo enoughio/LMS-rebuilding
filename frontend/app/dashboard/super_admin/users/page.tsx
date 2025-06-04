@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useState, useEffect } from "react";
-import { Edit, Loader2, MoreHorizontal, Plus, Search, Shield, Trash, Users } from "lucide-react";
+import { Edit, MoreHorizontal, Plus, Search, Shield, Trash, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -333,7 +333,7 @@ export default function UsersPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-[70vw]">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">Users</h1>
         <p className="text-muted-foreground">Manage all users on the platform</p>

@@ -239,7 +239,7 @@ import { useAuth } from "@/lib/context/AuthContext"
 // import { ModeToggle } from "@/components/mode-toggle"
 
 export function DashboardSidebar() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const pathname = usePathname()
 
   // Define navigation items based on user role
@@ -383,7 +383,7 @@ export function DashboardSidebar() {
   const navItems = getNavItems()
 
   return (
-    <div className="hidden border-r bg-background md:block md:w-64">
+    <div className="hidden border-r bg-background md:block md:w-64 p-4">
       <div className="flex h-14 items-center border-b px-4">
         <Link href="/" className="flex items-center gap-2">
           <BookOpen className="h-6 w-6" />

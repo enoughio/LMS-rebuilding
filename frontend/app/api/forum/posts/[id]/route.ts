@@ -22,7 +22,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Failed to get access token" }, { status: 401 })
     }
 
-    console.log("Fetching from Node.js API:", `${API_BASE_URL}/api/forum/${id}`)
+    // console.log("Fetching from Node.js API:", `${API_BASE_URL}/api/forum/${id}`)
 
     // Make request to Node.js backend
     const response = await fetch(`${API_BASE_URL}/api/forum/${id}`, {

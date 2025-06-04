@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import {
   Building2,
   Check,
@@ -9,13 +10,10 @@ import {
   Eye,
   Loader2,
   MoreHorizontal,
-  Plus,
   Search,
   Trash,
   X,
   FileText,
-  Inbox,
-  CalendarDays,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -30,7 +28,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import {
   DropdownMenu,
@@ -42,46 +39,21 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { Library } from "@/types/library"
-import { AddLibraryForm } from "@/components/SUPER_ADMIN/add-library-form"
+// import { AddLibraryForm } from "@/components/SUPER_ADMIN/add-library-form"
 import toast from "react-hot-toast"
 
+
 // Mock library requests (keeping this for now as requested)
-const mockLibraryRequests = [
-  {
-    id: "request-1",
-    name: "Innovation Hub Library",
-    address: "101 Tech Street, Bangalore, India",
-    requestedBy: "John Doe",
-    email: "john.doe@example.com",
-    phone: "+91 98765 43213",
-    description: "A library focused on technology and innovation with coding workshops and tech talks.",
-    requestedAt: "2023-10-16T10:30:00Z",
-  },
-  {
-    id: "request-2",
-    name: "Heritage Reading Room",
-    address: "45 Cultural Avenue, Mumbai, India",
-    requestedBy: "Priya Sharma",
-    email: "priya.sharma@example.com",
-    phone: "+91 98765 43214",
-    description:
-      "A traditional library preserving historical texts and cultural artifacts, with special focus on Indian literature.",
-    requestedAt: "2023-10-15T14:15:00Z",
-  },
-]
+
 
 export default function LibrariesPage() {
   const router = useRouter()
   const [libraries, setLibraries] = useState<Library[]>([])
   const [pendingLibraries, setPendingLibraries] = useState<Library[]>([])
-  const [libraryRequests, setLibraryRequests] = useState(mockLibraryRequests)
   const [loading, setLoading] = useState(true)
   const [pendingLoading, setPendingLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [ratingFilter, setRatingFilter] = useState<string>("all")
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-  const [selectedRequest, setSelectedRequest] = useState<any | null>(null)
-  const [isRequestDetailOpen, setIsRequestDetailOpen] = useState(false)
   const [selectedLibrary, setSelectedLibrary] = useState<Library | null>(null)
   const [isLibraryDetailOpen, setIsLibraryDetailOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -135,7 +107,7 @@ export default function LibrariesPage() {
         setPendingLibraries(result.data?.data || [])
       } catch (error) {
         toast.error(
-          `Network error: ${error instanceof Error ? error.message : "Something went wrong"}`
+          `Network error: ${error instanceof Error ? error : "Something went wrong"}`
         )
         setPendingLibraries([])
       } finally {
@@ -162,14 +134,6 @@ export default function LibrariesPage() {
 
     return matchesSearch && matchesRating
   })
-
-  const handleAddLibrary = (libraryData: any) => {
-    // In a real app, this would add the library to the database
-    toast(` has been added successfully.`)
-
-    // Close dialog
-    setIsAddDialogOpen(false)
-  }
 
   const handleApproveLibrary = async (id: string) => {
     setSubmitting(true)
@@ -242,57 +206,8 @@ export default function LibrariesPage() {
     toast("The library has been deleted successfully.")
   }
 
-  const handleConvertRequestToLibrary = (request: any) => {
-    // In a real app, this would convert the request to a pending library
-    setLibraryRequests(libraryRequests.filter((r) => r.id !== request.id))
-
-    const newLibrary: Library = {
-      id: `pending-${Date.now()}`,
-      name: request.name,
-      address: request.address,
-      description: request.description,
-      phone: request.phone,
-      email: request.email,
-      createdAt: new Date().toISOString(),
-      // Required fields with default values
-      images: [],
-      rating: 0,
-      reviewCount: 0,
-      amenities: [],
-      openingHours: {} as any,
-      city: '',
-      state: '',
-      country: '',
-      admin: {
-        id: `admin-${Date.now()}`,
-        name: request.requestedBy,
-        email: request.email,
-        role: 'MEMBER',
-        createdAt: new Date().toISOString(),
-      }
-    }
-
-    setPendingLibraries([...pendingLibraries, newLibrary])
-
-    setIsRequestDetailOpen(false)
-    setSelectedRequest(null)
-
-    toast.success("The request has been converted to a pending library.")
-  }
-
-  const handleDeleteRequest = (id: string) => {
-    setLibraryRequests(libraryRequests.filter((request) => request.id !== id))
-
-    if (selectedRequest?.id === id) {
-      setIsRequestDetailOpen(false)
-      setSelectedRequest(null)
-    }
-
-    toast( "The library request has been deleted.")
-  }
-
   return (
-    <div className="space-y-6 min-h-[120vh]">
+    <div className="space-y-6 min-h-[120vh] min-w-[72vw] pb-16">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">Libraries</h1>
         <p className="text-muted-foreground">Manage all libraries on the platform</p>
@@ -324,7 +239,7 @@ export default function LibrariesPage() {
             </SelectContent>
           </Select>
 
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          {/* <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
@@ -338,7 +253,7 @@ export default function LibrariesPage() {
               </DialogHeader>
               <AddLibraryForm onSubmit={handleAddLibrary} onCancel={() => setIsAddDialogOpen(false)} />
             </DialogContent>
-          </Dialog>
+          </Dialog> */}
         </div>
       </div>
 
@@ -353,14 +268,14 @@ export default function LibrariesPage() {
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="requests">
+          {/* <TabsTrigger value="requests">
             Library Requests
             {libraryRequests.length > 0 && (
               <Badge variant="secondary" className="ml-2">
                 {libraryRequests.length}
               </Badge>
             )}
-          </TabsTrigger>
+          </TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="libraries" className="mt-6">
@@ -521,115 +436,7 @@ export default function LibrariesPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="requests" className="mt-6">
-          {libraryRequests.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-lg border py-8 text-center">
-              <Inbox className="h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-4 text-lg font-medium">No library requests</h3>
-              <p className="text-muted-foreground">There are no pending requests from users</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {libraryRequests.map((request) => (
-                <Card key={request.id}>
-                  <CardContent className="p-6">
-                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                      <div className="space-y-2">
-                        <h3 className="text-xl font-semibold">{request.name}</h3>
-                        <p className="text-muted-foreground">{request.address}</p>
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <span className="font-medium">Requested by:</span>
-                            <span>{request.requestedBy}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span className="font-medium">Date:</span>
-                            <span>{new Date(request.requestedAt).toLocaleDateString()}</span>
-                          </div>
-                        </div>
-                        <div className="line-clamp-2 text-sm">{request.description}</div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedRequest(request)
-                            setIsRequestDetailOpen(true)
-                          }}
-                        >
-                          <Eye className="mr-2 h-4 w-4" />
-                          View Details
-                        </Button>
-                        <Button variant="destructive" size="icon" onClick={() => handleDeleteRequest(request.id)}>
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          {/* Request Detail Dialog */}
-          <Dialog open={isRequestDetailOpen} onOpenChange={setIsRequestDetailOpen}>
-            <DialogContent className="sm:max-w-[600px]">
-              <DialogHeader>
-                <DialogTitle>Library Request Details</DialogTitle>
-                <DialogDescription>Review the request details</DialogDescription>
-              </DialogHeader>
-              {selectedRequest && (
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-semibold">{selectedRequest.name}</h3>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <CalendarDays className="h-4 w-4" />
-                      <span>Requested on {new Date(selectedRequest.requestedAt).toLocaleString()}</span>
-                    </div>
-                  </div>
-
-                  <div className="rounded-md border p-4">
-                    <div className="mb-2 font-medium">Contact Information</div>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div className="flex items-center gap-1">
-                        <span className="font-medium">Name:</span>
-                        <span>{selectedRequest.requestedBy}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="font-medium">Email:</span>
-                        <span>{selectedRequest.email}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="font-medium">Phone:</span>
-                        <span>{selectedRequest.phone}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-md border p-4">
-                    <div className="mb-2 font-medium">Library Information</div>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-start gap-1">
-                        <span className="font-medium">Address:</span>
-                        <span>{selectedRequest.address}</span>
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <span className="font-medium">Description:</span>
-                        <p>{selectedRequest.description}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsRequestDetailOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={() => handleConvertRequestToLibrary(selectedRequest)}>Convert to Library</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </TabsContent>
+       
       </Tabs>
 
       {/* Library Detail Modal for Approval */}
@@ -737,9 +544,11 @@ export default function LibrariesPage() {
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                     {selectedLibrary.images.map((image, index) => (
                       <div key={index} className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                        <img 
+                        <Image 
                           src={image} 
                           alt={`Library image ${index + 1}`}
+                          width={400}
+                          height={225}
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             e.currentTarget.src = '/placeholder.jpg'

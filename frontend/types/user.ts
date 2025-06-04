@@ -18,6 +18,7 @@ export type User = {
   username?: string
   auth0UserId?: string
   email: string
+  libraryID?: string // For admin users
   role: UserRole
   emailVerified?: boolean
   verifiedBySuperAdmin?: boolean

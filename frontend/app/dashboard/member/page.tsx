@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { useAuth } from '@/lib/auth-provider'
+import { useAuth } from '@/lib/context/AuthContext' 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Calendar, Clock, Book, Star } from 'lucide-react'
 
@@ -68,10 +68,9 @@ export default function MemberDashboard() {
   }
 
   return (
-    <div className="space-y-8">
-      <div>
+    <div className="space-y-8">      <div>
         <h2 className="text-3xl font-bold tracking-tight">Welcome back, {user?.name}!</h2>
-        <p className="text-muted-foreground">Here's an overview of your library activities</p>
+        <p className="text-muted-foreground">Here&apos;s an overview of your library activities</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

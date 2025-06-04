@@ -2,15 +2,16 @@ import { NextResponse } from 'next/server';
 
 export async function GET(
   request: Request,
-  { params }: { params: { libraryId: string } }
+  { params }: { params: Promise<{ libraryId: string }> }
 ) {
   try {
+    const { libraryId } = await params;
     const { searchParams } = new URL(request.url);
     const page = searchParams.get('page') || '1';
     const limit = searchParams.get('limit') || '10';
     const search = searchParams.get('search') || '';
 
-    const url = new URL(`/api/libraries/${params.libraryId}/members`, 
+    const url = new URL(`/api/libraries/${libraryId}/members`, 
       process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'
     );
     

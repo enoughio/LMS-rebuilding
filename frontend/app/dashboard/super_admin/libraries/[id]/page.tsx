@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
+import type { Library } from "@/types/library"
 import {
   ArrowLeft,
   Building2,
@@ -28,7 +29,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
-import type { Library, LibraryAmenity } from "@/types/library"
+import type {  LibraryAmenity } from "@/types/library"
 import toast from "react-hot-toast"
 
 // Map amenity to icon - updated to handle backend amenity format
@@ -77,8 +78,25 @@ const mockRevenueData = [
   { month: "Jun", amount: 17500 },
 ]
 
+// API response types
+interface ApiOpeningHour {
+  dayOfWeek: number
+  isClosed: boolean
+  openTime: string
+  closeTime: string
+}
+
+interface ApiSeatType {
+  availableSeats: number
+}
+
+interface ApiLibraryData extends Omit<Library, 'openingHours' > {
+  openingHours?: ApiOpeningHour[]
+  seatTypes?: ApiSeatType[]
+}
+
 // Transform backend API response to frontend Library type
-const transformApiResponse = (apiData: any): Library => {
+const transformApiResponse = (apiData: ApiLibraryData): Library => {
   // Transform opening hours from array to object format
   const openingHours: Library['openingHours'] = {
     sunday: { open: "closed", close: "closed" },
@@ -93,7 +111,7 @@ const transformApiResponse = (apiData: any): Library => {
   const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"] as const
 
   if (apiData.openingHours && Array.isArray(apiData.openingHours)) {
-    apiData.openingHours.forEach((hour: any) => {
+    apiData.openingHours.forEach((hour: ApiOpeningHour) => {
       const dayName = dayNames[hour.dayOfWeek]
       if (dayName) {
         openingHours[dayName] = {
@@ -133,7 +151,7 @@ const transformApiResponse = (apiData: any): Library => {
     openingHours,
     membershipPlans: apiData.membershipPlans || [],
     totalSeats: apiData.totalSeats || 0,
-    availableSeats: apiData.availableSeats || apiData.seatTypes?.reduce((acc: number, seatType: any) => acc + (seatType.availableSeats || 0), 0) || 0,
+    availableSeats: apiData.availableSeats || apiData.seatTypes?.reduce((acc: number, seatType: ApiSeatType) => acc + (seatType.availableSeats || 0), 0) || 0,
     admin: apiData.admin,
     additinalInformation: apiData.additinalInformation,
     AdminBio: apiData.AdminBio,

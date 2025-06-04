@@ -154,7 +154,7 @@ const LibraryCard = memo(({ lib }: { lib: Library }) => {
               disabled={lib.availableSeats === 0}
               onClick={(e) => {
                 e.stopPropagation();
-                router.push("/seatBooking");
+                router.push(`libraries/${lib.id}/seatBooking`);
               }}
             >
               {lib.availableSeats === 0 ? "Fully Booked" : "Book now"}
@@ -438,7 +438,7 @@ const LibraryList: React.FC = () => {
 
   const fetchCities = useCallback(async () => {
     try {
-      const response = await fetch('/api/libraries?limit=1000');
+      const response = await fetch('/api/libraries?limit=100');
       const data: ApiResponse = await response.json();
       if (data.success) {
         const uniqueCities = Array.from(
@@ -544,7 +544,7 @@ const LibraryList: React.FC = () => {
   }, [router, searchParams]);
 
   return (
-    <>
+    <div>
       <SearchBar
         search={search}
         onSearchChange={setSearch}
@@ -614,13 +614,13 @@ const LibraryList: React.FC = () => {
           </div>
         </main>
       </div>
-    </>
+    </div>
   );
 };
 
 export default function LibrariesPage() {
   return (
-    <div className="bg-[#ECE3DA] text-black min-h-screen font-sans w-full md:px-10 ">
+    <div className="bg-[#ECE3DA] text-black min-h-screen min-w-[100vw] font-sans w-full md:px-10 ">
       <Toaster position="top-right" />
       <div className="max-w-full mx-auto px-4 sm:px-4 md:px-8 lg:px-12 py-8">
         <h1 className="text-2xl sm:text-3xl font-thin mb-2 text-center ">

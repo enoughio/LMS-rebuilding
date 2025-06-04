@@ -54,7 +54,7 @@ const TopLibraries: React.FC = () => {
         setTopLibraries( data.libraries || []);
       } catch (error) {
         toast.error(
-          `Network error: ${error instanceof Error ? error.message : 'Unable to fetch'}`
+          `Network error: ${error instanceof Error ? error : 'Unable to fetch'}`
         );
         setTopLibraries([]);
       } finally {

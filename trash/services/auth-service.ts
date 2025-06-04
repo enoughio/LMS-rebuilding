@@ -165,7 +165,7 @@ export const GetCurrentUser = async () => {
 //     const errorMessage = data.message || `Error: ${response.status}`;
     
 //     // Create an error object with additional details
-//     const error: any = new Error(errorMessage);
+//     const error: unknown = new Error(errorMessage);
 //     error.status = response.status;
 //     error.data = data;
     
