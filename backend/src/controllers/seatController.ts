@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma.js';
-import { BookingStatus} from '../../generated/prisma/index.js';
+import { BookingStatus, PaymentType, PaymentMedium, PaymentStatus } from '../../generated/prisma/index.js';
 
 // Get all seats in a library
 export const getLibrarySeats = async (req: Request, res: Response) => {
@@ -145,7 +145,7 @@ export const deleteSeat = async (req: Request, res: Response) => {
 export const bookSeat = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
-    const { seatId, date, startTime, endTime } = req.body;
+    const { seatId, date, startTime, endTime, paymentMedium, paymentMethod } = req.body;
 
     // Check if user has an active membership
     const userMembership = await prisma.membership.findFirst({
@@ -246,7 +246,21 @@ export const bookSeat = async (req: Request, res: Response) => {
       },
     });
 
-    res.status(201).json({ success: true, data: booking });
+    // Create payment record for the seat booking
+    const payment = await prisma.payment.create({
+      data: {
+        amount: booking.bookingPrice,
+        currency: booking.currency,
+        type: PaymentType.SEAT_BOOKING,
+        status: PaymentStatus.PENDING,
+        medium: paymentMedium || PaymentMedium.OFFLINE,
+        paymentMethod,
+        user: { connect: { id: userId } },
+        seatBooking: { connect: { id: booking.id } },
+      },
+    });
+
+    res.status(201).json({ success: true, data: { booking, payment } });
   } catch (error) {
     console.error('Error booking seat:', error);
     res.status(500).json({ success: false, error: 'Internal server error' });
@@ -308,4 +322,4 @@ export const cancelBooking = async (req: Request, res: Response) => {
     console.error('Error cancelling booking:', error);
     res.status(500).json({ success: false, error: 'Internal server error' });
   }
-}; 
+};

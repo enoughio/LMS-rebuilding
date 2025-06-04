@@ -368,12 +368,12 @@ export function DashboardSidebar() {
           icon: <BarChart3 className="h-4 w-4" />,
           active: pathname === "/dashboard/super_admin/reports",
         },
-        {
-          href: "/dashboard/super_admin/settings",
-          label: "Settings",
-          icon: <Settings className="h-4 w-4" />,
-          active: pathname === "/dashboard/super_admin/settings",
-        },
+        // {
+        //   href: "/dashboard/super_admin/settings",
+        //   label: "Settings",
+        //   icon: <Settings className="h-4 w-4" />,
+        //   active: pathname === "/dashboard/super_admin/settings",
+        // },
       ]
     }
 

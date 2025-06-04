@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const { accessToken } = await getAccessToken(request as any, NextResponse as any);
+    const { token: accessToken } = await auth0.getAccessToken(request as any, NextResponse as any);
     
     if (!accessToken) {
       return NextResponse.json(
