@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/components/ui/use-toast"
-import { useAuth } from "@/lib/auth-provider"
+import { useAuth } from "@/lib/context/AuthContext" 
 
 import type { Library, LibraryAmenity } from "@/types/library"
 
@@ -112,8 +112,7 @@ export default function LibraryProfilePage() {
   }
 
   const handleSave = async () => {
-    // Ensure we have a library ID from fetched data
-    if (!formData.id) return
+    if (!user?.libraryId || !formData) return
 
     setSaving(true)
     try {
@@ -132,7 +131,10 @@ export default function LibraryProfilePage() {
       }
 
       // Update the local library state to reflect changes immediately
-      setLibrary((prev) => (prev ? ({ ...prev, ...formData } as Library) : prev))
+      setLibrary((prev) => {
+        if (!prev) return null
+        return { ...prev, ...formData } as Library
+      })
 
       toast({
         title: "Success",

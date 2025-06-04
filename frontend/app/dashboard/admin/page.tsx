@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { useAuth } from "@/lib/auth-provider"
+import { useAuth } from "@/lib/context/AuthContext" 
 import { AdminDashboardService, type AdminDashboardData } from "@/lib/services/admin-dashboard-service"
 
 export default function AdminDashboardPage() {
