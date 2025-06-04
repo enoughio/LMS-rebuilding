@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator, SelectLabel } from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator, SelectLabel, SelectGroup } from "@/components/ui/select"
 import { DatePickerWithRange } from "@/components/ui/date-range-picker"
 import { Download, Printer } from "lucide-react"
 import { addDays } from "date-fns"
@@ -558,7 +558,7 @@ export default function ReportsPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {overviewData.topLibraries?.map((library: TopLibrary, i: number) => (
+                      {overviewData?.topLibraries?.map((library: TopLibrary, i: number) => (
                         <div key={i} className="flex items-center justify-between rounded-lg bg-muted/50 p-4">
                           <div>
                             <h3 className="font-medium">{library.name}</h3>
@@ -718,7 +718,7 @@ export default function ReportsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {libraryPerformanceData.libraryPerformance?.map((library: LibraryPerformanceData, i: number) => (
+                  {libraryPerformanceData?.libraryPerformance?.map((library: any, i: number) => (
                     <div key={i} className="flex items-center justify-between rounded-lg bg-muted/50 p-4">
                       <div>
                         <h3 className="font-medium">{library.name}</h3>
