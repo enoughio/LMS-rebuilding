@@ -5,10 +5,47 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator, SelectLabel, SelectGroup } from "@/components/ui/select"
+// import { DatePickerWithRange } from "@/components/ui/date-range-picker"
 import { Download, Printer } from "lucide-react"
 import { addDays } from "date-fns"
 import { DateRange } from "react-day-picker"
-import { reportsApi, type Library, type ReportsFilters, type RevenueReportsResponse, type UserActivityReportsResponse, type LibraryPerformanceReportsResponse, type ReportsOverviewResponse, type RevenueData, type UserActivityData, type TopLibrary } from "@/lib/reports-api"
+import { reportsApi, type Library, type ReportsFilters, type RevenueData, type UserActivityData, type TopLibrary } from "@/lib/reports-api"
+
+// Define types for better type safety
+interface ActivityData {
+  activeUsers: number;
+  newUsers: number;
+  bookings: number;
+}
+
+interface LibraryData {
+  id: string;
+  name: string;
+  city: string;
+  state?: string;
+  members: number;
+  revenue: number;
+  bookings: number;
+  occupancyRate: number;
+}
+
+interface RevenueBreakdown {
+  membership?: number;
+  seatBooking?: number;
+  penalty?: number;
+  eBookPurchase?: number;
+  other?: number;
+}
+
+interface Summary {
+  totalUsers?: number;
+  totalActiveToday?: number;
+  totalNewThisMonth?: number;
+  monthlyRevenue?: number;
+  monthlyBookings?: number;
+  activeUsers?: number;
+  newUsers?: number;
+}
 
 // Helper function to generate random numbers
 const randomNumber = (min: number, max: number) => {
@@ -72,14 +109,18 @@ const generateMockLibraryPerformance = () => {
 }
 
 // Enhanced helper function to create mock data when API fails
-const enhanceWithRandomData = (data: unknown) => {
+const enhanceWithRandomData = (data: unknown): Record<string, unknown> => {
   if (!data) {
     return {
       summary: {
         monthlyRevenue: randomNumber(50000, 200000),
         monthlyBookings: randomNumber(1000, 5000),
         activeUsers: randomNumber(5000, 20000),
-        newUsers: randomNumber(500, 2000)
+        newUsers: randomNumber(500, 2000),
+        totalUsers: randomNumber(10000, 50000),
+        totalActiveToday: randomNumber(1000, 5000),
+        totalNewThisMonth: randomNumber(500, 2000),
+        totalLibraries: randomNumber(10, 50)
       },
       monthlyRevenue: generateMonthlyRevenueData(),
       topLibraries: generateMockLibraries(),
@@ -92,25 +133,29 @@ const enhanceWithRandomData = (data: unknown) => {
       },
       totalRevenue: randomNumber(100000, 300000),
       dailyActivity: generateMockDailyActivity(),
-      libraryPerformance: generateMockLibraryPerformance()
+      libraryPerformance: generateMockLibraryPerformance(),
+      period: {
+        startDate: new Date().toISOString(),
+        endDate: new Date().toISOString()
+      }
     }
   }
   
-  const enhancedData = JSON.parse(JSON.stringify(data))
+  const enhancedData = JSON.parse(JSON.stringify(data)) as Record<string, unknown>
   
-  if (!enhancedData.monthlyRevenue || enhancedData.monthlyRevenue.length === 0) {
+  if (!enhancedData.monthlyRevenue || (Array.isArray(enhancedData.monthlyRevenue) && enhancedData.monthlyRevenue.length === 0)) {
     enhancedData.monthlyRevenue = generateMonthlyRevenueData()
   }
   
-  if (!enhancedData.topLibraries || enhancedData.topLibraries.length === 0) {
+  if (!enhancedData.topLibraries || (Array.isArray(enhancedData.topLibraries) && enhancedData.topLibraries.length === 0)) {
     enhancedData.topLibraries = generateMockLibraries()
   }
   
-  if (!enhancedData.dailyActivity || enhancedData.dailyActivity.length === 0) {
+  if (!enhancedData.dailyActivity || (Array.isArray(enhancedData.dailyActivity) && enhancedData.dailyActivity.length === 0)) {
     enhancedData.dailyActivity = generateMockDailyActivity()
   }
   
-  if (!enhancedData.libraryPerformance || enhancedData.libraryPerformance.length === 0) {
+  if (!enhancedData.libraryPerformance || (Array.isArray(enhancedData.libraryPerformance) && enhancedData.libraryPerformance.length === 0)) {
     enhancedData.libraryPerformance = generateMockLibraryPerformance()
   }
   
@@ -138,19 +183,18 @@ const enhanceWithRandomData = (data: unknown) => {
   return enhancedData
 }
 
-export default function ReportsPage() {
-  const [date] = useState<DateRange>({
+export default function ReportsPage() {  const [date] = useState<DateRange>({
     from: addDays(new Date(), -30),
     to: new Date(),
-  })
+  });
   const [libraryFilter, setLibraryFilter] = useState<string>("all")
   const [libraries, setLibraries] = useState<Library[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [revenueData, setRevenueData] = useState<RevenueReportsResponse | null>(null)
-  const [userActivityData, setUserActivityData] = useState<UserActivityReportsResponse | null>(null)
-  const [libraryPerformanceData, setLibraryPerformanceData] = useState<LibraryPerformanceReportsResponse | null>(null)
-  const [overviewData, setOverviewData] = useState<ReportsOverviewResponse | null>(null)
+  const [revenueData, setRevenueData] = useState<Record<string, unknown> | null>(null)
+  const [userActivityData, setUserActivityData] = useState<Record<string, unknown> | null>(null)
+  const [libraryPerformanceData, setLibraryPerformanceData] = useState<Record<string, unknown> | null>(null)
+  const [overviewData, setOverviewData] = useState<Record<string, unknown> | null>(null)
 
   // Fetch libraries for dropdown
   useEffect(() => {
@@ -167,7 +211,6 @@ export default function ReportsPage() {
     }
     fetchLibraries()
   }, [])
-
   // Fetch data based on filters
   useEffect(() => {
     const fetchData = async () => {
@@ -204,6 +247,7 @@ export default function ReportsPage() {
 
         console.log('API responses:', { overview, revenue, userActivity, libraryPerformance })
         
+        // Enhance data with random values for testing
         setOverviewData(enhanceWithRandomData(overview.data))
         setRevenueData(enhanceWithRandomData(revenue.data))
         setUserActivityData(enhanceWithRandomData(userActivity.data))
@@ -217,34 +261,7 @@ export default function ReportsPage() {
       }
     }
 
-    fetchData()
-  }, [date, libraryFilter])
-
-
-  // Add a function to filter data based on selected library
-  const getFilteredData = (data: Record<string, unknown> | null, libraryId: string) => {
-    if (!data || libraryId === "all") return data;
-    
-    const filteredData = { ...data };
-    
-    if (filteredData.topLibraries && Array.isArray(filteredData.topLibraries)) {
-      filteredData.topLibraries = filteredData.topLibraries.filter(
-        (lib: { id: string }) => lib.id === libraryId
-      );
-    }
-    
-    if (filteredData.libraryPerformance && Array.isArray(filteredData.libraryPerformance)) {
-      filteredData.libraryPerformance = filteredData.libraryPerformance.filter(
-        (lib: { id: string }) => lib.id === libraryId
-      );
-    }
-    
-    return filteredData;
-  };
-
-  // Update the data display to use filtered data
-  const filteredOverviewData = getFilteredData(overviewData, libraryFilter);
-  const filteredLibraryPerformanceData = getFilteredData(libraryPerformanceData, libraryFilter);
+    fetchData()  }, [date, libraryFilter])
 
   if (loading) {
     return (
@@ -270,7 +287,33 @@ export default function ReportsPage() {
         </div>
       </div>
     )
-  }
+  }  // Add a function to filter data based on selected library
+  const getFilteredData = (data: Record<string, unknown> | null, libraryId: string): Record<string, unknown> | null => {
+    if (!data || libraryId === "all") return data;
+    
+    // Filter the data to show only selected library's data
+    const filteredData = { ...data };
+    
+    // Filter top libraries to show only selected library
+    if (filteredData.topLibraries && Array.isArray(filteredData.topLibraries)) {
+      filteredData.topLibraries = filteredData.topLibraries.filter(
+        (lib: unknown) => (lib as { id: string }).id === libraryId
+      );
+    }
+    
+    // Filter library performance data
+    if (filteredData.libraryPerformance && Array.isArray(filteredData.libraryPerformance)) {
+      filteredData.libraryPerformance = filteredData.libraryPerformance.filter(
+        (lib: unknown) => (lib as { id: string }).id === libraryId
+      );
+    }
+    
+    return filteredData;
+  };
+
+  // Update the data display to use filtered data
+  const filteredOverviewData = getFilteredData(overviewData, libraryFilter);
+  const filteredLibraryPerformanceData = getFilteredData(libraryPerformanceData, libraryFilter);
 
   return (
     <div className="space-y-6 min-w-[70vw]">
@@ -281,6 +324,18 @@ export default function ReportsPage() {
 
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap gap-2">
+          {/* <Select value={reportType} onValueChange={setReportType}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Report type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="revenue">Revenue Report</SelectItem>
+              <SelectItem value="users">User Activity</SelectItem>
+              <SelectItem value="libraries">Library Performance</SelectItem>
+              <SelectItem value="bookings">Booking Analytics</SelectItem>
+            </SelectContent>
+          </Select> */}
+
           <Select value={libraryFilter} onValueChange={setLibraryFilter}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by library" />
@@ -296,6 +351,8 @@ export default function ReportsPage() {
               ))}
             </SelectContent>
           </Select>
+
+          {/* <DatePickerWithRange date={date} setDate={setDate} /> */}
         </div>
 
         <div className="flex gap-2">
@@ -339,10 +396,9 @@ export default function ReportsPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Monthly Revenue</CardTitle>
-                  </CardHeader>
-                  <CardContent>
+                  </CardHeader>                  <CardContent>
                     <div className="text-2xl font-bold">
-                      ₹{filteredOverviewData.summary.monthlyRevenue?.toLocaleString()}
+                      ₹{(filteredOverviewData?.summary as { monthlyRevenue?: number })?.monthlyRevenue?.toLocaleString()}
                     </div>
                   </CardContent>
                 </Card>
@@ -353,7 +409,7 @@ export default function ReportsPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {filteredOverviewData.summary.monthlyBookings?.toLocaleString()}
+                      {(filteredOverviewData?.summary as { monthlyBookings?: number })?.monthlyBookings?.toLocaleString()}
                     </div>
                   </CardContent>
                 </Card>
@@ -364,7 +420,7 @@ export default function ReportsPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {filteredOverviewData.summary.activeUsers?.toLocaleString()}
+                      {(filteredOverviewData?.summary as { activeUsers?: number })?.activeUsers?.toLocaleString()}
                     </div>
                   </CardContent>
                 </Card>
@@ -375,7 +431,7 @@ export default function ReportsPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {filteredOverviewData.summary.newUsers?.toLocaleString()}
+                      {(filteredOverviewData?.summary as { newUsers?: number })?.newUsers?.toLocaleString()}
                     </div>
                   </CardContent>
                 </Card>
@@ -393,10 +449,10 @@ export default function ReportsPage() {
                       }
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="h-[300px] w-full">
-                      <div className="flex h-full w-full items-end justify-between gap-2">                        {revenueData?.monthlyRevenue?.map((data: RevenueData, i: number) => {
-                          const height = (data.revenue / Math.max(...revenueData.monthlyRevenue.map((d: RevenueData) => d.revenue))) * 100
+                  <CardContent>                    <div className="h-[300px] w-full">
+                      <div className="flex h-full w-full items-end justify-between gap-2">
+                        {(revenueData?.monthlyRevenue as RevenueData[])?.map((data: RevenueData, i: number) => {
+                          const height = (data.revenue / Math.max(...((revenueData?.monthlyRevenue as RevenueData[])?.map((d: RevenueData) => d.revenue) ?? [1]))) * 100
                           return (
                             <div key={i} className="relative flex h-full flex-1 flex-col justify-end">
                               <div 
@@ -448,63 +504,56 @@ export default function ReportsPage() {
                               </div>
                             </div>
                           ))}
-                        </div>
-                        
-                        {/* User growth lines */}
+                        </div>                        {/* User growth lines */}
                         <svg className="absolute inset-0 w-full h-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
-                          {/* Dynamic user activity line using actual data */}
-                          {userActivityData?.dailyActivity && (
-                            <path
-                              d={`M ${userActivityData.dailyActivity.slice(-6).map((activity: any, i: number) => {
-                                const x = (i / (userActivityData.dailyActivity.slice(-6).length - 1)) * 100;
-                                const maxUsers = Math.max(...userActivityData.dailyActivity.slice(-6).map((d: any) => d.activeUsers));
-                                const y = 100 - (activity.activeUsers / maxUsers * 80 + 10);
-                                return `${x} ${y}`;
-                              }).join(' L ')}`}
-                              fill="none"
-                              stroke="#8B4513"
-                              strokeWidth="0.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              vectorEffect="non-scaling-stroke"
-                            />
-                          )}
-                          
-                          {/* New users line */}
-                          {userActivityData?.dailyActivity && (
-                            <path
-                              d={`M ${userActivityData.dailyActivity.slice(-6).map((activity: any, i: number) => {
-                                const x = (i / (userActivityData.dailyActivity.slice(-6).length - 1)) * 100;
-                                const maxUsers = Math.max(...userActivityData.dailyActivity.slice(-6).map((d: any) => d.newUsers));
-                                const y = 100 - (activity.newUsers / maxUsers * 80 + 10);
-                                return `${x} ${y}`;
-                              }).join(' L ')}`}
-                              fill="none"
-                              stroke="#A0865E"
-                              strokeWidth="0.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              vectorEffect="non-scaling-stroke"
-                            />
-                          )}
-                          
-                          {/* Bookings line */}
-                          {userActivityData?.dailyActivity && (
-                            <path
-                              d={`M ${userActivityData.dailyActivity.slice(-6).map((activity: any, i: number) => {
-                                const x = (i / (userActivityData.dailyActivity.slice(-6).length - 1)) * 100;
-                                const maxBookings = Math.max(...userActivityData.dailyActivity.slice(-6).map((d: any) => d.bookings));
-                                const y = 100 - (activity.bookings / maxBookings * 80 + 10);
-                                return `${x} ${y}`;
-                              }).join(' L ')}`}
-                              fill="none"
-                              stroke="#654321"
-                              strokeWidth="0.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              vectorEffect="non-scaling-stroke"
-                            />
-                          )}
+                          {userActivityData?.dailyActivity && Array.isArray(userActivityData.dailyActivity) ? (
+                            <>
+                              <path
+                                d={`M ${(userActivityData.dailyActivity as ActivityData[]).slice(-6).map((activity: ActivityData, i: number) => {
+                                  const x = (i / Math.max(1, (userActivityData.dailyActivity as ActivityData[]).slice(-6).length - 1)) * 100;
+                                  const maxUsers = Math.max(...(userActivityData.dailyActivity as ActivityData[]).slice(-6).map((d: ActivityData) => d.activeUsers));
+                                  const y = 100 - (activity.activeUsers / Math.max(1, maxUsers) * 80 + 10);
+                                  return `${x} ${y}`;
+                                }).join(' L ')}`}
+                                fill="none"
+                                stroke="#8B4513"
+                                strokeWidth="0.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                vectorEffect="non-scaling-stroke"
+                              />
+                              
+                              <path
+                                d={`M ${(userActivityData.dailyActivity as ActivityData[]).slice(-6).map((activity: ActivityData, i: number) => {
+                                  const x = (i / Math.max(1, (userActivityData.dailyActivity as ActivityData[]).slice(-6).length - 1)) * 100;
+                                  const maxUsers = Math.max(...(userActivityData.dailyActivity as ActivityData[]).slice(-6).map((d: ActivityData) => d.newUsers));
+                                  const y = 100 - (activity.newUsers / Math.max(1, maxUsers) * 80 + 10);
+                                  return `${x} ${y}`;
+                                }).join(' L ')}`}
+                                fill="none"
+                                stroke="#A0865E"
+                                strokeWidth="0.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                vectorEffect="non-scaling-stroke"
+                              />
+                              
+                              <path
+                                d={`M ${(userActivityData.dailyActivity as ActivityData[]).slice(-6).map((activity: ActivityData, i: number) => {
+                                  const x = (i / Math.max(1, (userActivityData.dailyActivity as ActivityData[]).slice(-6).length - 1)) * 100;
+                                  const maxBookings = Math.max(...(userActivityData.dailyActivity as ActivityData[]).slice(-6).map((d: ActivityData) => d.bookings));
+                                  const y = 100 - (activity.bookings / Math.max(1, maxBookings) * 80 + 10);
+                                  return `${x} ${y}`;
+                                }).join(' L ')}`}
+                                fill="none"
+                                stroke="#654321"
+                                strokeWidth="0.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                vectorEffect="non-scaling-stroke"
+                              />
+                            </>
+                          ) : null}
                         </svg>
                       </div>
                     </div>
@@ -525,9 +574,8 @@ export default function ReportsPage() {
                       }
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {overviewData?.topLibraries?.map((library: TopLibrary, i: number) => (
+                  <CardContent>                    <div className="space-y-4">
+                      {overviewData?.topLibraries && Array.isArray(overviewData.topLibraries) ? (overviewData.topLibraries as TopLibrary[]).map((library: TopLibrary, i: number) => (
                         <div key={i} className="flex items-center justify-between rounded-lg bg-muted/50 p-4">
                           <div>
                             <h3 className="font-medium">{library.name}</h3>
@@ -538,7 +586,7 @@ export default function ReportsPage() {
                             <p className="text-sm text-muted-foreground">{library.bookings} bookings</p>
                           </div>
                         </div>
-                      ))}
+                      )) : null}
                     </div>
                   </CardContent>
                 </Card>
@@ -555,39 +603,37 @@ export default function ReportsPage() {
                 <CardDescription>Revenue by payment type</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">                  <div className="space-y-4">
                     <div className="flex justify-between">
                       <span>Membership Fees:</span>
-                      <span className="font-medium">₹{revenueData.revenueBreakdown.membership?.toLocaleString()}</span>
+                      <span className="font-medium">₹{(revenueData.revenueBreakdown as RevenueBreakdown)?.membership?.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Seat Bookings:</span>
-                      <span className="font-medium">₹{revenueData.revenueBreakdown.seatBooking?.toLocaleString()}</span>
+                      <span className="font-medium">₹{(revenueData.revenueBreakdown as RevenueBreakdown)?.seatBooking?.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Penalties:</span>
-                      <span className="font-medium">₹{revenueData.revenueBreakdown.penalty?.toLocaleString()}</span>
+                      <span className="font-medium">₹{(revenueData.revenueBreakdown as RevenueBreakdown)?.penalty?.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>E-Book Purchases:</span>
-                      <span className="font-medium">₹{revenueData.revenueBreakdown.eBookPurchase?.toLocaleString()}</span>
+                      <span className="font-medium">₹{(revenueData.revenueBreakdown as RevenueBreakdown)?.eBookPurchase?.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Other:</span>
-                      <span className="font-medium">₹{revenueData.revenueBreakdown.other?.toLocaleString()}</span>
+                      <span className="font-medium">₹{(revenueData.revenueBreakdown as RevenueBreakdown)?.other?.toLocaleString()}</span>
                     </div>
                     <hr />
                     <div className="flex justify-between font-bold">
                       <span>Total Revenue:</span>
-                      <span>₹{revenueData.totalRevenue?.toLocaleString()}</span>
+                      <span>₹{(revenueData.totalRevenue as number)?.toLocaleString()}</span>
                     </div>
                   </div>
                   
-                  <div className="h-[300px] w-full">
-                    <div className="flex h-full w-full items-end justify-between gap-2">
-                      {revenueData.monthlyRevenue?.map((data: RevenueData, i: number) => {
-                        const height = (data.revenue / Math.max(...revenueData.monthlyRevenue.map((d: RevenueData) => d.revenue))) * 100
+                  <div className="h-[300px] w-full">                    <div className="flex h-full w-full items-end justify-between gap-2">
+                      {revenueData.monthlyRevenue && Array.isArray(revenueData.monthlyRevenue) ? (revenueData.monthlyRevenue as RevenueData[]).map((data: RevenueData, i: number) => {
+                        const height = (data.revenue / Math.max(...(revenueData.monthlyRevenue as RevenueData[]).map((d: RevenueData) => d.revenue))) * 100
                         return (
                           <div key={i} className="relative flex h-full flex-1 flex-col justify-end">
                             <div 
@@ -598,7 +644,7 @@ export default function ReportsPage() {
                             <span className="mt-2 text-center text-xs text-muted-foreground">{data.month}</span>
                           </div>
                         )
-                      })}
+                      }) : null}
                     </div>
                   </div>
                 </div>
@@ -609,15 +655,13 @@ export default function ReportsPage() {
 
         <TabsContent value="users" className="mt-4 space-y-6">
           {userActivityData && (
-            <>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <>              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                 <Card>
                   <CardHeader>
                     <CardTitle>Total Users</CardTitle>
-                  </CardHeader>
-                  <CardContent>
+                  </CardHeader>                  <CardContent>
                     <div className="text-2xl font-bold">
-                      {userActivityData.summary.totalUsers?.toLocaleString()}
+                      {(userActivityData.summary as Summary)?.totalUsers?.toLocaleString()}
                     </div>
                   </CardContent>
                 </Card>
@@ -628,7 +672,7 @@ export default function ReportsPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {userActivityData.summary.totalActiveToday?.toLocaleString()}
+                      {(userActivityData.summary as Summary)?.totalActiveToday?.toLocaleString()}
                     </div>
                   </CardContent>
                 </Card>
@@ -639,7 +683,7 @@ export default function ReportsPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {userActivityData.summary.totalNewThisMonth?.toLocaleString()}
+                      {(userActivityData.summary as Summary)?.totalNewThisMonth?.toLocaleString()}
                     </div>
                   </CardContent>
                 </Card>
@@ -650,9 +694,8 @@ export default function ReportsPage() {
                   <CardTitle>Daily User Activity</CardTitle>
                   <CardDescription>User activity for the selected period</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {userActivityData.dailyActivity?.slice(-7).map((activity: UserActivityData, i: number) => (
+                <CardContent>                  <div className="space-y-4">
+                    {userActivityData.dailyActivity && Array.isArray(userActivityData.dailyActivity) ? (userActivityData.dailyActivity as UserActivityData[]).slice(-7).map((activity: UserActivityData, i: number) => (
                       <div key={i} className="flex items-center justify-between rounded-lg bg-muted/50 p-4">
                         <div>
                           <h3 className="font-medium">{new Date(activity.date).toLocaleDateString()}</h3>
@@ -663,7 +706,7 @@ export default function ReportsPage() {
                           <p className="text-sm text-muted-foreground">{activity.bookings} bookings</p>
                         </div>
                       </div>
-                    ))}
+                    )) : null}
                   </div>
                 </CardContent>
               </Card>
@@ -686,19 +729,9 @@ export default function ReportsPage() {
                 </CardDescription>
               </CardHeader>
 
-              <CardContent>
-                <div className="space-y-4">
-                  {libraryPerformanceData?.libraryPerformance?.map((library: {
-                    id: string;
-                    name: string;
-                    city: string;
-                    state: string;
-                    members: number;
-                    revenue: number;
-                    bookings: number;
-                    occupancyRate: number;
-                  }, i: number) => (
-                    <div key={i} className="flex items-center justify-between rounded-lg bg-muted/50 p-4">
+              {/* //some changes here */}              <CardContent>                <div className="space-y-4">
+                  {libraryPerformanceData?.libraryPerformance && Array.isArray(libraryPerformanceData.libraryPerformance) ? (libraryPerformanceData.libraryPerformance as LibraryData[]).map((library: LibraryData, i: number) => (
+                    <div key={library.id || i} className="flex items-center justify-between rounded-lg bg-muted/50 p-4">
                       <div>
                         <h3 className="font-medium">{library.name}</h3>
                         <p className="text-sm text-muted-foreground">
@@ -712,7 +745,7 @@ export default function ReportsPage() {
                         </p>
                       </div>
                     </div>
-                  ))}
+                  )) : null}
                 </div>
               </CardContent>
             </Card>
