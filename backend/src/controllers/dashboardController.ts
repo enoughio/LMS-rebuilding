@@ -60,7 +60,7 @@ import { PaymentType } from '../../generated/prisma/index.js';
 //         revenueBreakdown,
 //       },
 //     });
-//   } catch (error: any) {
+//   } catch (error: unknown) {
 //     console.error('Super Admin Dashboard Error:', error);
 //     res.status(500).json({
 //       success: false,
@@ -290,7 +290,7 @@ export const getSuperAdminDashboard = async (_req: Request, res: Response) => {
       },
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Super Admin Dashboard Error:', error);
     res.status(500).json({
       success: false,
@@ -376,7 +376,7 @@ export const getStatsController = async (_req: Request, res: Response) => {
       },
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Stats Controller Error:', error);
     res.status(500).json({
       success: false,
@@ -504,7 +504,7 @@ export const getRevenueController = async (_req: Request, res: Response) => {
       },
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Revenue Controller Error:', error);
     res.status(500).json({
       success: false,
@@ -569,7 +569,7 @@ export const getPlatformGrowthController = async (_req: Request, res: Response) 
       },
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Platform Growth Controller Error:', error);
     res.status(500).json({
       success: false,
@@ -693,7 +693,7 @@ export const getPlatformGrowthController = async (_req: Request, res: Response) 
 //       },
 //     });
 //     return;
-//   } catch (error: any) {
+//   } catch (error: unknown) {
 //     console.error('Admin Dashboard Error:', error);
 //     res.status(500).json({
 //       success: false,
@@ -806,7 +806,7 @@ export const getMemberDashboard = async (req: Request, res: Response): Promise<v
         },
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Dashboard error:', error);
     res.status(500).json({
       success: false,

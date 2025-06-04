@@ -54,7 +54,7 @@ const TopLibraries: React.FC = () => {
         setTopLibraries( data.libraries || []);
       } catch (error) {
         toast.error(
-          `Network error: ${error instanceof Error ? error.message : 'Unable to fetch'}`
+          `Network error: ${error instanceof Error ? error : 'Unable to fetch'}`
         );
         setTopLibraries([]);
       } finally {
@@ -104,7 +104,7 @@ const TopLibraries: React.FC = () => {
       </CardContent>
       <CardFooter>
         <Button variant="ghost" size="sm" className="w-full" asChild>
-          <Link href="/dashboard/super-admin/libraries">
+          <Link href="/dashboard/SUPER_ADMIN/libraries">
             View all libraries
             <ArrowRight className="ml-1 h-4 w-4" />
           </Link>

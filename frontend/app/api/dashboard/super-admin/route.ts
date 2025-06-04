@@ -22,7 +22,7 @@ export async function GET() {
       );
     }
 
-    const response = await fetch(`${API_URL}/api/dashboard/super-admin`, {
+    const response = await fetch(`${API_URL}/api/dashboard/SUPER_ADMIN`, {
         method: 'GET',
       headers: {
         'Content-Type': 'application/json',

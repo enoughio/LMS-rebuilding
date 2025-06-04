@@ -51,12 +51,12 @@ import { PaymentType } from '../../generated/prisma/index.js';
 //         revenueBreakdown,
 //       },
 //     });
-//   } catch (error: any) {
+//   } catch (error: unknown) {
 //     console.error('Super Admin Dashboard Error:', error);
 //     res.status(500).json({
 //       success: false,
 //       message: 'Failed to fetch super admin dashboard stats',
-//       error: error.message,
+//       error: error,
 //     });
 //   }
 // };
@@ -245,7 +245,7 @@ export const getSuperAdminDashboard = async (_req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch super admin dashboard stats',
-            error: error.message,
+            error: error,
         });
     }
 };
@@ -318,7 +318,7 @@ export const getStatsController = async (_req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch platform stats',
-            error: error.message,
+            error: error,
         });
     }
 };
@@ -431,7 +431,7 @@ export const getRevenueController = async (_req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch revenue data',
-            error: error.message,
+            error: error,
         });
     }
 };
@@ -490,7 +490,7 @@ export const getPlatformGrowthController = async (_req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch platform growth data',
-            error: error.message,
+            error: error,
         });
     }
 };
@@ -596,12 +596,12 @@ export const getPlatformGrowthController = async (_req, res) => {
 //       },
 //     });
 //     return;
-//   } catch (error: any) {
+//   } catch (error: unknown) {
 //     console.error('Admin Dashboard Error:', error);
 //     res.status(500).json({
 //       success: false,
 //       message: 'Failed to fetch admin dashboard stats',
-//       error: error.message,
+//       error: error,
 //     });
 //     return;
 //   }
@@ -699,7 +699,7 @@ export const getMemberDashboard = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch member dashboard stats',
-            error: error.message,
+            error: error,
         });
     }
 };

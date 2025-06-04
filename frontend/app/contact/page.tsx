@@ -51,10 +51,10 @@ export default function ContactPage() {
         <div className="flex flex-col md:flex-row justify-between mb-12 px-12">
           {/* Hero Text */}
           <div className="w-full md:w-3/4 mb-8 md:mb-0">
-            <div className="text-sm mb-2 md:text-lg">
+            <div className="text-sm  md:text-lg">
               Get Started
             </div>
-            <h1 className="font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-tight mb-4 flex flex-col gap-4">
+            <h1 className="font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl  mb-4 flex flex-col ">
              <p className='text-nowrap'>Get in touch with us.</p>
               We are here to  <br className="hidden text-nowrap sm:block" />assist you.
             </h1>

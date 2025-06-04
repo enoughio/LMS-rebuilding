@@ -11,8 +11,7 @@ export const verifyToken = auth({
 
 export const authenticate = async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
-    // Ensure the token was verified and req.auth is populated
-    console.log("verifyToken middleware executed");
+
     if (!req.auth || !req.auth.payload.sub) {
       res.status(401).json({ error: "Unauthorized: No valid token provided" });
       return;
@@ -57,7 +56,6 @@ export const authenticate = async (req: any, res: Response, next: NextFunction):
         libraryStaff: {
           select: { id: true, position: true, libraryId: true },
         },
-        // Add other relationships if needed (e.g., seatBookings, bookBorrowings)
       },
     });
 
@@ -78,6 +76,7 @@ export const authenticate = async (req: any, res: Response, next: NextFunction):
     res.status(401).json({ error: "Unauthorized" });
   }
 };
+
 
 export const authorizeRoles = (roles: UserRole | UserRole[]) => {
   return (req: any, res: Response, next: NextFunction): void => {

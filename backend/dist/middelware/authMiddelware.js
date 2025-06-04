@@ -7,8 +7,6 @@ export const verifyToken = auth({
 });
 export const authenticate = async (req, res, next) => {
     try {
-        // Ensure the token was verified and req.auth is populated
-        console.log("verifyToken middleware executed");
         if (!req.auth || !req.auth.payload.sub) {
             res.status(401).json({ error: "Unauthorized: No valid token provided" });
             return;
@@ -51,7 +49,6 @@ export const authenticate = async (req, res, next) => {
                 libraryStaff: {
                     select: { id: true, position: true, libraryId: true },
                 },
-                // Add other relationships if needed (e.g., seatBookings, bookBorrowings)
             },
         });
         if (!user) {

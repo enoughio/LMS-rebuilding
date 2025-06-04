@@ -75,6 +75,22 @@ export const getAllLibraries = async (req, res) => {
                     },
                     orderBy: { dayOfWeek: 'asc' },
                 },
+                seats: {
+                    select: {
+                        id: true,
+                        seatType: true,
+                        isAvailable: true,
+                    },
+                    where: { isActive: true },
+                },
+                seatPrices: {
+                    select: {
+                        seatType: true,
+                        price: true,
+                        currency: true,
+                        isHourly: true,
+                    },
+                },
                 _count: {
                     select: {
                         seats: { where: seatFilter },
@@ -91,19 +107,19 @@ export const getAllLibraries = async (req, res) => {
             skip,
             take: limit,
             orderBy: { createdAt: 'desc' },
-        });
-        // Filter libraries by available seats ranges
+        }); // Filter libraries by available seats ranges
         const filteredLibraries = libraries.filter((library) => {
-            const availableSeats = library._count.seats;
+            // Calculate total available seats from all seat types
+            const totalAvailableSeats = library.seats.filter((seat) => seat.isAvailable).length;
             if (minSeats.length === 0)
                 return true;
             return minSeats.some((range) => {
                 if (range === 0)
-                    return availableSeats >= 0 && availableSeats <= 10;
+                    return totalAvailableSeats >= 0 && totalAvailableSeats <= 10;
                 if (range === 10)
-                    return availableSeats > 10 && availableSeats <= 20;
+                    return totalAvailableSeats > 10 && totalAvailableSeats <= 20;
                 if (range === 20)
-                    return availableSeats > 20;
+                    return totalAvailableSeats > 20;
                 return false;
             });
         });
@@ -111,12 +127,30 @@ export const getAllLibraries = async (req, res) => {
         res.status(200).json({
             success: true,
             data: {
-                libraries: filteredLibraries.map((library) => ({
-                    ...library,
-                    availableSeats: library._count.seats,
-                    hasFreeMembership: library.membershipPlans.some((plan) => plan.price === 0),
-                    hasPaidMembership: library.membershipPlans.some((plan) => plan.price > 0),
-                })),
+                libraries: filteredLibraries.map((library) => {
+                    // Calculate seat types availability
+                    const seatTypes = library.seatPrices.map((seatPrice) => {
+                        const seatsOfType = library.seats.filter((seat) => seat.seatType === seatPrice.seatType);
+                        const availableSeats = seatsOfType.filter((seat) => seat.isAvailable).length;
+                        return {
+                            type: seatPrice.seatType,
+                            price: seatPrice.price,
+                            currency: seatPrice.currency,
+                            isHourly: seatPrice.isHourly,
+                            availableSeats,
+                            totalSeats: seatsOfType.length,
+                        };
+                    });
+                    // Calculate total available seats
+                    const totalAvailableSeats = seatTypes.reduce((total, seatType) => total + seatType.availableSeats, 0);
+                    return {
+                        ...library,
+                        availableSeats: totalAvailableSeats,
+                        seatTypes,
+                        hasFreeMembership: library.membershipPlans.some((plan) => plan.price === 0),
+                        hasPaidMembership: library.membershipPlans.some((plan) => plan.price > 0),
+                    };
+                }),
                 pagination: {
                     currentPage: page,
                     totalPages,
@@ -167,6 +201,23 @@ export const getLibraryById = async (req, res) => {
                 totalSeats: true,
                 status: true,
                 isActive: true,
+                AdminBio: true,
+                AdminCompleteAddress: true,
+                AdminPhone: true,
+                AdminGovernmentId: true,
+                AdminPhoto: true,
+                additinalInformation: true,
+                createdAt: true,
+                admin: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        role: true,
+                        createdAt: true,
+                        auth0UserId: true,
+                    },
+                },
                 openingHours: {
                     select: {
                         id: true,
@@ -357,7 +408,7 @@ export const registerLibrary = async (req, res) => {
     catch (error) {
         console.error('Error registering library:', error);
         // Handle specific error for existing admin
-        if (error instanceof Error && error.message === 'User is already an admin of another library') {
+        if (error instanceof Error && error === 'User is already an admin of another library') {
             res.status(400).json({
                 success: false,
                 error: 'You already have a library',
@@ -372,7 +423,7 @@ export const registerLibrary = async (req, res) => {
         });
     }
 };
-export const getLibraryRequests = async (res) => {
+export const getLibraryRequests = async (_req, res) => {
     // console.log("USer role:", req.user?.role)
     try {
         const libraries = await prisma.library.findMany({
@@ -650,7 +701,7 @@ export const rejectLibrary = async (req, res) => {
 //     });
 //   }
 // };
-export const getTopLibraries = async (res) => {
+export const getTopLibraries = async (_req, res) => {
     // This function should be called on a route like GET /api/libraries/top
     // Make sure it's not conflicting with GET /api/libraries/:id routes
     try {
@@ -735,7 +786,7 @@ export const getTopLibraries = async (res) => {
                 success: false,
                 error: 'Internal server error',
                 message: 'Failed to fetch top libraries',
-                details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+                details: process.env.NODE_ENV === 'development' ? error : undefined,
             });
         }
         else {
@@ -745,6 +796,274 @@ export const getTopLibraries = async (res) => {
                 message: 'Failed to fetch top libraries',
             });
         }
+    }
+};
+// Get library members with pagination and search
+export const getLibraryMembers = async (req, res) => {
+    try {
+        const { libraryId } = req.params;
+        const { page = 1, limit = 10, search = '' } = req.query;
+        const skip = (Number(page) - 1) * Number(limit);
+        // Validate library exists and user has access
+        const library = await prisma.library.findFirst({
+            where: {
+                id: libraryId,
+                isActive: true,
+                status: 'APPROVED',
+            },
+        });
+        if (!library) {
+            res.status(404).json({
+                success: false,
+                error: 'Not found',
+                message: 'Library not found or not approved',
+            });
+            return;
+        }
+        // Build search filter
+        const searchFilter = search ? {
+            OR: [
+                { name: { contains: search, mode: 'insensitive' } },
+                { email: { contains: search, mode: 'insensitive' } },
+            ],
+        } : {};
+        // Get total count for pagination
+        const totalCount = await prisma.user.count({
+            where: {
+                registeredLibraryIds: {
+                    has: libraryId,
+                },
+                ...searchFilter,
+            },
+        });
+        // Get members with their membership details
+        const members = await prisma.user.findMany({
+            where: {
+                registeredLibraryIds: {
+                    has: libraryId,
+                },
+                ...searchFilter,
+            },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                avatar: true,
+                createdAt: true,
+                memberships: {
+                    where: {
+                        library: {
+                            id: libraryId,
+                        },
+                    },
+                    select: {
+                        id: true,
+                        startDate: true,
+                        endDate: true,
+                        status: true,
+                        autoRenew: true,
+                        membershipPlan: {
+                            select: {
+                                id: true,
+                                name: true,
+                                price: true,
+                                duration: true,
+                            },
+                        },
+                    },
+                    orderBy: {
+                        createdAt: 'desc',
+                    },
+                    take: 1, // Get the latest membership
+                },
+                _count: {
+                    select: {
+                        seatBookings: {
+                            where: {
+                                libraryId: libraryId,
+                            },
+                        },
+                    },
+                },
+            },
+            skip,
+            take: Number(limit),
+            orderBy: {
+                createdAt: 'desc',
+            },
+        });
+        const totalPages = Math.ceil(totalCount / Number(limit));
+        res.status(200).json({
+            success: true,
+            data: {
+                members: members.map((member) => ({
+                    id: member.id,
+                    name: member.name,
+                    email: member.email,
+                    phone: member.phone,
+                    avatar: member.avatar,
+                    joinedAt: member.createdAt,
+                    membership: member.memberships[0] || null,
+                    totalBookings: member._count.seatBookings,
+                })),
+                pagination: {
+                    currentPage: Number(page),
+                    totalPages,
+                    totalCount,
+                    hasNextPage: Number(page) < totalPages,
+                    hasPreviousPage: Number(page) > 1,
+                },
+            },
+        });
+    }
+    catch (error) {
+        console.error('Error fetching library members:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Internal server error',
+            message: 'Failed to fetch library members',
+        });
+    }
+};
+// Get library bookings with pagination and filtering
+export const getLibraryBookings = async (req, res) => {
+    try {
+        const { libraryId } = req.params;
+        const { page = 1, limit = 10, status = '', search = '', startDate = '', endDate = '', } = req.query;
+        const skip = (Number(page) - 1) * Number(limit);
+        // Validate library exists
+        const library = await prisma.library.findFirst({
+            where: {
+                id: libraryId,
+                isActive: true,
+                status: 'APPROVED',
+            },
+        });
+        if (!library) {
+            res.status(404).json({
+                success: false,
+                error: 'Not found',
+                message: 'Library not found or not approved',
+            });
+            return;
+        }
+        // Build filters
+        const filters = {
+            libraryId: libraryId,
+        };
+        if (status) {
+            filters.status = status;
+        }
+        if (startDate && endDate) {
+            filters.date = {
+                gte: new Date(startDate),
+                lte: new Date(endDate),
+            };
+        }
+        if (search) {
+            filters.OR = [
+                { user: { name: { contains: search, mode: 'insensitive' } } },
+                { user: { email: { contains: search, mode: 'insensitive' } } },
+                { seat: { name: { contains: search, mode: 'insensitive' } } },
+            ];
+        }
+        // Get total count for pagination
+        const totalCount = await prisma.seatBooking.count({
+            where: filters,
+        });
+        // Get bookings with related data
+        const bookings = await prisma.seatBooking.findMany({
+            where: filters,
+            select: {
+                id: true,
+                date: true,
+                startTime: true,
+                endTime: true,
+                duration: true,
+                bookingPrice: true,
+                currency: true,
+                status: true,
+                createdAt: true,
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        phone: true,
+                        avatar: true,
+                    },
+                },
+                seat: {
+                    select: {
+                        id: true,
+                        name: true,
+                        seatType: true,
+                        floor: true,
+                        section: true,
+                    },
+                },
+                payment: {
+                    select: {
+                        id: true,
+                        amount: true,
+                        status: true,
+                        transactionId: true,
+                    },
+                },
+            },
+            skip,
+            take: Number(limit),
+            orderBy: {
+                createdAt: 'desc',
+            },
+        });
+        const totalPages = Math.ceil(totalCount / Number(limit));
+        // Calculate summary statistics
+        const todayBookings = await prisma.seatBooking.count({
+            where: {
+                libraryId: libraryId,
+                date: {
+                    gte: new Date(new Date().setHours(0, 0, 0, 0)),
+                    lt: new Date(new Date().setHours(23, 59, 59, 999)),
+                },
+            },
+        });
+        const totalRevenue = await prisma.seatBooking.aggregate({
+            where: {
+                libraryId: libraryId,
+                status: { in: ['CONFIRMED', 'COMPLETED'] },
+            },
+            _sum: {
+                bookingPrice: true,
+            },
+        });
+        res.status(200).json({
+            success: true,
+            data: {
+                bookings,
+                pagination: {
+                    currentPage: Number(page),
+                    totalPages,
+                    totalCount,
+                    hasNextPage: Number(page) < totalPages,
+                    hasPreviousPage: Number(page) > 1,
+                },
+                summary: {
+                    todayBookings,
+                    totalRevenue: totalRevenue._sum.bookingPrice || 0,
+                    totalBookings: totalCount,
+                },
+            },
+        });
+    }
+    catch (error) {
+        console.error('Error fetching library bookings:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Internal server error',
+            message: 'Failed to fetch library bookings',
+        });
     }
 };
 //# sourceMappingURL=libraryController.js.map

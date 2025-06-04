@@ -152,4 +152,140 @@ export const syncUser = async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 };
+export const getAllUsers = async (req, res) => {
+    try {
+        // Extract query parameters for filtering
+        const { search, role, page = 1, limit = 10 } = req.query;
+        // Build where clause for filtering
+        const whereClause = {};
+        // Add role filter
+        if (role && role !== 'all') {
+            whereClause.role = role;
+        }
+        // Add search filter (search in name and email)
+        if (search && typeof search === 'string') {
+            whereClause.OR = [
+                {
+                    name: {
+                        contains: search,
+                        mode: 'insensitive'
+                    }
+                },
+                {
+                    email: {
+                        contains: search,
+                        mode: 'insensitive'
+                    }
+                }
+            ];
+        }
+        // Calculate pagination
+        const pageNumber = parseInt(page);
+        const limitNumber = parseInt(limit);
+        const skip = (pageNumber - 1) * limitNumber;
+        // Get total count for pagination
+        const totalUsers = await prisma.user.count({
+            where: whereClause
+        });
+        const users = await prisma.user.findMany({
+            where: whereClause,
+            select: {
+                id: true,
+                name: true,
+                role: true,
+                email: true,
+                avatar: true,
+                createdAt: true,
+                memberships: {
+                    select: {
+                        id: true,
+                        status: true,
+                        startDate: true,
+                        endDate: true,
+                        membershipPlan: {
+                            select: {
+                                id: true,
+                                name: true,
+                            }
+                        }
+                    },
+                    where: {
+                        status: {
+                            in: ['ACTIVE', 'EXPIRED', 'FREEZE']
+                        }
+                    },
+                    orderBy: {
+                        createdAt: 'desc'
+                    },
+                    take: 1 // Get the most recent membership
+                },
+                adminOf: {
+                    select: {
+                        id: true,
+                        name: true,
+                    }
+                }
+            },
+            orderBy: {
+                createdAt: 'desc'
+            },
+            skip: skip,
+            take: limitNumber
+        });
+        // Transform the data to match your desired format
+        const transformedUsers = users.map(user => {
+            const baseUser = {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                avatar: user.avatar || "/placeholder.svg?height=40&width=40",
+                createdAt: user.createdAt.toISOString(),
+            };
+            // Add membership data for MEMBER role
+            if (user.role === 'MEMBER' && user.memberships.length > 0) {
+                const membership = user.memberships[0];
+                return {
+                    ...baseUser,
+                    membership: {
+                        planId: membership.membershipPlan.id,
+                        planName: membership.membershipPlan.name,
+                        status: membership.status.toLowerCase(),
+                        expiresAt: membership.endDate.toISOString(),
+                    }
+                };
+            }
+            // Add library data for ADMIN role
+            if (user.role === 'ADMIN' && user.adminOf) {
+                return {
+                    ...baseUser,
+                    libraryId: user.adminOf.id,
+                    libraryName: user.adminOf.name,
+                };
+            } // Return base user for SUPER_ADMIN or users without memberships/libraries
+            return baseUser;
+        });
+        res.status(200).json({
+            success: true,
+            message: "Users fetched successfully",
+            data: transformedUsers,
+            pagination: {
+                currentPage: pageNumber,
+                totalPages: Math.ceil(totalUsers / limitNumber),
+                totalUsers: totalUsers,
+                limit: limitNumber,
+                hasNextPage: pageNumber * limitNumber < totalUsers,
+                hasPrevPage: pageNumber > 1
+            },
+            filters: {
+                role: role || 'all',
+                search: search || ''
+            }
+        });
+    }
+    catch (error) {
+        console.error("Error fetching all users:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
 //# sourceMappingURL=userController.js.map

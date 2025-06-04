@@ -56,7 +56,7 @@ const Approvals: React.FC = () => {
         setPendingApprovals(data.data ?? []);
       } catch (error) {
         toast.error(
-          `Network error: ${error instanceof Error ? error.message : "Something went wrong"}`
+          `Network error: ${error instanceof Error ? error : "Something went wrong"}`
         );
         setPendingApprovals([]);
       } finally {

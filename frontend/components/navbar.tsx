@@ -8,13 +8,14 @@ import { usePathname } from 'next/navigation';
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useUser } from '@auth0/nextjs-auth0';
+import { useAuth } from '@/lib/context/AuthContext';
+// import { useUser } from '@auth0/nextjs-auth0';
 
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { user } = useUser(); // Removed unused isLoading variable
-  // const { user : dbUser, logout } = useAuth();
+  // const { user } = useUser(); // Removed unused isLoading variable
+  const { user, logout, isLoading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -27,6 +28,9 @@ export default function Navbar() {
   ];
 
   // console.log("User:", dbUser); // Debugging line to check user object
+  
+  // Debug logging to understand the user object
+  
 
   // Add active state to nav items
   const routes = navItems.map(item => ({
@@ -92,73 +96,43 @@ export default function Navbar() {
             >
               {item.label}
             </Link>
-          ))}
-        </div>
+          ))}        </div>
 
         {/* Right: Auth buttons and ModeToggle */}
         <div className="hidden md:flex items-center gap-2">
           {/* <ModeToggle /> */}
           
-          {user ? (
+          {isLoading ? (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-[#435058] border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-sm text-[#435058]">Loading...</span>
+            </div>
+          ) : user ? (
             <>
-              <Link href={`/dashboard`}>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="font-bold text-[15.61px] leading-[22.71px] tracking-[0.14px]"
-                >
+              <Link href={`/dashboard/${user.role?.toLowerCase() || 'member'}`}>
+                <Button variant="outline" size="sm" className="hidden md:flex">
                   Dashboard
                 </Button>
               </Link>
-              <Link
-                href="/auth/logout"
-                className="flex items-center gap-2 bg-[#435058] text-white px-4 py-2 rounded-full hover:bg-[#374349] transition duration-200 focus:outline-none focus:ring-2 focus:ring-[#435058] focus:ring-opacity-50"
-                aria-label="Sign Out"
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="hidden md:flex text-[#435058] hover:bg-[#435058] hover:text-[#FEEDC1]"
+                onClick={logout}
               >
-                <span className="font-bold text-[15.61px] leading-[22.71px] tracking-[0.14px] whitespace-nowrap">
-                  Sign Out
-                </span>
-                <Image
-                  src="/home/signin.png"
-                  alt=""
-                  width={20}
-                  height={20}
-                  className="w-5 h-5 object-contain"
-                  aria-hidden="true"
-                />
-              </Link>
+                Logout
+              </Button>
             </>
           ) : (
             <>
               <Link href="/auth/login">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="font-bold text-[15.61px] leading-[22.71px] tracking-[0.14px]"
-                >
+                <Button variant="ghost" size="sm" className="hidden md:flex">
                   Login
                 </Button>
               </Link>
-              <a href="/auth/login">
-                <button
-                  className="flex items-center gap-2 bg-[#435058] text-white px-4 py-2 rounded-full hover:bg-[#374349] transition duration-200 focus:outline-none focus:ring-2 focus:ring-[#435058] focus:ring-opacity-50"
-                  aria-label="Sign Up"
-                >
-                  <span className="font-bold text-[15.61px] leading-[22.71px] tracking-[0.14px] whitespace-nowrap">
-                    Sign Up
-                  </span>
-                  <Image
-                    src="/signin.svg"
-                    alt=""
-                    width={20}
-                    height={20}
-                    className="w-5 h-5 object-contain"
-                    aria-hidden="true"
-                  />
-                </button>
-              </a>
             </>
           )}
+          
         </div>
 
         {/* Mobile menu button - Using Sheet from second component */}
@@ -202,20 +176,28 @@ export default function Navbar() {
                     >
                       {item.label}
                     </Link>
-                  ))}
-                  
-                  {user ? (
+                  ))}                  
+                  {isLoading ? (
+                    <div className="flex items-center justify-center gap-2 py-4">
+                      <div className="w-4 h-4 border-2 border-[#435058] border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-sm text-[#435058]">Loading...</span>
+                    </div>
+                  ) : user ? (
                     <>
                       <Link
-                        href={`/dashboard`}
+                        href={`/dashboard/${user.role?.toLowerCase() || 'member'}`}
                         className="px-4 py-2 rounded-md transition duration-200 hover:bg-[#435058] hover:text-[#FEEDC1] focus:outline-none focus:ring-2 focus:ring-[#435058] focus:ring-opacity-50"
                         onClick={() => setIsOpen(false)}
                       >
                         Dashboard
                       </Link>
-                      <Link
-                        href={"/auth/logout"}
-                        className="mt-2 flex items-center justify-center gap-2 bg-[#435058] text-white px-4 py-2 rounded-full hover:bg-[#374349] transition duration-200"
+                      <Button
+                        variant="ghost"
+                        className="mt-2 flex items-center justify-center gap-2 bg-[#435058] text-white px-4 py-2 rounded-full hover:bg-[#374349] transition duration-200 w-full"
+                        onClick={() => {
+                          logout();
+                          setIsOpen(false);
+                        }}
                         aria-label="Sign Out"
                       >
                         <span>Sign Out</span>
@@ -227,18 +209,17 @@ export default function Navbar() {
                           className="w-5 h-5 object-contain"
                           aria-hidden="true"
                         />
-                      </Link>
+                      </Button>
                     </>
                   ) : (
-                    <>
-                      <Link
+                    <>                      <Link
                         href="/auth/login"
                         className="px-4 py-2 rounded-md transition duration-200 hover:bg-[#435058] hover:text-[#FEEDC1] focus:outline-none focus:ring-2 focus:ring-[#435058] focus:ring-opacity-50"
                         onClick={() => setIsOpen(false)}
                       >
                         Login
                       </Link>
-                      <Link href="/auth/login" onClick={() => setIsOpen(false)}>
+                      <Link href="/auth/register" onClick={() => setIsOpen(false)}>
                         <button
                           className="mt-2 flex items-center justify-center gap-2 bg-[#435058] text-white px-4 py-2 rounded-full hover:bg-[#374349] transition duration-200 w-full"
                           aria-label="Sign Up"

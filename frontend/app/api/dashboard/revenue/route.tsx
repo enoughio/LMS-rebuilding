@@ -24,8 +24,7 @@ export async function GET() {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        // Add any necessary authorization headers
-        // 'Authorization': `Bearer ${process.env.API_TOKEN}`
+        Authorization: `Bearer ${accessToken}`,
       },
     })
 
