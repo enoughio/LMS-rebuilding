@@ -408,7 +408,7 @@ export const registerLibrary = async (req, res) => {
     catch (error) {
         console.error('Error registering library:', error);
         // Handle specific error for existing admin
-        if (error instanceof Error && error.message === 'User is already an admin of another library') {
+        if (error instanceof Error && error === 'User is already an admin of another library') {
             res.status(400).json({
                 success: false,
                 error: 'You already have a library',
@@ -786,7 +786,7 @@ export const getTopLibraries = async (_req, res) => {
                 success: false,
                 error: 'Internal server error',
                 message: 'Failed to fetch top libraries',
-                details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+                details: process.env.NODE_ENV === 'development' ? error : undefined,
             });
         }
         else {

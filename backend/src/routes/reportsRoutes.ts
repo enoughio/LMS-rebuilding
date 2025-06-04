@@ -41,7 +41,7 @@ router.get('/revenue', ...adminAuth, getRevenueReports);
  * @query endDate - End date (ISO string)
  * @query libraryId - Optional library filter
  */
-router.get('/users', ...adminAuth, getUserActivityReports);
+router.get('/users',  getUserActivityReports);
 
 /**
  * @route GET /api/reports/libraries

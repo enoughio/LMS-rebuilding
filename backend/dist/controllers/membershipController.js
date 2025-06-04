@@ -195,7 +195,8 @@ export const renewMembership = async (req, res) => {
             },
         });
         if (!membership) {
-            return res.status(404).json({ success: false, error: 'Membership not found' });
+            res.status(404).json({ success: false, error: 'Membership not found' });
+            return;
         }
         const newEndDate = new Date(membership.endDate);
         newEndDate.setDate(newEndDate.getDate() + membership.membershipPlan.duration);

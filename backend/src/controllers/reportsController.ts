@@ -12,9 +12,39 @@ export const getRevenueReports = async (req: Request, res: Response) => {
     // Parse date range
     const start = startDate ? new Date(startDate as string) : new Date(new Date().setMonth(new Date().getMonth() - 12));
     const end = endDate ? new Date(endDate as string) : new Date();
-    
-    // Build where clause for library filtering
-    const libraryFilter = libraryId && libraryId !== 'all' ? { libraryId: libraryId as string } : {};
+      // Build where clause for library filtering
+    const buildLibraryFilter = (libraryId: string | undefined) => {
+      if (!libraryId || libraryId === 'all') {
+        return {};
+      }
+      
+      return {
+        OR: [
+          {
+            membership: {
+              libraryId: libraryId
+            }
+          },
+          {
+            seatBooking: {
+              libraryId: libraryId
+            }
+          },
+          {
+            bookBorrowing: {
+              libraryId: libraryId
+            }
+          },
+          {
+            eBookAccess: {
+              eBook: {
+                libraryId: libraryId
+              }
+            }
+          }
+        ]
+      };
+    };
 
     // Get monthly revenue data for the past 12 months
     const monthlyRevenue = [];
@@ -38,7 +68,7 @@ export const getRevenueReports = async (req: Request, res: Response) => {
               gte: monthStart,
               lte: monthEnd
             },
-            ...libraryFilter
+            ...buildLibraryFilter(libraryId as string)
           }
         }),
         prisma.user.count({
@@ -57,9 +87,7 @@ export const getRevenueReports = async (req: Request, res: Response) => {
         revenue: revenue._sum.amount || 0,
         users: userCount
       });
-    }
-
-    // Get revenue breakdown by payment type
+    }    // Get revenue breakdown by payment type
     const revenueBreakdown = await prisma.payment.groupBy({
       by: ['type'],
       _sum: { amount: true },
@@ -69,7 +97,7 @@ export const getRevenueReports = async (req: Request, res: Response) => {
           gte: start,
           lte: end
         },
-        ...libraryFilter
+        ...buildLibraryFilter(libraryId as string)
       }
     });
 
@@ -116,7 +144,7 @@ export const getRevenueReports = async (req: Request, res: Response) => {
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Revenue Reports Error:', error);
     res.status(500).json({
       success: false,
@@ -223,7 +251,7 @@ export const getUserActivityReports = async (req: Request, res: Response) => {
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('User Activity Reports Error:', error);
     res.status(500).json({
       success: false,
@@ -262,8 +290,7 @@ export const getLibraryPerformanceReports = async (req: Request, res: Response) 
     });
 
     const libraryPerformance = await Promise.all(
-      libraries.map(async (library) => {
-        const [revenue, bookings, occupancyData] = await Promise.all([
+      libraries.map(async (library) => {        const [revenue, bookings, occupancyData] = await Promise.all([
           prisma.payment.aggregate({
             _sum: { amount: true },
             where: {
@@ -271,10 +298,9 @@ export const getLibraryPerformanceReports = async (req: Request, res: Response) 
               createdAt: { gte: start, lte: end },
               OR: [
                 { membership: { libraryId: library.id } },
-                { 
-                  membership: null,
-                  // This would need adjustment based on your schema for seat booking payments
-                }
+                { seatBooking: { libraryId: library.id } },
+                { bookBorrowing: { libraryId: library.id } },
+                { eBookAccess: { eBook: { libraryId: library.id } } }
               ]
             }
           }),
@@ -320,7 +346,7 @@ export const getLibraryPerformanceReports = async (req: Request, res: Response) 
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Library Performance Reports Error:', error);
     res.status(500).json({
       success: false,
@@ -438,9 +464,19 @@ export const getBookingAnalytics = async (req: Request, res: Response) => {
         }
       },
       take: 10
-    });
+    });    // Get booking summary
+    const buildPaymentLibraryFilter = (libraryId: string | undefined) => {
+      if (!libraryId || libraryId === 'all') {
+        return {};
+      }
+      
+      return {
+        seatBooking: {
+          libraryId: libraryId
+        }
+      };
+    };
 
-    // Get booking summary
     const [totalBookings, totalRevenue, averageBookingValue] = await Promise.all([
       prisma.seatBooking.count({
         where: {
@@ -453,7 +489,8 @@ export const getBookingAnalytics = async (req: Request, res: Response) => {
         where: {
           type: 'SEAT_BOOKING',
           status: 'COMPLETED',
-          createdAt: { gte: start, lte: end }
+          createdAt: { gte: start, lte: end },
+          ...buildPaymentLibraryFilter(libraryId as string)
         }
       }),
       prisma.payment.aggregate({
@@ -461,7 +498,8 @@ export const getBookingAnalytics = async (req: Request, res: Response) => {
         where: {
           type: 'SEAT_BOOKING',
           status: 'COMPLETED',
-          createdAt: { gte: start, lte: end }
+          createdAt: { gte: start, lte: end },
+          ...buildPaymentLibraryFilter(libraryId as string)
         }
       })
     ]);
@@ -486,7 +524,7 @@ export const getBookingAnalytics = async (req: Request, res: Response) => {
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Booking Analytics Error:', error);
     res.status(500).json({
       success: false,
@@ -508,7 +546,39 @@ export const getReportsOverview = async (req: Request, res: Response) => {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     
-    const libraryFilter = libraryId && libraryId !== 'all' ? { libraryId: libraryId as string } : {};
+    // Build library filter function
+    const buildLibraryFilter = (libraryId: string | undefined) => {
+      if (!libraryId || libraryId === 'all') {
+        return {};
+      }
+      
+      return {
+        OR: [
+          {
+            membership: {
+              libraryId: libraryId
+            }
+          },
+          {
+            seatBooking: {
+              libraryId: libraryId
+            }
+          },
+          {
+            bookBorrowing: {
+              libraryId: libraryId
+            }
+          },
+          {
+            eBookAccess: {
+              eBook: {
+                libraryId: libraryId
+              }
+            }
+          }
+        ]
+      };
+    };
 
     const [
       monthlyRevenue,
@@ -523,7 +593,7 @@ export const getReportsOverview = async (req: Request, res: Response) => {
         where: {
           status: 'COMPLETED',
           createdAt: { gte: startOfMonth, lte: endOfMonth },
-          ...libraryFilter
+          ...buildLibraryFilter(libraryId as string)
         }
       }),
       
@@ -531,7 +601,7 @@ export const getReportsOverview = async (req: Request, res: Response) => {
       prisma.seatBooking.count({
         where: {
           createdAt: { gte: startOfMonth, lte: endOfMonth },
-          ...libraryFilter
+          ...(libraryId && libraryId !== 'all' ? { libraryId: libraryId as string } : {})
         }
       }),
       
@@ -593,7 +663,7 @@ export const getReportsOverview = async (req: Request, res: Response) => {
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Reports Overview Error:', error);
     res.status(500).json({
       success: false,
@@ -631,7 +701,7 @@ export const getLibrariesForReports = async (_req: Request, res: Response) => {
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Get Libraries Error:', error);
     res.status(500).json({
       success: false,

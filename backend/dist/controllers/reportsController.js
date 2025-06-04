@@ -10,7 +10,37 @@ export const getRevenueReports = async (req, res) => {
         const start = startDate ? new Date(startDate) : new Date(new Date().setMonth(new Date().getMonth() - 12));
         const end = endDate ? new Date(endDate) : new Date();
         // Build where clause for library filtering
-        const libraryFilter = libraryId && libraryId !== 'all' ? { libraryId: libraryId } : {};
+        const buildLibraryFilter = (libraryId) => {
+            if (!libraryId || libraryId === 'all') {
+                return {};
+            }
+            return {
+                OR: [
+                    {
+                        membership: {
+                            libraryId: libraryId
+                        }
+                    },
+                    {
+                        seatBooking: {
+                            libraryId: libraryId
+                        }
+                    },
+                    {
+                        bookBorrowing: {
+                            libraryId: libraryId
+                        }
+                    },
+                    {
+                        eBookAccess: {
+                            eBook: {
+                                libraryId: libraryId
+                            }
+                        }
+                    }
+                ]
+            };
+        };
         // Get monthly revenue data for the past 12 months
         const monthlyRevenue = [];
         for (let i = 11; i >= 0; i--) {
@@ -31,7 +61,7 @@ export const getRevenueReports = async (req, res) => {
                             gte: monthStart,
                             lte: monthEnd
                         },
-                        ...libraryFilter
+                        ...buildLibraryFilter(libraryId)
                     }
                 }),
                 prisma.user.count({
@@ -49,8 +79,7 @@ export const getRevenueReports = async (req, res) => {
                 revenue: revenue._sum.amount || 0,
                 users: userCount
             });
-        }
-        // Get revenue breakdown by payment type
+        } // Get revenue breakdown by payment type
         const revenueBreakdown = await prisma.payment.groupBy({
             by: ['type'],
             _sum: { amount: true },
@@ -60,7 +89,7 @@ export const getRevenueReports = async (req, res) => {
                     gte: start,
                     lte: end
                 },
-                ...libraryFilter
+                ...buildLibraryFilter(libraryId)
             }
         });
         const breakdown = {
@@ -108,7 +137,7 @@ export const getRevenueReports = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch revenue reports',
-            error: error.message
+            error: error
         });
     }
 };
@@ -206,7 +235,7 @@ export const getUserActivityReports = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch user activity reports',
-            error: error.message
+            error: error
         });
     }
 };
@@ -243,10 +272,9 @@ export const getLibraryPerformanceReports = async (req, res) => {
                         createdAt: { gte: start, lte: end },
                         OR: [
                             { membership: { libraryId: library.id } },
-                            {
-                                membership: null,
-                                // This would need adjustment based on your schema for seat booking payments
-                            }
+                            { seatBooking: { libraryId: library.id } },
+                            { bookBorrowing: { libraryId: library.id } },
+                            { eBookAccess: { eBook: { libraryId: library.id } } }
                         ]
                     }
                 }),
@@ -293,7 +321,7 @@ export const getLibraryPerformanceReports = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch library performance reports',
-            error: error.message
+            error: error
         });
     }
 };
@@ -393,8 +421,17 @@ export const getBookingAnalytics = async (req, res) => {
                 }
             },
             take: 10
-        });
-        // Get booking summary
+        }); // Get booking summary
+        const buildPaymentLibraryFilter = (libraryId) => {
+            if (!libraryId || libraryId === 'all') {
+                return {};
+            }
+            return {
+                seatBooking: {
+                    libraryId: libraryId
+                }
+            };
+        };
         const [totalBookings, totalRevenue, averageBookingValue] = await Promise.all([
             prisma.seatBooking.count({
                 where: {
@@ -407,7 +444,8 @@ export const getBookingAnalytics = async (req, res) => {
                 where: {
                     type: 'SEAT_BOOKING',
                     status: 'COMPLETED',
-                    createdAt: { gte: start, lte: end }
+                    createdAt: { gte: start, lte: end },
+                    ...buildPaymentLibraryFilter(libraryId)
                 }
             }),
             prisma.payment.aggregate({
@@ -415,7 +453,8 @@ export const getBookingAnalytics = async (req, res) => {
                 where: {
                     type: 'SEAT_BOOKING',
                     status: 'COMPLETED',
-                    createdAt: { gte: start, lte: end }
+                    createdAt: { gte: start, lte: end },
+                    ...buildPaymentLibraryFilter(libraryId)
                 }
             })
         ]);
@@ -444,7 +483,7 @@ export const getBookingAnalytics = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch booking analytics',
-            error: error.message
+            error: error
         });
     }
 };
@@ -458,7 +497,38 @@ export const getReportsOverview = async (req, res) => {
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        const libraryFilter = libraryId && libraryId !== 'all' ? { libraryId: libraryId } : {};
+        // Build library filter function
+        const buildLibraryFilter = (libraryId) => {
+            if (!libraryId || libraryId === 'all') {
+                return {};
+            }
+            return {
+                OR: [
+                    {
+                        membership: {
+                            libraryId: libraryId
+                        }
+                    },
+                    {
+                        seatBooking: {
+                            libraryId: libraryId
+                        }
+                    },
+                    {
+                        bookBorrowing: {
+                            libraryId: libraryId
+                        }
+                    },
+                    {
+                        eBookAccess: {
+                            eBook: {
+                                libraryId: libraryId
+                            }
+                        }
+                    }
+                ]
+            };
+        };
         const [monthlyRevenue, monthlyBookings, activeUsers, newUsers, topLibraries] = await Promise.all([
             // Monthly revenue
             prisma.payment.aggregate({
@@ -466,14 +536,14 @@ export const getReportsOverview = async (req, res) => {
                 where: {
                     status: 'COMPLETED',
                     createdAt: { gte: startOfMonth, lte: endOfMonth },
-                    ...libraryFilter
+                    ...buildLibraryFilter(libraryId)
                 }
             }),
             // Monthly bookings
             prisma.seatBooking.count({
                 where: {
                     createdAt: { gte: startOfMonth, lte: endOfMonth },
-                    ...libraryFilter
+                    ...(libraryId && libraryId !== 'all' ? { libraryId: libraryId } : {})
                 }
             }),
             // Active users this month
@@ -536,7 +606,7 @@ export const getReportsOverview = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch reports overview',
-            error: error.message
+            error: error
         });
     }
 };
@@ -572,7 +642,7 @@ export const getLibrariesForReports = async (_req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch libraries',
-            error: error.message
+            error: error
         });
     }
 };

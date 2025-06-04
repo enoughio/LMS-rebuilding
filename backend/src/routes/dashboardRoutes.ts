@@ -1,7 +1,7 @@
 // routes/dashboardRoutes.ts
 
 import express from 'express';
-import { getMemberDashboard , getPlatformGrowthController, getRevenueController, getStatsController, getSuperAdminDashboard } from '../controllers/dashboardController.js';
+import { getPlatformGrowthController, getRevenueController, getStatsController, getSuperAdminDashboard } from '../controllers/dashboardController.js';
 // import { getTopLibraries } from '../controllers/libraryController.js';
 import { authenticate, authorizeRoles, verifyToken } from '../middelware/authMiddelware.js';
 import { UserRole } from '../../generated/prisma/index.js';
