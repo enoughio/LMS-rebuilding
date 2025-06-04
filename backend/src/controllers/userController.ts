@@ -234,6 +234,7 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
         role: true,
         email: true,
         avatar: true,
+        
         createdAt: true,
         memberships: {
           select: {
