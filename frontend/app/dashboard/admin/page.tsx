@@ -156,17 +156,98 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="h-[200px] w-full">
-              {/* This would be a chart in a real implementation */}
-              <div className="flex h-full w-full items-end justify-between gap-2">
-                {Array.from({ length: 12 }).map((_, i) => {
-                  const height = Math.floor(Math.random() * 80) + 20
-                  return (
-                    <div key={i} className="relative flex h-full flex-1 flex-col justify-end">
-                      <div className="w-full rounded-md bg-primary/20" style={{ height: `${height}%` }}></div>
-                      <span className="mt-2 text-center text-xs text-muted-foreground">{2016 + i}</span>
-                    </div>
-                  )
-                })}
+              <div className="h-full relative">
+                {/* Y-axis labels */}
+                <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-muted-foreground">
+                  <div>100%</div>
+                  <div>75%</div>
+                  <div>50%</div>
+                  <div>25%</div>
+                  <div>0%</div>
+                </div>
+                
+                {/* Chart area with grid lines */}
+                <div className="ml-8 h-full border-b border-l relative">
+                  {/* Horizontal grid lines */}
+                  <div className="absolute inset-0 grid grid-rows-4 w-full h-full">
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <div key={i} className="border-t border-muted/20 w-full"></div>
+                    ))}
+                  </div>
+                  
+                  {/* Line chart using SVG */}
+                  <svg className="absolute inset-0 w-full h-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="occupancyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
+                        <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.1" />
+                      </linearGradient>
+                    </defs>
+                    
+                    {(() => {
+                      // Generate occupancy data for the past 30 days
+                      const occupancyData = Array.from({ length: 30 }, (_, i) => {
+                        const date = new Date();
+                        date.setDate(date.getDate() - (29 - i));
+                        const baseOccupancy = 60 + Math.sin(i * 0.3) * 20 + Math.random() * 15;
+                        return {
+                          date: date.toISOString().split('T')[0],
+                          occupancy: Math.max(20, Math.min(95, baseOccupancy))
+                        };
+                      });
+                      
+                      const pathData = occupancyData.map((data, i) => {
+                        const x = (i / (occupancyData.length - 1)) * 100;
+                        const y = 100 - (data.occupancy / 100 * 85 + 7.5); // Scale to fit with padding
+                        return `${x} ${y}`;
+                      }).join(' L ');
+                      
+                      const areaPath = `M 0 100 L ${pathData} L 100 100 Z`;
+                      
+                      return (
+                        <>
+                          {/* Area fill */}
+                          <path
+                            d={areaPath}
+                            fill="url(#occupancyGradient)"
+                          />
+                          {/* Line */}
+                          <path
+                            d={`M ${pathData}`}
+                            fill="none"
+                            stroke="hsl(var(--primary))"
+                            strokeWidth="0.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                          {/* Data points */}
+                          {occupancyData.map((data, i) => {
+                            const x = (i / (occupancyData.length - 1)) * 100;
+                            const y = 100 - (data.occupancy / 100 * 85 + 7.5);
+                            return (
+                              <circle
+                                key={i}
+                                cx={x}
+                                cy={y}
+                                r="0.8"
+                                fill="hsl(var(--primary))"
+                                vectorEffect="non-scaling-stroke"
+                              />
+                            );
+                          })}
+                        </>
+                      );
+                    })()}
+                  </svg>
+                  
+                  {/* X-axis labels */}
+                  <div className="absolute -bottom-6 left-0 right-0 flex justify-between text-xs text-muted-foreground">
+                    <span>30 days ago</span>
+                    <span>15 days ago</span>
+                    <span>Today</span>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
