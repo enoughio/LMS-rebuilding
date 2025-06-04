@@ -5,22 +5,148 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator, SelectLabel, SelectGroup } from "@/components/ui/select"
-import { DatePickerWithRange } from "@/components/ui/date-range-picker"
 import { Download, Printer } from "lucide-react"
 import { addDays } from "date-fns"
 import { DateRange } from "react-day-picker"
-import { reportsApi, type Library, type ReportsFilters, type RevenueReportsResponse, type UserActivityReportsResponse, type LibraryPerformanceReportsResponse, type ReportsOverviewResponse, type RevenueData, type UserActivityData, type LibraryPerformanceData, type TopLibrary } from "@/lib/reports-api"
+import { reportsApi, type Library, type ReportsFilters, type RevenueReportsResponse, type UserActivityReportsResponse, type LibraryPerformanceReportsResponse, type ReportsOverviewResponse, type RevenueData, type UserActivityData, type TopLibrary } from "@/lib/reports-api"
+
+// Helper function to generate random numbers
+const randomNumber = (min: number, max: number) => {
+  return Math.floor(Math.random() * (max - min + 1) + min)
+}
+
+// Helper function to generate monthly revenue data
+const generateMonthlyRevenueData = () => {
+  const months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+  
+  return months.map((month, i) => {
+    const baseRevenue = randomNumber(60000, 90000);
+    const variability = Math.sin(i * 0.8) * 20000;
+    
+    return {
+      month,
+      revenue: Math.max(10000, Math.round(baseRevenue + variability))
+    }
+  });
+}
+
+// Helper function to generate mock libraries
+const generateMockLibraries = () => {
+  const libraryNames = ['Central Library', 'Eastside Library', 'Westside Library', 'Downtown Library', 'University Library']
+  const cities = ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Pune']
+  
+  return libraryNames.map((name, i) => ({
+    id: `lib-${i}`,
+    name,
+    city: cities[i % cities.length],
+    members: randomNumber(500, 2000),
+    bookings: randomNumber(100, 500),
+    rating: (randomNumber(35, 50) / 10).toFixed(1),
+    revenue: randomNumber(50000, 150000),
+    occupancyRate: randomNumber(60, 95)
+  }))
+}
+
+// Helper function to generate mock daily activity
+const generateMockDailyActivity = () => {
+  const days = []
+  for (let i = 30; i >= 0; i--) {
+    const date = new Date()
+    date.setDate(date.getDate() - i)
+    days.push({
+      date: date.toISOString(),
+      activeUsers: randomNumber(100, 500),
+      newUsers: randomNumber(10, 50),
+      bookings: randomNumber(50, 200)
+    })
+  }
+  return days
+}
+
+// Helper function to generate mock library performance
+const generateMockLibraryPerformance = () => {
+  return generateMockLibraries().map(lib => ({
+    ...lib,
+    state: 'Maharashtra'
+  }))
+}
+
+// Enhanced helper function to create mock data when API fails
+const enhanceWithRandomData = (data: unknown) => {
+  if (!data) {
+    return {
+      summary: {
+        monthlyRevenue: randomNumber(50000, 200000),
+        monthlyBookings: randomNumber(1000, 5000),
+        activeUsers: randomNumber(5000, 20000),
+        newUsers: randomNumber(500, 2000)
+      },
+      monthlyRevenue: generateMonthlyRevenueData(),
+      topLibraries: generateMockLibraries(),
+      revenueBreakdown: {
+        membership: randomNumber(30000, 80000),
+        seatBooking: randomNumber(20000, 60000),
+        penalty: randomNumber(1000, 5000),
+        eBookPurchase: randomNumber(5000, 15000),
+        other: randomNumber(2000, 10000)
+      },
+      totalRevenue: randomNumber(100000, 300000),
+      dailyActivity: generateMockDailyActivity(),
+      libraryPerformance: generateMockLibraryPerformance()
+    }
+  }
+  
+  const enhancedData = JSON.parse(JSON.stringify(data))
+  
+  if (!enhancedData.monthlyRevenue || enhancedData.monthlyRevenue.length === 0) {
+    enhancedData.monthlyRevenue = generateMonthlyRevenueData()
+  }
+  
+  if (!enhancedData.topLibraries || enhancedData.topLibraries.length === 0) {
+    enhancedData.topLibraries = generateMockLibraries()
+  }
+  
+  if (!enhancedData.dailyActivity || enhancedData.dailyActivity.length === 0) {
+    enhancedData.dailyActivity = generateMockDailyActivity()
+  }
+  
+  if (!enhancedData.libraryPerformance || enhancedData.libraryPerformance.length === 0) {
+    enhancedData.libraryPerformance = generateMockLibraryPerformance()
+  }
+  
+  const replaceZeros = (obj: Record<string, unknown>) => {
+    if (!obj || typeof obj !== 'object') return
+    
+    Object.keys(obj).forEach(key => {
+      if (obj[key] === 0) {
+        if (key.includes('Revenue') || key.includes('revenue')) {
+          obj[key] = randomNumber(10000, 200000)
+        } else if (key.includes('Booking') || key.includes('booking')) {
+          obj[key] = randomNumber(100, 2000)
+        } else if (key.includes('User') || key.includes('user') || key.includes('member')) {
+          obj[key] = randomNumber(500, 5000)
+        } else {
+          obj[key] = randomNumber(50, 1000)
+        }
+      } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+        replaceZeros(obj[key] as Record<string, unknown>)
+      }
+    })
+  }
+  
+  replaceZeros(enhancedData)
+  return enhancedData
+}
 
 export default function ReportsPage() {
-  const [date, setDate] = useState<DateRange>({
+  const [date] = useState<DateRange>({
     from: addDays(new Date(), -30),
     to: new Date(),
   })
   const [libraryFilter, setLibraryFilter] = useState<string>("all")
-  const [reportType, setReportType] = useState<string>("revenue")
   const [libraries, setLibraries] = useState<Library[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)  // Data states
+  const [error, setError] = useState<string | null>(null)
   const [revenueData, setRevenueData] = useState<RevenueReportsResponse | null>(null)
   const [userActivityData, setUserActivityData] = useState<UserActivityReportsResponse | null>(null)
   const [libraryPerformanceData, setLibraryPerformanceData] = useState<LibraryPerformanceReportsResponse | null>(null)
@@ -78,7 +204,6 @@ export default function ReportsPage() {
 
         console.log('API responses:', { overview, revenue, userActivity, libraryPerformance })
         
-        // Enhance data with random values for testing
         setOverviewData(enhanceWithRandomData(overview.data))
         setRevenueData(enhanceWithRandomData(revenue.data))
         setUserActivityData(enhanceWithRandomData(userActivity.data))
@@ -96,144 +221,30 @@ export default function ReportsPage() {
   }, [date, libraryFilter])
 
 
-//-------------------------------------------------------
-  // Helper function to generate random numbers
-  const randomNumber = (min: number, max: number) => {
-    return Math.floor(Math.random() * (max - min + 1) + min)
-  }
+  // Add a function to filter data based on selected library
+  const getFilteredData = (data: Record<string, unknown> | null, libraryId: string) => {
+    if (!data || libraryId === "all") return data;
+    
+    const filteredData = { ...data };
+    
+    if (filteredData.topLibraries && Array.isArray(filteredData.topLibraries)) {
+      filteredData.topLibraries = filteredData.topLibraries.filter(
+        (lib: { id: string }) => lib.id === libraryId
+      );
+    }
+    
+    if (filteredData.libraryPerformance && Array.isArray(filteredData.libraryPerformance)) {
+      filteredData.libraryPerformance = filteredData.libraryPerformance.filter(
+        (lib: { id: string }) => lib.id === libraryId
+      );
+    }
+    
+    return filteredData;
+  };
 
-  // Enhanced helper function to create mock data when API fails
-  const enhanceWithRandomData = (data: any) => {
-    if (!data) {
-      // Create comprehensive mock data structure
-      return {
-        summary: {
-          monthlyRevenue: randomNumber(50000, 200000),
-          monthlyBookings: randomNumber(1000, 5000),
-          activeUsers: randomNumber(5000, 20000),
-          newUsers: randomNumber(500, 2000)
-        },
-        monthlyRevenue: generateMonthlyRevenueData(),
-        topLibraries: generateMockLibraries(),
-        revenueBreakdown: {
-          membership: randomNumber(30000, 80000),
-          seatBooking: randomNumber(20000, 60000),
-          penalty: randomNumber(1000, 5000),
-          eBookPurchase: randomNumber(5000, 15000),
-          other: randomNumber(2000, 10000)
-        },
-        totalRevenue: randomNumber(100000, 300000),
-        dailyActivity: generateMockDailyActivity(),
-        libraryPerformance: generateMockLibraryPerformance()
-      }
-    }
-    
-    // Create a deep copy to avoid mutating the original data
-    const enhancedData = JSON.parse(JSON.stringify(data))
-    
-    // Add missing data structures
-    if (!enhancedData.monthlyRevenue || enhancedData.monthlyRevenue.length === 0) {
-      enhancedData.monthlyRevenue = generateMonthlyRevenueData()
-    }
-    
-    if (!enhancedData.topLibraries || enhancedData.topLibraries.length === 0) {
-      enhancedData.topLibraries = generateMockLibraries()
-    }
-    
-    if (!enhancedData.dailyActivity || enhancedData.dailyActivity.length === 0) {
-      enhancedData.dailyActivity = generateMockDailyActivity()
-    }
-    
-    if (!enhancedData.libraryPerformance || enhancedData.libraryPerformance.length === 0) {
-      enhancedData.libraryPerformance = generateMockLibraryPerformance()
-    }
-    
-    // Replace zero values with random numbers
-    const replaceZeros = (obj: any) => {
-      if (!obj || typeof obj !== 'object') return
-      
-      Object.keys(obj).forEach(key => {
-        if (obj[key] === 0) {
-          // Generate appropriate random value based on field name
-          if (key.includes('Revenue') || key.includes('revenue')) {
-            obj[key] = randomNumber(10000, 200000)
-          } else if (key.includes('Booking') || key.includes('booking')) {
-            obj[key] = randomNumber(100, 2000)
-          } else if (key.includes('User') || key.includes('user') || key.includes('member')) {
-            obj[key] = randomNumber(500, 5000)
-          } else {
-            // Default random value for other fields
-            obj[key] = randomNumber(50, 1000)
-          }
-        } else if (typeof obj[key] === 'object' && obj[key] !== null) {
-          replaceZeros(obj[key])
-        }
-      })
-    }
-    
-    replaceZeros(enhancedData)
-    return enhancedData
-  }
-
-  // Helper function to generate monthly revenue data
-  const generateMonthlyRevenueData = () => {
-    // Generate monthly data for the last 12 months
-    const months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-    
-    return months.map((month, i) => {
-      // Create slightly variable revenue with occasional peaks and valleys for realism
-      const baseRevenue = randomNumber(60000, 90000);
-      const variability = Math.sin(i * 0.8) * 20000; // Create some waves in the data
-      
-      return {
-        month,
-        revenue: Math.max(10000, Math.round(baseRevenue + variability))
-      }
-    });
-  }
-
-  // Helper function to generate mock libraries
-  const generateMockLibraries = () => {
-    const libraryNames = ['Central Library', 'Eastside Library', 'Westside Library', 'Downtown Library', 'University Library']
-    const cities = ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Pune']
-    
-    return libraryNames.map((name, i) => ({
-      id: `lib-${i}`,
-      name,
-      city: cities[i % cities.length],
-      members: randomNumber(500, 2000),
-      bookings: randomNumber(100, 500),
-      rating: (randomNumber(35, 50) / 10).toFixed(1),
-      revenue: randomNumber(50000, 150000),
-      occupancyRate: randomNumber(60, 95)
-    }))
-  }
-
-  // Helper function to generate mock daily activity
-  const generateMockDailyActivity = () => {
-    const days = []
-    for (let i = 30; i >= 0; i--) {
-      const date = new Date()
-      date.setDate(date.getDate() - i)
-      days.push({
-        date: date.toISOString(),
-        activeUsers: randomNumber(100, 500),
-        newUsers: randomNumber(10, 50),
-        bookings: randomNumber(50, 200)
-      })
-    }
-    return days
-  }
-
-  // Helper function to generate mock library performance
-  const generateMockLibraryPerformance = () => {
-    return generateMockLibraries().map(lib => ({
-      ...lib,
-      state: 'Maharashtra'
-    }))
-  }
-//-------------------------------------------------------
-
+  // Update the data display to use filtered data
+  const filteredOverviewData = getFilteredData(overviewData, libraryFilter);
+  const filteredLibraryPerformanceData = getFilteredData(libraryPerformanceData, libraryFilter);
 
   if (loading) {
     return (
@@ -261,34 +272,6 @@ export default function ReportsPage() {
     )
   }
 
-  // Add a function to filter data based on selected library
-  const getFilteredData = (data: any, libraryId: string) => {
-    if (!data || libraryId === "all") return data;
-    
-    // Filter the data to show only selected library's data
-    const filteredData = { ...data };
-    
-    // Filter top libraries to show only selected library
-    if (filteredData.topLibraries) {
-      filteredData.topLibraries = filteredData.topLibraries.filter(
-        (lib: any) => lib.id === libraryId
-      );
-    }
-    
-    // Filter library performance data
-    if (filteredData.libraryPerformance) {
-      filteredData.libraryPerformance = filteredData.libraryPerformance.filter(
-        (lib: any) => lib.id === libraryId
-      );
-    }
-    
-    return filteredData;
-  };
-
-  // Update the data display to use filtered data
-  const filteredOverviewData = getFilteredData(overviewData, libraryFilter);
-  const filteredLibraryPerformanceData = getFilteredData(libraryPerformanceData, libraryFilter);
-
   return (
     <div className="space-y-6 min-w-[70vw]">
       <div className="flex flex-col gap-2">
@@ -298,18 +281,6 @@ export default function ReportsPage() {
 
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap gap-2">
-          {/* <Select value={reportType} onValueChange={setReportType}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Report type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="revenue">Revenue Report</SelectItem>
-              <SelectItem value="users">User Activity</SelectItem>
-              <SelectItem value="libraries">Library Performance</SelectItem>
-              <SelectItem value="bookings">Booking Analytics</SelectItem>
-            </SelectContent>
-          </Select> */}
-
           <Select value={libraryFilter} onValueChange={setLibraryFilter}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by library" />
@@ -325,8 +296,6 @@ export default function ReportsPage() {
               ))}
             </SelectContent>
           </Select>
-
-          {/* <DatePickerWithRange date={date} setDate={setDate} /> */}
         </div>
 
         <div className="flex gap-2">
@@ -717,10 +686,18 @@ export default function ReportsPage() {
                 </CardDescription>
               </CardHeader>
 
-              {/* //some changes here */}
               <CardContent>
                 <div className="space-y-4">
-                  {libraryPerformanceData?.libraryPerformance?.map((library: any, i: number) => (
+                  {libraryPerformanceData?.libraryPerformance?.map((library: {
+                    id: string;
+                    name: string;
+                    city: string;
+                    state: string;
+                    members: number;
+                    revenue: number;
+                    bookings: number;
+                    occupancyRate: number;
+                  }, i: number) => (
                     <div key={i} className="flex items-center justify-between rounded-lg bg-muted/50 p-4">
                       <div>
                         <h3 className="font-medium">{library.name}</h3>

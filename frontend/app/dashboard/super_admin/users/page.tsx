@@ -225,6 +225,7 @@ export default function UsersPage() {
             const errorData = JSON.parse(errorText);
             errorMessage = errorData.error || errorData.message || errorMessage;
           } catch (e) {
+            console.error("Failed to parse error response:", e);
             // If parsing fails, use the default error message
           }
           throw new Error(errorMessage);
