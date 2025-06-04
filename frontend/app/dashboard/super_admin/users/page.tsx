@@ -166,7 +166,8 @@ const mockUsers: User[] = [
 
 export default function UsersPage() {
   // const { user, isLoading } = useAuth();
-  const { toast } = useToast();  const [users, setUsers] = useState<User[]>([]);
+  const { toast } = useToast();
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
@@ -179,16 +180,16 @@ export default function UsersPage() {
     libraryId: "",
   });
 
-  // Mock libraries for dropdown
+  // Mock libraries for dropdown - in a real app this would come from an API
   const mockLibraries = [
     { id: "lib-1", name: "Central Library" },
     { id: "lib-2", name: "Riverside Reading Hub" },
     { id: "lib-3", name: "Tech Knowledge Center" },
-  ];  // Debounce search query
+  ];  
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
-    }, 500); // 500ms debounce
+    }, 500); 
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
@@ -218,33 +219,52 @@ export default function UsersPage() {
         });
 
         if (!response.ok) {
-          throw new Error('Failed to fetch users');
+          const errorText = await response.text();
+          let errorMessage = "Failed to fetch users";
+          try {
+            const errorData = JSON.parse(errorText);
+            errorMessage = errorData.error || errorData.message || errorMessage;
+          } catch (e) {
+            // If parsing fails, use the default error message
+          }
+          throw new Error(errorMessage);
         }
 
-        const result = await response.json();
+        const data = await response.json();
         
-        if (result.success) {
-          setUsers(result.data);
+        if (data.success) {
+          setUsers(data.data || []);
         } else {
-          throw new Error(result.error || 'Failed to fetch users');
+          throw new Error(data.error || 'Failed to fetch users');
         }
       } catch (error) {
         console.error("Error fetching users:", error);
         toast({
           title: "Error",
-          description: "Failed to fetch users. Using fallback data.",
+          description: error instanceof Error ? error.message : "Failed to fetch users",
           variant: "destructive",
         });
-        // Fallback to mock data if API fails
-        setUsers(mockUsers);
+        
+        // Only use mockUsers for development or demo purposes
+        if (process.env.NODE_ENV === 'development') {
+          setUsers(mockUsers);
+          toast({
+            title: "Using mock data",
+            description: "Using sample data for development purposes",
+            variant: "default",
+          });
+        } else {
+          setUsers([]);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchUsers();
-  }, [roleFilter, debouncedSearchQuery, toast]); // Re-fetch when filters change
-  // Users are already filtered on the server, so we can use them directly
+  }, [roleFilter, debouncedSearchQuery, toast]);
+
+  // The rest of the filteredUsers logic and handlers
   const filteredUsers = users;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -260,7 +280,7 @@ export default function UsersPage() {
     setNewUser((prev) => ({ ...prev, libraryId: value }));
   };
 
-  const handleAddUser = () => {
+  const handleAddUser = async () => {
     if (!newUser.name || !newUser.email || !newUser.role) {
       toast({
         title: "Missing Information",
@@ -279,57 +299,93 @@ export default function UsersPage() {
       return;
     }
 
-    // In a real app, this would add the user to the database
-    const libraryName = newUser.libraryId
-      ? mockLibraries.find((lib) => lib.id === newUser.libraryId)?.name || ""
-      : "";
-
-    const newUserWithId: User = {
-      id: `user-${Date.now()}`,
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role,
-      avatar: "/placeholder.svg?height=40&width=40",
-      createdAt: new Date().toISOString(),
-      ...(newUser.role === "ADMIN" && {
-        libraryId: newUser.libraryId,
-        libraryName,
-      }),
-      ...(newUser.role === "MEMBER" && {
-        membership: {
-          planId: "plan-free",
-          planName: "Free",
-          status: "active",
-          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    try {
+      // In a real app, send data to the API
+      const response = await fetch('/api/users/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      }),
-    };
+        body: JSON.stringify({
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role,
+          libraryId: newUser.role === "ADMIN" ? newUser.libraryId : undefined,
+        }),
+      });
 
-    setUsers([...users, newUserWithId]);
-    setIsAddDialogOpen(false);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to add user');
+      }
 
-    toast({
-      title: "User Added",
-      description: `${newUser.name} has been added as a ${newUser.role}.`,
-    });
+      const result = await response.json();
+      
+      if (result.success) {
+        // Add new user to the list
+        setUsers([...users, result.data]);
+        setIsAddDialogOpen(false);
 
-    // Reset form
-    setNewUser({
-      name: "",
-      email: "",
-      role: "MEMBER",
-      libraryId: "",
-    });
+        toast({
+          title: "User Added",
+          description: `${newUser.name} has been added as a ${newUser.role}.`,
+        });
+
+        // Reset form
+        setNewUser({
+          name: "",
+          email: "",
+          role: "MEMBER",
+          libraryId: "",
+        });
+      } else {
+        throw new Error(result.error || 'Failed to add user');
+      }
+    } catch (error) {
+      console.error("Error adding user:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to add user",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteUser = (userId: string) => {
-    // In a real app, this would delete the user from the database
-    setUsers(users.filter((user) => user.id !== userId));
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      const response = await fetch(`/api/users/delete?id=${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-    toast({
-      title: "User Deleted",
-      description: "The user has been deleted successfully.",
-    });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to delete user');
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        // Remove user from the list
+        setUsers(users.filter((user) => user.id !== userId));
+
+        toast({
+          title: "User Deleted",
+          description: "The user has been deleted successfully.",
+        });
+      } else {
+        throw new Error(result.error || 'Failed to delete user');
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete user",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
