@@ -35,7 +35,7 @@ interface SeatType {
 
 interface OpeningHour {
   id: string;
-  dayOfWeek: string;
+  dayOfWeek: number; // Changed from string to number
   openTime: string;
   closeTime: string;
   isClosed: boolean;
@@ -79,14 +79,38 @@ interface Library {
 // Header component
 function LibraryHeader({ library }: { library: Library }) {
   const getOpeningHoursText = () => {
-    const today = new Date().toLocaleString("en-US", { weekday: "long" });
-    const todayHours = library.openingHours.find(
-      (hour) => hour.dayOfWeek.toLowerCase() === today.toLowerCase()
+    // Get current day as number (0=Sunday, 1=Monday, ..., 6=Saturday)
+    const today = new Date().getDay();
+    
+    // Find today's opening hours
+    const todayHours = library.openingHours?.find(
+      (hour) => hour.dayOfWeek === today
     );
+    
     if (!todayHours || todayHours.isClosed) {
       return "Closed Today";
     }
+    
     return `${todayHours.openTime} to ${todayHours.closeTime}`;
+  };
+
+  // Helper function to check if library is currently open
+  const isCurrentlyOpen = () => {
+    const now = new Date();
+    const currentDay = now.getDay();
+    const currentTime = now.toTimeString().slice(0, 5); // HH:MM format
+    
+    // Find today's opening hours
+    const todayHours = library.openingHours?.find(
+      (hour) => hour.dayOfWeek === currentDay
+    );
+    
+    if (!todayHours || todayHours.isClosed) {
+      return false;
+    }
+    
+    // Compare current time with opening hours
+    return currentTime >= todayHours.openTime && currentTime <= todayHours.closeTime;
   };
 
   const getDistance = () => {
@@ -94,23 +118,42 @@ function LibraryHeader({ library }: { library: Library }) {
     return "2 km away";
   };
 
+  // Helper function to validate image URL
+  const isValidImageUrl = (url: string) => {
+    return url && (url.startsWith('/') || url.startsWith('http://') || url.startsWith('https://'));
+  };
+
+  // Get the first valid image
+  const getValidImage = () => {
+    if (!library.images || library.images.length === 0) return null;
+    return library.images.find(img => isValidImageUrl(img)) || null;
+  };
+
+  const validImage = getValidImage();
+  const libraryCurrentlyOpen = isCurrentlyOpen();
+
   return (
     <div className="relative rounded-2xl shadow bg-white mb-6">
-      {/* Banner Image */}
-      <Image
-      fill
-        src={library.images[0] || "/libraries/libraries2.jpg"}
-        alt={library.name}
-        className="w-full h-44 sm:h-64 object-cover"
-      />
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+      {/* Banner Image - Only show if valid image exists */}
+      {validImage && (
+        <>
+          <Image
+            fill
+            src={validImage}
+            alt={library.name}
+            className="w-full h-44 sm:h-64 object-cover"
+          />
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+        </>
+      )}
+      
       {/* Content */}
-      <div className="absolute left-0 top-0 w-full h-full flex flex-col justify-end p-4 sm:p-6">
+      <div className={`${validImage ? 'absolute' : 'relative'} left-0 top-0 w-full h-full flex flex-col justify-end p-4 sm:p-6`}>
         {/* Top badges */}
         <div className="flex gap-2 mb-2">
-          <span className="bg-white/80 text-gray-800 text-xs px-3 py-1 rounded-full font-medium">
-            {library.isOpen ? "Open Now" : "Closed"}
+          <span className={`${validImage ? 'bg-white/80 text-gray-800' : 'bg-gray-100 text-gray-800'} text-xs px-3 py-1 rounded-full font-medium`}>
+            {libraryCurrentlyOpen ? "Open Now" : "Closed"}
           </span>
           <span className="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full font-medium">
             Public Library
@@ -118,16 +161,16 @@ function LibraryHeader({ library }: { library: Library }) {
         </div>
         {/* Title and Info */}
         <div>
-          <h1 className="text-xl sm:text-3xl font-bold text-white mb-1">
+          <h1 className={`text-xl sm:text-3xl font-bold ${validImage ? 'text-white' : 'text-gray-900'} mb-1`}>
             {library.name}
           </h1>
-          <div className="flex items-center justify-between text-white flex-wrap">
-            <div className="flex items-center gap-2 text-white text-sm mb-1">
+          <div className={`flex items-center justify-between ${validImage ? 'text-white' : 'text-gray-700'} flex-wrap`}>
+            <div className={`flex items-center gap-2 ${validImage ? 'text-white' : 'text-gray-700'} text-sm mb-1`}>
               <FaStar className="text-yellow-400" />
-              <span>{library.rating.toFixed(1)}</span>
-              <span className="text-gray-200">({library.reviewCount} reviews)</span>
+              <span>{library.rating?.toFixed(1) || '0.0'}</span>
+              <span className={validImage ? 'text-gray-200' : 'text-gray-500'}>({library.reviewCount || 0} reviews)</span>
               <span className="mx-2 hidden sm:inline">•</span>
-              <span className="hidden sm:inline">{library.totalSeats}+ Seats</span>
+              <span className="hidden sm:inline">{library.totalSeats || 0}+ Seats</span>
             </div>
             <button className="ml-2 bg-white/80 rounded-full p-2 shadow border border-gray-200">
               <FaRegHeart className="text-gray-700" />
@@ -135,6 +178,7 @@ function LibraryHeader({ library }: { library: Library }) {
           </div>
         </div>
       </div>
+      
       {/* Info pills and Book button */}
       <div className="hidden md:flex flex-wrap items-center gap-2 mt-3 w-[98%] sm:w-[90%] absolute -bottom-[30px] left-1/2 py-2 px-2 sm:px-4 bg-white rounded-full shadow transform -translate-x-1/2">
         <span className="bg-white/80 text-gray-800 text-xs px-3 py-1 rounded-full font-medium">
@@ -147,12 +191,12 @@ function LibraryHeader({ library }: { library: Library }) {
           {library.hasFreeMembership ? "Free entry" : "Membership required"}
         </span>
         <span className="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full font-medium">
-          {library.seatTypes.some((seat) => seat.availableSeats > 0)
+          {library.seatTypes?.some((seat) => seat.availableSeats > 0)
             ? "Seats Available"
             : "No Seats Available"}
         </span>
         <Link
-          href={`/seatBooking/${library.id}`}
+          href={`/seat-booking/${library.id}`}
           className="ml-auto px-4 sm:px-6 py-2 rounded-full bg-black text-white font-semibold shadow hover:bg-gray-900 text-xs sm:text-base"
         >
           Book now
@@ -178,7 +222,7 @@ function LibraryHeader({ library }: { library: Library }) {
               {getOpeningHoursText()}
             </div>
             <div className="text-sm sm:text-base text-gray-400">
-              {library.isOpen ? "Open now" : "Closed"}
+              {libraryCurrentlyOpen ? "Open now" : "Closed"}
             </div>
           </div>
         </div>
@@ -198,12 +242,12 @@ function LibraryHeader({ library }: { library: Library }) {
         <div className="flex items-center justify-between mt-2 gap-2 flex-wrap">
           <span className="flex items-center gap-2 text-green-600 font-bold text-base sm:text-lg">
             <span className="inline-block w-3 h-3 rounded-full bg-green-500"></span>
-            {library.seatTypes.some((seat) => seat.availableSeats > 0)
+            {library.seatTypes?.some((seat) => seat.availableSeats > 0)
               ? "Seats Available"
               : "No Seats Available"}
           </span>
           <Link
-            href={`/seatBooking/${library.id}`}
+            href={`/seat-booking/${library.id}`}
             className="ml-auto px-4 sm:px-6 py-2 rounded-full bg-black text-white font-semibold shadow hover:bg-gray-900 text-xs sm:text-base"
           >
             Book now
@@ -244,20 +288,48 @@ export default function LibraryDetails() {
 
     fetchLibrary();
   }, [id]);
-  // Map amenities to feature icons
+  // Map amenities to feature icons 
   const mapAmenitiesToFeatures = (amenities: string[]) => {
     const featureMap: { [key: string]: { icon: ReactNode; label: string } } = {
-      wifi: { icon: <FaWifi />, label: "Wifi" },
-      cafe: { icon: <FaCoffee />, label: "Cafe" },
+      // Original mappings (keeping existing ones)
+      wifi: { icon: <FaWifi />, label: "Wi-Fi" },
+      cafe: { icon: <FaCoffee />, label: "Cafeteria" },
       parking: { icon: <FaParking />, label: "Parking" },
       books: { icon: <FaBook />, label: "Books" },
       internet: { icon: <FaLaptop />, label: "Internet-ready" },
-      lockers: { icon: <FaLock />, label: "Locker rooms" },
-      // Add more mappings as needed
+      lockers: { icon: <FaLock />, label: "Lockers" },
+      
+      // Additional mappings from admin dashboard
+      "WiFi": { icon: <FaWifi />, label: "Wi-Fi" },
+      "Parking": { icon: <FaParking />, label: "Parking" },
+      "Study Rooms": { icon: <BsPersonBadge />, label: "Study Rooms" },
+      "Cafeteria": { icon: <FaCoffee />, label: "Cafeteria" },
+      "Lockers": { icon: <FaLock />, label: "Lockers" },
+      "Air Conditioning": { icon: <MdAccessTime />, label: "Air Conditioning" },
+      "Quiet Zone": { icon: <MdVolumeOff />, label: "Quiet Zone" },
+      "Computer Lab": { icon: <FaLaptop />, label: "Computer Lab" },
+      "Security": { icon: <BsPersonBadge />, label: "Security" },
+      "Group Study Area": { icon: <BsPersonBadge />, label: "Group Study Area" },
+      "Power Outlets": { icon: <MdAccessTime />, label: "Power Outlets" },
+      "Printing Services": { icon: <FaBook />, label: "Printing Services" },
+      
+      // Handle lowercase versions as well
+      "study rooms": { icon: <BsPersonBadge />, label: "Study Rooms" },
+      "cafeteria": { icon: <FaCoffee />, label: "Cafeteria" },
+      "air conditioning": { icon: <MdAccessTime />, label: "Air Conditioning" },
+      "quiet zone": { icon: <MdVolumeOff />, label: "Quiet Zone" },
+      "computer lab": { icon: <FaLaptop />, label: "Computer Lab" },
+      "security": { icon: <BsPersonBadge />, label: "Security" },
+      "group study area": { icon: <BsPersonBadge />, label: "Group Study Area" },
+      "power outlets": { icon: <MdAccessTime />, label: "Power Outlets" },
+      "printing services": { icon: <FaBook />, label: "Printing Services" },
     };
 
-    return amenities
-      .map((amenity) => featureMap[amenity.toLowerCase()])
+    return (amenities || [])
+      .map((amenity) => {
+        // Getting the amenities from api and mapping them here !!
+        return featureMap[amenity] || featureMap[amenity.toLowerCase()];
+      })
       .filter((feature) => feature); // Filter out undefined mappings
   };
 
@@ -316,34 +388,59 @@ export default function LibraryDetails() {
             {/* Features */}
             <div className="bg-white rounded-2xl p-4 sm:p-6 shadow">
               <h2 className="text-lg font-semibold mb-4">Library Features</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {mapAmenitiesToFeatures(library.amenities).map((f) => (
-                  <div
-                    key={f.label}
-                    className="flex flex-col items-center gap-1 bg-gray-100 py-4 sm:py-5 rounded-lg"
-                  >
-                    <span className="text-2xl">{f.icon}</span>
-                    <span className="text-sm text-gray-700">{f.label}</span>
-                  </div>
-                ))}
-              </div>
+              {mapAmenitiesToFeatures(library.amenities).length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {mapAmenitiesToFeatures(library.amenities).map((f, index) => (
+                    <div
+                      key={`${f.label}-${index}`}
+                      className="flex flex-col items-center gap-1 bg-gray-100 py-4 sm:py-5 rounded-lg"
+                    >
+                      <span className="text-2xl">{f.icon}</span>
+                      <span className="text-sm text-gray-700">{f.label}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center bg-gray-100 rounded-lg h-20 text-gray-500">
+                  No amenities available
+                </div>
+              )}
             </div>
             {/* Gallery */}
             <div className="bg-white rounded-2xl p-4 sm:p-6 shadow">
               <h2 className="text-lg font-semibold mb-4">Gallery</h2>
-              <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                {library.images.slice(0, 3).map((img, i) => (
-                  <Image
-                    key={i}
-                    src={img}
-                    alt={`Gallery ${i + 1}`}
-                    className="rounded-lg object-cover h-20 sm:h-28 w-full"
-                  />
-                ))}
-                <div className="flex items-center justify-center bg-gray-100 rounded-lg h-20 sm:h-28 text-gray-500 font-semibold cursor-pointer">
-                  View all
-                </div>
-              </div>
+              {(() => {
+                // Helper function to validate image URL for gallery
+                const isValidImageUrl = (url: string) => {
+                  return url && (url.startsWith('/') || url.startsWith('http://') || url.startsWith('https://'));
+                };
+                
+                const validImages = library.images?.filter(img => isValidImageUrl(img)) || [];
+                
+                return validImages.length > 0 ? (
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                    {validImages.slice(0, 3).map((img, i) => (
+                      <Image
+                        key={i}
+                        src={img}
+                        alt={`Gallery ${i + 1}`}
+                        width={100}
+                        height={80}
+                        className="rounded-lg object-cover h-20 sm:h-28 w-full"
+                      />
+                    ))}
+                    {validImages.length > 3 && (
+                      <div className="flex items-center justify-center bg-gray-100 rounded-lg h-20 sm:h-28 text-gray-500 font-semibold cursor-pointer">
+                        View all
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center bg-gray-100 rounded-lg h-20 sm:h-28 text-gray-500">
+                    No images available
+                  </div>
+                );
+              })()}
             </div>
             {/* Rules */}
             <div className="bg-white rounded-2xl p-4 sm:p-6 shadow">
@@ -367,11 +464,10 @@ export default function LibraryDetails() {
             <div className="bg-white rounded-2xl p-4 sm:p-6 shadow flex flex-col gap-2 sm:gap-4">
               <h2 className="text-lg font-semibold">Location</h2>
               <div className="rounded-lg overflow-hidden h-20 sm:h-24 w-full bg-gray-200">
-                <Image
-                  src="/libraries/map.jpg" // Replace with dynamic map if available
-                  alt="Map"
-                  className="w-full h-full object-cover"
-                />
+                {/* You can remove this static map image or keep it as fallback */}
+                <div className="w-full h-full flex items-center justify-center text-gray-500">
+                  Map placeholder
+                </div>
               </div>
               <div className="flex items-center gap-2 text-gray-700 text-sm">
                 <MdLocationOn className="text-lg" />
