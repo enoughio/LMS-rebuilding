@@ -134,18 +134,25 @@ function LibraryHeader({ library }: { library: Library }) {
 
   return (
     <div className="relative rounded-2xl shadow bg-white mb-6">
-      {/* Banner Image - Only show if valid image exists */}
-      {validImage && (
+      {/* Banner Image or Placeholder */}
+      {validImage ? (
         <>
           <Image
             fill
             src={validImage}
             alt={library.name}
-            className="w-full h-44 sm:h-64 object-cover"
+            className="w-full h-44 sm:h-64 object-cover rounded-t-2xl"
           />
           {/* Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent rounded-t-2xl" />
         </>
+      ) : (
+        <div className="w-full h-44 sm:h-64 bg-gradient-to-br from-gray-200 to-gray-300 rounded-t-2xl flex items-center justify-center">
+          <div className="text-center">
+            <FaBook className="mx-auto text-4xl sm:text-6xl text-gray-400 mb-2" />
+            <p className="text-gray-500 text-sm sm:text-base">No Image Available</p>
+          </div>
+        </div>
       )}
       
       {/* Content */}
@@ -196,7 +203,7 @@ function LibraryHeader({ library }: { library: Library }) {
             : "No Seats Available"}
         </span>
         <Link
-          href={`/seat-booking/${library.id}`}
+          href={`/libraries/${library.id}/seatBooking`}
           className="ml-auto px-4 sm:px-6 py-2 rounded-full bg-black text-white font-semibold shadow hover:bg-gray-900 text-xs sm:text-base"
         >
           Book now
@@ -247,7 +254,7 @@ function LibraryHeader({ library }: { library: Library }) {
               : "No Seats Available"}
           </span>
           <Link
-            href={`/seat-booking/${library.id}`}
+            href={`/libraries/${library.id}/seatBooking`}
             className="ml-auto px-4 sm:px-6 py-2 rounded-full bg-black text-white font-semibold shadow hover:bg-gray-900 text-xs sm:text-base"
           >
             Book now
@@ -406,7 +413,7 @@ export default function LibraryDetails() {
                 </div>
               )}
             </div>
-            {/* Gallery */}
+            {/* Gallery with placeholder */}
             <div className="bg-white rounded-2xl p-4 sm:p-6 shadow">
               <h2 className="text-lg font-semibold mb-4">Gallery</h2>
               {(() => {
@@ -436,8 +443,13 @@ export default function LibraryDetails() {
                     )}
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center bg-gray-100 rounded-lg h-20 sm:h-28 text-gray-500">
-                    No images available
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex flex-col items-center justify-center bg-gray-100 rounded-lg h-20 sm:h-28 text-gray-400">
+                        <FaBook className="text-2xl mb-1" />
+                        <span className="text-xs">No Image</span>
+                      </div>
+                    ))}
                   </div>
                 );
               })()}
@@ -458,15 +470,18 @@ export default function LibraryDetails() {
               </div>
             </div>
           </div>
+          
           {/* Location & Ads */}
           <div className="flex flex-col gap-4 sm:gap-6">
             {/* Location */}
             <div className="bg-white rounded-2xl p-4 sm:p-6 shadow flex flex-col gap-2 sm:gap-4">
               <h2 className="text-lg font-semibold">Location</h2>
               <div className="rounded-lg overflow-hidden h-20 sm:h-24 w-full bg-gray-200">
-                {/* You can remove this static map image or keep it as fallback */}
                 <div className="w-full h-full flex items-center justify-center text-gray-500">
-                  Map placeholder
+                  <div className="text-center">
+                    <MdLocationOn className="mx-auto text-2xl mb-1" />
+                    <span className="text-sm">Map unavailable</span>
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-2 text-gray-700 text-sm">
