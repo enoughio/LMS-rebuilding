@@ -53,7 +53,15 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const { accessToken } = await getAccessToken(request as any, NextResponse as any);
+    const session = await auth0.getSession();
+    if (!session) {
+      return NextResponse.json(
+        { error: 'Unauthorized', message: 'User not authenticated' },
+        { status: 401 }
+      );
+    }
+
+    const { token: accessToken } = await auth0.getAccessToken();
     
     if (!accessToken) {
       return NextResponse.json(

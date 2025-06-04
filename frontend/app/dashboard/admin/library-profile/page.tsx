@@ -54,17 +54,18 @@ export default function LibraryProfilePage() {
     const fetchLibrary = async () => {
       setLoading(true)
       try {
-        const token = localStorage.getItem('token')
         const response = await fetch('/api/library/profile', {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
           },
         })
         const result = await response.json()
-        if (response.ok && result.success) {
-          setLibrary(result.data)
-          setFormData(result.data)
+        
+        if (response.ok) {
+          // Handle direct data response (not wrapped in success/data structure)
+          const libraryData = result.data || result
+          setLibrary(libraryData)
+          setFormData(libraryData)
         } else {
           throw new Error(result.error || 'Failed to fetch library profile')
         }
@@ -81,7 +82,7 @@ export default function LibraryProfilePage() {
     }
 
     fetchLibrary()
-  }, [user, toast])
+  }, [toast])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -104,7 +105,7 @@ export default function LibraryProfilePage() {
       openingHours: {
         ...prev.openingHours,
         [day]: {
-          ...prev.openingHours?.[day as keyof typeof prev.openingHours],
+          ...(prev.openingHours?.[day] || {}),
           [field]: value,
         },
       },
@@ -112,29 +113,27 @@ export default function LibraryProfilePage() {
   }
 
   const handleSave = async () => {
-    if (!user?.libraryId || !formData) return
+    if (!formData) return
 
     setSaving(true)
     try {
-      const token = localStorage.getItem('token')
       const response = await fetch('/api/library/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(formData),
       })
       const result = await response.json()
-      if (!response.ok || !result.success) {
+      
+      if (!response.ok) {
         throw new Error(result.error || 'Failed to update library profile')
       }
 
       // Update the local library state to reflect changes immediately
-      setLibrary((prev) => {
-        if (!prev) return null
-        return { ...prev, ...formData } as Library
-      })
+      const updatedLibrary = result.data || result
+      setLibrary(updatedLibrary)
+      setFormData(updatedLibrary)
 
       toast({
         title: "Success",
@@ -299,7 +298,7 @@ export default function LibraryProfilePage() {
             </CardHeader>
             <CardContent className="px-0">
               <div className="space-y-6">
-                {Object.keys(library.openingHours).map((day) => (
+                {library.openingHours && Object.keys(library.openingHours).map((day) => (
                   <div key={day} className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor={`${day}-open`} className="capitalize">
@@ -340,7 +339,7 @@ export default function LibraryProfilePage() {
             </CardHeader>
             <CardContent className="px-0">
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {library.images.map((image, index) => (
+                {library.images && library.images.map((image, index) => (
                   <div key={index} className="relative aspect-square overflow-hidden rounded-md border">
                     <Image
                       src={image || "/placeholder.svg"}
