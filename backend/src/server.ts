@@ -8,6 +8,7 @@ import cors from 'cors';
 // // import roleRoutes from './routes/roleRoutes';
 import forumRoutes from './routes/forumRoutes.js';
 import libraryRoutes from './routes/libraryRoutes.js';
+import libraryProfileRoutes from './routes/libraryProfileRoutes.js';
 import seatRoutes from './routes/seatRoutes.js';
 import membershipRoutes from './routes/membershipRoutes.js';
 // import bookRoutes from './routes/bookRoutes';
@@ -48,6 +49,7 @@ app.use(
 app.use("/api/user", userRoutes)
 app.use('/api/forum', forumRoutes);
 app.use('/api/libraries', libraryRoutes);
+app.use('/api/library/profile', libraryProfileRoutes);
 app.use('/api/seats', seatRoutes);
 app.use('/api/memberships', membershipRoutes);
 // app.use('/api/books', bookRoutes);

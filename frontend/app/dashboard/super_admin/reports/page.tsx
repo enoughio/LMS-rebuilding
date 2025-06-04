@@ -316,7 +316,7 @@ export default function ReportsPage() {  const [date] = useState<DateRange>({
   const filteredLibraryPerformanceData = getFilteredData(libraryPerformanceData, libraryFilter);
 
   return (
-    <div className="space-y-6 min-w-[70vw]">
+    <div className="space-y-6 min-w-[70vw] pb-10">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
         <p className="text-muted-foreground">View and generate platform reports</p>
