@@ -44,9 +44,9 @@ const faq = () => {
       
       {faqData.map((faq, index) => (
         <div key={index} className="mb-4">
-          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+          <div className="bg-[#ECE3DA] rounded-2xl border border-gray-200 overflow-hidden">
             <div 
-              className="flex justify-between items-center p-6 cursor-pointer hover:bg-gray-50 transition-colors"
+              className="flex justify-between items-center p-6 cursor-pointer hover:bg-[#e4d7c9] transition-colors"
               onClick={() => toggleFaq(index)}
             >
               <h2 className="text-lg font-semibold text-gray-800 flex-1">
