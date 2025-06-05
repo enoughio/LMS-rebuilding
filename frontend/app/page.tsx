@@ -4,6 +4,7 @@ import Hero from "@/components/home/hero";
 import What from "@/components/home/what";
 import Ready from "@/components/home/readyToJoin";
 import WhyAdda from '@/components/home/whyadda';
+import Explore from "@/components/home/explore";
 
 export default function App() {
   return (
@@ -11,9 +12,11 @@ export default function App() {
       <main className=" max-w-[1920px]">
         
           <Hero />
-          <What />
+
           <SmartLibrary />
           <WhyAdda />
+          <What />
+          <Explore />
           <Ready />
       </main>
 
