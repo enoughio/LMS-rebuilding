@@ -5,6 +5,7 @@ import What from "@/components/home/what";
 import Ready from "@/components/home/readyToJoin";
 import WhyAdda from '@/components/home/whyadda';
 import Explore from "@/components/home/explore";
+import Faq from "@/components/home/faq";
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
           <WhyAdda />
           <What />
           <Explore />
+          <Faq />
           <Ready />
       </main>
 

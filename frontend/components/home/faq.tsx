@@ -1,0 +1,80 @@
+"use client";
+import React, { useState } from 'react';
+
+interface FAQItem {
+  question: string;
+  answer: string;
+}
+
+const faq = () => {
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  const toggleFaq = (index: number) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
+
+  const faqData: FAQItem[] = [
+    {
+      question: "What is the Pomodoro Timer?",
+      answer: "A tool to help you study in focused 25-minute intervals followed by short breaks."
+    },
+    {
+      question: "How do I borrow or return a physical book?",
+      answer: "Visit the library circulation desk with your student ID to borrow books. Returns can be made at the desk or through the book drop available 24/7."
+    },
+    {
+      question: "How does the Pomodoro timer work?",
+      answer: "Set a 25-minute timer for focused work, take a 5-minute break, then repeat. After 4 cycles, take a longer 15-30 minute break."
+    }
+  ];
+
+  return (
+    <div className='bg-[#ECE3DA]'>
+
+
+    <div className="py-16 px-5 font-sans bg-[#ECE3DA] max-w-4xl mx-auto">
+      <div className="text-left mb-12">
+        <span className="text-sm text-gray-600 font-medium block mb-3">
+          ASK QUESTION ～～〉
+        </span>
+        <h1 className="text-5xl font-bold text-gray-800 leading-tight">
+          FAQ & Help Center
+        </h1>
+      </div>
+      
+      {faqData.map((faq, index) => (
+        <div key={index} className="mb-4">
+          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div 
+              className="flex justify-between items-center p-6 cursor-pointer hover:bg-gray-50 transition-colors"
+              onClick={() => toggleFaq(index)}
+            >
+              <h2 className="text-lg font-semibold text-gray-800 flex-1">
+                {faq.question}
+              </h2>
+              <span className={`w-10 h-10 ${
+                openFaq === index 
+                  ? 'bg-[#796146] text-white' 
+                  : 'bg-white border-2 border-gray-300 text-gray-600'
+              } rounded-full flex items-center justify-center font-bold text-lg transition-all duration-300 ${
+                openFaq === index ? 'rotate-180' : ''
+              }`}>
+                {openFaq === index ? '∧' : '>'}
+              </span>
+            </div>
+            {openFaq === index && (
+              <div className="px-6 pb-6 border-t border-gray-100 animate-in slide-in-from-top-2 duration-300">
+                <p className="text-gray-600 text-base leading-relaxed mt-4">
+                  {faq.answer}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+    </div>
+  );
+};
+
+export default faq;
