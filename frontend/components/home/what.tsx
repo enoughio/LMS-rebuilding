@@ -5,7 +5,8 @@ export default function What() {
     <section className="bg-[#ede3db] text-center max-w-[1920px] lg:overflow-x-auto items-center justify-center overflow-x-hidden py-4 px-4 md:px-14">
       <div className="px-2 sm:px-4 py-6 md:py-10 text-center">
         {/* Heading */}
-        <h1 className="text-[24px] sm:text-[36px] md:text-[41px] lg:text-[45px] leading-[28px] sm:leading-[42px] md:leading-[48.55px] tracking-[-0.04em] font-bold text-center text-gray-800 font-['Plus_Jakarta_Sans'] mb-4 sm:mb-5 md:mb-6">
+        <div>
+          <h1 className="text-[24px] sm:text-[36px] md:text-[41px] lg:text-[45px] leading-[28px] sm:leading-[42px] md:leading-[48.55px] tracking-[-0.04em] font-bold text-center text-gray-800 font-['Plus_Jakarta_Sans'] mb-4 sm:mb-5 md:mb-6">
           What is Student Adda
         </h1>
 
@@ -28,13 +29,18 @@ export default function What() {
             <span className="font-bold mt-3 block">
               Whether you&apos;re a student looking to focus better, a library owner managing operations, or someone who just wants a productive study space — Student Adda makes it effortless.
             </span>
+            
+            
           </p>
         </div>
         
-      </div>
-                      <div className="w-full bg-blue-100 h-20 my-8 flex items-center justify-center rounded-lg">
+          
+        </div>
+        <div className="w-full bg-blue-100 h-20  mt-18 flex items-center justify-center rounded-lg">
           <p className="text-blue-500">Advertisement Space</p>
         </div>
+      </div>
+
     </section>
   );
 }

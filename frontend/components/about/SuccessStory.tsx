@@ -15,7 +15,7 @@ const SuccessStory = () => {
         />
       </div>
 
-      <section className="bg-[#796146] grid grid-cols-1 md:grid-cols-2 w-[80%] rounded-md items-center justify-center font-[Plus Jakarta Sans] mx-auto mt-[-20px] relative z-10">
+      <section className="bg-[#796146] grid grid-cols-1 md:grid-cols-2 w-full md:w-[80%] rounded-md items-center justify-center font-[Plus Jakarta Sans] mx-auto mt-[-20px] relative z-10">
         <div className="left_part p-4">
           <div className="story flex items-center gap-2">
             <p className="text-white font-semibold text-[7.15px] leading-[7.2px] tracking-[0.72px] sm:text-[8.56px] sm:leading-[8.6px]">

@@ -1,11 +1,10 @@
-
 import Image from "next/image";
 
 export default function Footer() {
   return (
-    <footer className=" bg-[#ECE3DA] w-full max-w-[1920px]">
+    <footer className="bg-[#ECE3DA] w-full max-w-[1920px] pt-16 mt-8">
       {/* Top Section */}
-      <div className=" mx-9 flex flex-col md:flex-row justify-between gap-16 md:gap-28 mb-1 sm:mb-6 items-center md:items-start text-center md:text-left">
+      <div className="mx-9 flex flex-col md:flex-row justify-between gap-16 md:gap-28 mb-1 sm:mb-6 items-center md:items-start text-center md:text-left">
         {/* Logo and Tagline */}
         <div className="flex flex-col items-center md:items-start w-full md:w-2/5">
           <Image
