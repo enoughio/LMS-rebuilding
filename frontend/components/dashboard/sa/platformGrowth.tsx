@@ -92,7 +92,7 @@ const PlatformGrowth = () => {
   }
 
   return (
-    <Card className="bg-white dark:bg-gray-800 min-w-[300px]">
+    <Card className="bg-white dark:bg-gray-800 min-w-[300px] border-0">
       <CardHeader>
         <CardTitle>Platform Growth</CardTitle>
         <CardDescription>Member and library growth over the past 12 months</CardDescription>

@@ -207,14 +207,14 @@ export default function LibrariesPage() {
   }
 
   return (
-    <div className="space-y-6 min-h-[120vh] min-w-[72vw] pb-16">
-      <div className="flex flex-col gap-2">
+    <div className="space-y-6 min-h-[120vh] min-w-[72vw] pb-16 ">
+      <div className="flex flex-col gap-2 ">
         <h1 className="text-3xl font-bold tracking-tight">Libraries</h1>
         <p className="text-muted-foreground">Manage all libraries on the platform</p>
       </div>
 
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="relative w-full md:w-1/3">
+      <div className="flex flex-col gap-4 border-0 md:flex-row md:items-center md:justify-between">
+        <div className="relative w-full md:w-1/3 bg-white border-0">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
@@ -225,12 +225,12 @@ export default function LibrariesPage() {
           />
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:gap-4">
+        <div className="flex flex-col bg-white border-0 gap-2 sm:flex-row sm:gap-4">
           <Select value={ratingFilter} onValueChange={setRatingFilter}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by rating" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white">
               <SelectItem value="all">All Ratings</SelectItem>
               <SelectItem value="5">4.5+ Stars</SelectItem>
               <SelectItem value="4">4.0+ Stars</SelectItem>
@@ -293,8 +293,8 @@ export default function LibrariesPage() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredLibraries.map((library:Library) => (
                 <Card key={library.id}>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between">
+                  <CardHeader className="pb-2 bg-white">
+                    <div className="flex items-start justify-between bg-white">
                       <CardTitle>{library.name}</CardTitle>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -387,7 +387,7 @@ export default function LibrariesPage() {
           ) : (
             <div className="space-y-4">
               {pendingLibraries.map((library) => (
-                <Card key={library.id}>
+                <Card key={library.id} className="bg-white border-0">
                   <CardContent className="p-6">
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                       <div className="flex-1">

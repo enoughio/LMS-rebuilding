@@ -397,7 +397,7 @@ export default function UsersPage() {
       </div>
 
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="relative w-full md:w-1/3">
+        <div className="relative w-full md:w-1/3 bg-white border-0">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
@@ -410,10 +410,10 @@ export default function UsersPage() {
 
         <div className="flex flex-col gap-2 sm:flex-row sm:gap-4">
           <Select value={roleFilter} onValueChange={setRoleFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] bg-white">
               <SelectValue placeholder="Filter by role" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-100 bg-white">
               <SelectItem value="all">All Roles</SelectItem>
               <SelectItem value="MEMBER">Members</SelectItem>
               <SelectItem value="ADMIN">Admins</SelectItem>
@@ -423,7 +423,7 @@ export default function UsersPage() {
 
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="bg-black text-white">
                 <Plus className="mr-2 h-4 w-4" />
                 Add User
               </Button>
@@ -548,7 +548,13 @@ export default function UsersPage() {
                     <Badge
                       variant={
                         user.role === "SUPER_ADMIN" ? "destructive" : user.role === "ADMIN" ? "default" : "outline"
-                      }
+                      } 
+                      className={
+                        user.role === "ADMIN"
+                          ? "bg-[#93734C] text-white px-4 py-2 rounded-full border-2"
+                          : user.role==="SUPER_ADMIN"? "bg-[#824800] text-white px-4 py-2 rounded-full border" :
+                          "bg-white text-black border-1 px-4 py-2 rounded-full "
+                      }               
                     >
                       {user.role === "SUPER_ADMIN" ? "Super Admin" : user.role === "ADMIN" ? "Admin" : "Member"}
                     </Badge>
@@ -563,6 +569,12 @@ export default function UsersPage() {
                               ? "destructive"
                               : "outline"
                         }
+                       className={
+                          !user.membership?.status
+                            ? "bg-red-600 text-white px-4 py-2 rounded-md"
+                            : "bg-black text-green-600 px-4 py-1 rounded-md"
+                        }
+
                       >
                         {user.membership?.status || "None"}
                       </Badge>
@@ -582,8 +594,8 @@ export default function UsersPage() {
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuContent align="end" className="bg-white">
+                        <DropdownMenuLabel className="bg-white">Actions</DropdownMenuLabel>
                         <DropdownMenuItem>
                           <Edit className="mr-2 h-4 w-4" />
                           Edit User

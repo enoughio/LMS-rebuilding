@@ -94,11 +94,11 @@ const PlatformStats = () => {
   const { platformStats } = statsData.data
 
   return (
-    <div className=" mx-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className=" mx-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 border-0">
       <Card className="bg-black text-white">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium">Total Libraries</CardTitle>
-          <Building2 className="h-4 w-4" />
+          <Building2 className="h-8 w-8" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{platformStats.totalLibraries.count}</div>
@@ -110,7 +110,7 @@ const PlatformStats = () => {
       <Card className="bg-black text-white">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium">Total Members</CardTitle>
-          <Users className="h-4 w-4" />
+          <Users className="h-8 w-8" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{platformStats.totalMembers.count.toLocaleString()}</div>
@@ -123,7 +123,7 @@ const PlatformStats = () => {
         <Card className="bg-black text-white">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
-            <CreditCard className="h-4 w-4" />
+            <CreditCard className="h-8 w-8" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -138,7 +138,7 @@ const PlatformStats = () => {
       <Card className="bg-black text-white">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium">Platform Health</CardTitle>
-          <Settings className="h-4 w-4" />
+          <Settings className="h-8 w-8" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{platformStats.platformHealth.percentage}%</div>

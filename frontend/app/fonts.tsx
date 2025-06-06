@@ -25,5 +25,7 @@ export const plusJakarta = Plus_Jakarta_Sans({
   fallback: ['system-ui', 'sans-serif'],
 });
 
+
+
 // Export font class names for direct use in components
-export const fontClasses = `${urbanist.variable} ${plusJakarta.variable}`;
+export const fontClasses = `${urbanist.variable} ${plusJakarta.variable} `;
