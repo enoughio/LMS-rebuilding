@@ -39,13 +39,16 @@ export function Auth0AuthProvider({ children }: { children: React.ReactNode }) {
 
         const response = await syncResponse.json()
         // console.log("Syncing user with backend...", auth0User)
-        // console.log("Sync response:", response)
+        console.log("Sync response:", response.data)
         if (response.success !== true) {
           console.error("Failed to sync user:", response)
           throw new Error("Failed to sync user data")
         }
 
       const syncedUser: User = response.data
+
+      console.log("Backend response libraryId:", syncedUser.libraryId);
+      console.log("Backend response libraryId type:", typeof syncedUser.libraryId);
 
       const transformedUser: User = {
         id: syncedUser.id,
@@ -59,9 +62,13 @@ export function Auth0AuthProvider({ children }: { children: React.ReactNode }) {
         bio: syncedUser.bio || "",
         phone: syncedUser.phone || "",
         address: syncedUser.address || "",
-        createdAt: syncedUser.createdAt,
+        libraryId: syncedUser.libraryId,        createdAt: syncedUser.createdAt,
         updatedAt: syncedUser.updatedAt
       }
+      
+      console.log("Transformed user libraryId:", transformedUser.libraryId);
+      console.log("Transformed user libraryId type:", typeof transformedUser.libraryId);
+      
       setUser(transformedUser)
       
       // Store user data in localStorage for persistence

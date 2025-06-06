@@ -10,6 +10,7 @@ import { Download, Printer } from "lucide-react"
 import { addDays } from "date-fns"
 import { DateRange } from "react-day-picker"
 import { reportsApi, type Library, type ReportsFilters, type RevenueData, type UserActivityData, type TopLibrary } from "@/lib/reports-api"
+import toast from "react-hot-toast"
 
 // Define types for better type safety
 interface ActivityData {
@@ -233,6 +234,7 @@ export default function ReportsPage() {  const [date] = useState<DateRange>({
           }),
           reportsApi.getRevenueReports(filters).catch(err => {
             console.error('Revenue API failed:', err)
+            toast.error('Failed to fetch revenue data')
             return { data: null }
           }),
           reportsApi.getUserActivityReports(filters).catch(err => {

@@ -219,6 +219,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
+  Armchair,
   BarChart3,
   Bell,
   BookOpen,
@@ -230,6 +231,7 @@ import {
   Settings,
   User,
   Users,
+  Wrench,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -300,6 +302,18 @@ export function DashboardSidebar() {
           active: pathname === "/dashboard/admin/library-profile",
         },
         {
+          href: "/dashboard/admin/seats",
+          label: "Seats",
+          icon: <Armchair className="h-4 w-4" />,
+          active: pathname.startsWith("/dashboard/admin/seats"),
+        },
+        {
+          href: "/dashboard/admin/seat-types",
+          label: "Seat Types",
+          icon: <Building className="h-4 w-4" />,
+          active: pathname.startsWith("/dashboard/admin/seat-types"),
+        },
+        {
           href: "/dashboard/admin/membership",
           label: "Membership",
           icon: <Users className="h-4 w-4" />,
@@ -322,6 +336,12 @@ export function DashboardSidebar() {
           label: "Payments",
           icon: <CreditCard className="h-4 w-4" />,
           active: pathname === "/dashboard/admin/payments",
+        },
+        {
+          href: "/dashboard/admin/maintenance",
+          label: "Maintenance",
+          icon: <Wrench className="h-4 w-4" />,
+          active: pathname === "/dashboard/admin/maintenance",
         },
         {
           href: "/dashboard/admin/notifications",

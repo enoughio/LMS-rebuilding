@@ -6,7 +6,7 @@ import { useRouter, useParams } from 'next/navigation'
 
 type Seat = { id: string; name: string; seatType: string }
 
-default export function SeatBookingPage() {
+export default function SeatBookingPage() {
   const { user, isLoading, login } = useAuth()
   const router = useRouter()
   const { libraryId } = useParams()
