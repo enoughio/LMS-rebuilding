@@ -1,4 +1,3 @@
-
 import SmartLibrary from "@/components/home/smartLibrary";
 import Hero from "@/components/home/hero";
 import What from "@/components/home/what";
@@ -9,19 +8,15 @@ import Faq from "@/components/home/faq";
 
 export default function App() {
   return (
-    <>
-      <main className=" max-w-[1920px]">
-        
-          <Hero />
 
-          <SmartLibrary />
-          <WhyAdda />
-          <What />
-          <Explore />
-          <Faq />
-          <Ready />
+      <main className="max-w-[1920px] mx-auto">
+        <Hero />
+        <SmartLibrary />
+        <WhyAdda />
+        <What />
+        <Explore />
+        <Faq />
+        <Ready />
       </main>
-
-    </>
   );
 }
