@@ -3,13 +3,64 @@ import { auth0 } from "@/lib/auth0";
 
 const API_URL = process.env.NODE_BACKEND_URL || "http://localhost:5000";
 
-// Update seat details (Admin only)
-export async function PUT(
+export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ seatId: string }> }
+  { params }: { params: Promise<{ libraryId: string }> }
 ) {
   try {
-    const { seatId } = await params;
+    const { libraryId } = await params;
+    
+    const session = await auth0.getSession();
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized", message: "User not authenticated" },
+        { status: 401 }
+      );
+    }
+
+    const { token: accessToken } = await auth0.getAccessToken();
+    if (!accessToken) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized", message: "Access token is required" },
+        { status: 401 }
+      );
+    }
+
+    const response = await fetch(`${API_URL}/api/seats/library/${libraryId}/seats`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return NextResponse.json(
+        { success: false, message: errorData.message || "Failed to fetch library seats" },
+        { status: response.status || 500 }
+      );
+    }
+
+    const data = await response.json();
+    return NextResponse.json(data);
+
+  } catch (error) {
+    console.error("Error fetching library seats:", error);
+    return NextResponse.json(
+      { success: false, error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+// Create a new seat (Admin only)
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ libraryId: string }> }
+) {
+  try {
+    const { libraryId } = await params;
     
     const session = await auth0.getSession();
     if (!session) {
@@ -29,8 +80,8 @@ export async function PUT(
 
     const body = await request.json();
 
-    const response = await fetch(`${API_URL}/api/seats/seats/${seatId}`, {
-      method: "PUT",
+    const response = await fetch(`${API_URL}/api/seats/library/${libraryId}/seats`, {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
@@ -41,7 +92,7 @@ export async function PUT(
     if (!response.ok) {
       const errorData = await response.json();
       return NextResponse.json(
-        { success: false, message: errorData.message || "Failed to update seat" },
+        { success: false, message: errorData.message || "Failed to create seat" },
         { status: response.status || 500 }
       );
     }
@@ -50,59 +101,7 @@ export async function PUT(
     return NextResponse.json(data);
 
   } catch (error) {
-    console.error("Error updating seat:", error);
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 }
-    );
-  }
-}
-
-// Delete a seat (Admin only)
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ seatId: string }> }
-) {
-  try {
-    const { seatId } = await params;
-    
-    const session = await auth0.getSession();
-    if (!session) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized", message: "User not authenticated" },
-        { status: 401 }
-      );
-    }
-
-    const { token: accessToken } = await auth0.getAccessToken();
-    if (!accessToken) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized", message: "Access token is required" },
-        { status: 401 }
-      );
-    }
-
-    const response = await fetch(`${API_URL}/api/seats/seats/${seatId}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      return NextResponse.json(
-        { success: false, message: errorData.message || "Failed to delete seat" },
-        { status: response.status || 500 }
-      );
-    }
-
-    const data = await response.json();
-    return NextResponse.json(data);
-
-  } catch (error) {
-    console.error("Error deleting seat:", error);
+    console.error("Error creating seat:", error);
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 }

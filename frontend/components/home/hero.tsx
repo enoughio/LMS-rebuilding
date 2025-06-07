@@ -6,124 +6,198 @@ import Link from "next/link";
 
 const Hero = () => {
   return (
-    <>
-
-      <div className=" max-w-[1920px] lg:overflow-x-auto  lg:min-h-[50vh] px-4 sm:px-10 md:px-16 lg:px-28 flex flex-col items-center justify-center gap-3 bg-[#ECE3DA]">
-        <div
-          className="md:h-[53%] w-full bg-[#EFEAE5] rounded-[32px] flex items-center justify-between md:mt-5"
-          id="up"
-        >
-          <div
-            id="up-left"
-            className=" max-w-[40%] h-full flex items-start justify-center flex-col gap-4 md:px-10 "
-          >
-            <div className={`${urbanist.className}`}>
-              <h1 className="lg:text-4xl   font-light">
-                <span className="font-bold text-[#796146]">Smart</span> Library{" "}
-                <br />
-                Management,
-                <br />
-                <span className="font-bold text-[#796146]">
-                  {" "}
-                  All in One Place
-                </span>
-              </h1>
+    <section className="py-4 bg-[#ECE3DA] w-full mx-auto relative mt-14 xl:min-h-[90vh] flex flex-col">
+      <div className="mx-auto px-3 max-w-[1000px] xl:max-w-[1200px] 2xl:max-w-[1400px] w-full flex-1 flex flex-col">
+        {/* Desktop Hero - Only show on large screens */}
+        <div className="hidden lg:block bg-[#EFEAE5] rounded-[20px] mb-2 overflow-visible relative min-h-[58vh] max-h-[400px]">
+          <div className="flex items-center p-11 h-full">
+            <div className="max-w-[55%] flex flex-col gap-2 z-10">
+              <div>
+          <h1 className={`text-6xl xl:text-7xl font-light text-[#796146]`}>
+            <span className="font-bold">Smart</span> Library
+            <div className="mt-[-5px]">Management,</div>
+            <div className="font-bold mt-[-5px]">All in One Place</div>
+          </h1>
+              </div>
+              <p className="text-4xl xl:text-3xl text-gray-700">
+          Manage books, seat bookings, members,
+              </p>
+                            <p className="text-4xl xl:text-3xl text-gray-700">
+          and digital libraries
+              </p>
+              <div className="mt-3">
+          <Button className="rounded-full bg-slate-950 px-8 py-6 text-base">
+            <Link
+              href="/register"
+              className="flex items-center text-white"
+            >
+              Get started <ArrowRight className="ml-2 w-5 h-5" />
+            </Link>
+          </Button>
+              </div>
             </div>
-
-            <div className="md:text-base">
-              <h4>
-                Manage books, seat bookings, members, and digital libraries
-              </h4>
-            </div>
-
-            <div>
-              <Button className="rounded-full bg-slate-950 " >
-                <Link href={"/register"} className="flex items-center text-white">
-                Get Started <ArrowRight className="ml-2" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-          <div
-            id="up-right"
-            className=" max-w-[60%] h-full flex items-center justify-center"
-          >
-            <div className="h-[320px] sm:h-[400px] md:h-[480px] w-full max-w-[600px]">
+            <div className="absolute right-[-70px] xl:right-[15px] 2xl:right-[30px] top-1/3 transform -translate-y-[45%]">
               <Image
-                src={"/home/hero/hero.png"}
+                src="/home/hero/hero.png"
                 priority
                 alt="hero"
-                width={600}
-                height={500}
-                className="object-fill  "
+                width={700}
+                height={650}
+                className="object-contain"
               />
             </div>
           </div>
         </div>
 
-        <div className="max-h-[30%] w-full px-2" id="down">
-
-          <div className="grid grid-cols-2 md:grid-cols-6 grid-rows-3 md:grid-rows-4 gap-4 h-full w-full">
-            {/* Box 1 */}
-            <div className="col-span-1 md:col-span-2 md:row-span-4 border-2 rounded-lg border-[#BF847EBD] p-4 flex flex-col items-start justify-start ">
-              <div className="flex items-center justify-center w-8 h-8 bg-slate-950 rounded-full">
-                <Image
-                  alt="an book"
-                  src={`/home/hero/bookIcon.png`}
-                  width={20}
-                  height={20}
-                />
-              </div>
-              <h1 className="text-sm font-semibold text-[#824800] leading-6 py-1">Smart Library Access</h1>
-              <p className="text-[14px]">
-                Search & book seats in your nearby libraries Access both
-                physical and digital books Flexible membership plans with online
-                payments
-              </p>
-            </div>
-
-            {/* Box 2 */}
-            <div className="col-span-1 md:col-span-2 md:row-span-4 border-2 rounded-lg border-[#BF847EBD] p-4 flex flex-col items-start justify-start ">
-              <div className="flex items-center justify-center w-8 h-8 bg-slate-950 rounded-full">
-                <Image
-                  alt="an book"
-                  src={`/home/hero/clockIcon.png`}
-                  width={20}
-                  height={20}
-                />
-              </div>
-              <h1 className="text-sm font-semibold leading-6 text-[#824800] py-1">Built-in Study Tools</h1>
-              <p className="text-[14px]">
-                Pomodoro timer, habit tracker, streak logs, planner Daily
-                progress tracking and productivity boosters Practice quizzes by
-                topic
-              </p>
-            </div>
-
-            {/* Box 3 */}
-            <div className="col-span-2 md:col-span-2 md:row-span-4 border-2 rounded-lg border-[#BF847EBD] p-4 flex flex-col items-start justify-start ">
-              <div className="flex items-center justify-center w-8 h-8 bg-slate-950 rounded-full">
-                <Image
-                  alt="an book"
-                  src={`/home/hero/clockIcon.png`}
-                  width={20}
-                  height={20}
-                />
-              </div>
-              <h1 className="text-sm font-semibold leading-5 py-1 text-[#824800]">
-                Engaging Community Features
+        {/* Mobile/Tablet Hero - Show on small and medium screens */}
+        <div className="block lg:hidden bg-[#EFEAE5] rounded-[16px] p-4 mb-2">
+          <div className="flex items-center">
+            <div className="flex-1 pr-2">
+              <h1
+                className={`${urbanist.className} text-lg leading-tight mb-2`}
+              >
+                <span className="font-bold text-[#796146]">Smart</span> Library{" "}
+                Management,{" "}
+                <span className="font-bold text-[#796146]">
+                  All in One Place
+                </span>
               </h1>
-              <p className="text-[14px]">
-                Public forum for Q&A, discussions & study help Create or join
-                study groups Share knowledge, get support, stay motivated
+              <p className="text-sm mb-2 text-gray-700">
+                Manage books, seat bookings, members, and digital libraries
               </p>
+              <Button className="rounded-full bg-black text-white px-4 py-2 text-sm flex items-center">
+                <Link href="/register" className="flex items-center">
+                  Get started <ArrowRight className="ml-1 w-4 h-4" />
+                </Link>
+              </Button>
+            </div>
+            <div className="w-[50%]">
+              <Image
+                src="/home/hero/hero.png"
+                priority
+                alt="hero"
+                width={280}
+                height={240}
+                className="object-contain"
+              />
             </div>
           </div>
         </div>
+
+        {/* Feature Cards - Desktop - Only show on large screens */}
+        <div className="hidden lg:grid lg:grid-cols-3 lg:gap-6 pb-3 mt-6">
+          {featureCards.map((card, idx) => (
+            <div
+              key={idx}
+              className="bg-transparent border border-[#ef8b00] rounded-lg p-6 flex flex-col"
+            >
+              <div className="mb-4">
+                <div className="w-10 h-10 bg-slate-950 rounded-full flex items-center justify-center">
+                  <Image
+                    alt={card.title}
+                    src={card.icon}
+                    width={20}
+                    height={20}
+                  />
+                </div>
+              </div>
+              <h2 className="font-semibold text-[#824800] mb-3">
+                {card.title}
+              </h2>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                {card.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Feature Cards - Mobile/Tablet - Show on small and medium screens */}
+        <div className="lg:hidden grid grid-cols-1 gap-3 pt-1 pb-4">
+          {/* Top row with two cards */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Smart Library Access */}
+            <div className="bg-transparent border border-[#ef8b00] rounded-xl p-4">
+              <div className="mb-2">
+                <div className="w-8 h-8 bg-slate-950 rounded-full flex items-center justify-center">
+                  <Image
+                    alt={featureCards[0].title}
+                    src={featureCards[0].icon}
+                    width={16}
+                    height={16}
+                  />
+                </div>
+              </div>
+              <h2 className="font-semibold text-[#824800] text-sm mb-1">
+                {featureCards[0].title}
+              </h2>
+              <p className="text-xs text-gray-700 leading-tight">
+                {featureCards[0].desc}
+              </p>
+            </div>
+
+            {/* Engaging Community Features */}
+            <div className="bg-transparent border border-[#ef8b00] rounded-xl p-4">
+              <div className="mb-2">
+                <div className="w-8 h-8 bg-slate-950 rounded-full flex items-center justify-center">
+                  <Image
+                    alt={featureCards[2].title}
+                    src={featureCards[2].icon}
+                    width={16}
+                    height={16}
+                  />
+                </div>
+              </div>
+              <h2 className="font-semibold text-[#824800] text-sm mb-1">
+                {featureCards[2].title}
+              </h2>
+              <p className="text-xs text-gray-700 leading-tight">
+                {featureCards[2].desc}
+              </p>
+            </div>
+          </div>
+
+          {/* Bottom row with one wider card */}
+          <div className="bg-transparent border border-[#ef8b00] rounded-xl p-4">
+            <div className="mb-2">
+              <div className="w-8 h-8 bg-slate-950 rounded-full flex items-center justify-center">
+                <Image
+                  alt={featureCards[1].title}
+                  src={featureCards[1].icon}
+                  width={16}
+                  height={16}
+                />
+              </div>
+            </div>
+            <h2 className="font-semibold text-[#824800] text-sm mb-1">
+              {featureCards[1].title}
+            </h2>
+            <p className="text-xs text-gray-700 leading-tight">
+              {featureCards[1].desc}
+            </p>
+          </div>
+        </div>
       </div>
-    </>
+    </section>
   );
 };
+
+// Feature card data
+const featureCards = [
+  {
+    icon: "/home/hero/smart_lib.svg",
+    title: "Smart Library Access",
+    desc: "Search & book seats in libraries. Access physical and digital books. Flexible membership plans.",
+  },
+  {
+    icon: "/home/hero/clockIcon.png",
+    title: "Built-in Study Tools",
+    desc: "Pomodoro timer, habit tracker, streak logs. Daily progress tracking and productivity boosters.",
+  },
+  {
+    icon: "/home/hero/message.svg",
+    title: "Engaging Community Features",
+    desc: "Public forum for Q&A and discussions. Create or join study groups. Share knowledge and get support.",
+  },
+];
 
 export default Hero;
