@@ -49,7 +49,7 @@ export interface AdminDashboardData {
 }
 
 // Simulate API delay for development (remove in production)
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+// const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const AdminDashboardService = {
   // Get admin dashboard data

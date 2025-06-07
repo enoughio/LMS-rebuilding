@@ -30,6 +30,7 @@ model User {
   phone         String?
   address       String?
   lastLogin   DateTime?
+  libraryId     String?   @db.ObjectId // for admin of a library
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -119,7 +120,7 @@ model Library {
   reviews           Review[]
   memberId        String[]        @db.ObjectId     // ID of the user who is a member of the library
   members          User[]             @relation(fields: [memberId], references: [id]) // Users who are members of the library
-  seatPrices       SeatPrice[]        // Library-specific seat type pricing
+  SeatType       SeatType[]        // Library-specific seat type and pricing
 
   @@map("libraries")
 }
@@ -217,45 +218,50 @@ enum MembershipStatus {
 }
 
 // Seat Types - Global enum for consistency
-enum SeatType {
+enum SeatName {
   REGULAR
+  PREMIUM_DESK
   QUIET_ZONE
   COMPUTER
   STUDY_ROOM
   GROUP_TABLE
 }
 
-// Library-specific pricing for each seat type
-model SeatPrice {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  seatType    SeatType
-  price       Float    // Price for this seat type in this library
-  currency    String   @default("INR")
-  isHourly    Boolean  @default(false) // If true, price is per hour; if false, price is fixed
+
+model SeatType {
+
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        SeatName // Enum for seat type
+  pricePerHour Float // Price per hour for this seat type
+  description String?
+  color       String? // Color code for UI representation
+  amenities   String[] // Array of anomaly codes (e.g., "damaged", "maintenance")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
+  isActive    Boolean  @default(true) // For soft delete/maintenance
   // Relationships
   library     Library  @relation(fields: [libraryId], references: [id], onDelete: Cascade)
   libraryId   String   @db.ObjectId
+  seats       Seat[]
 
-  @@unique([libraryId, seatType]) // Each library can have only one price per seat type
-  @@map("seat_prices")
+  @@map("seat_types")
 }
+
 
 // Seats in libraries
 model Seat {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String   // e.g., "A-001", "Computer-01", "Study Room-1"
-  seatType    SeatType
-  floor       Int      @default(1)
-  section     String?  // Optional section identifier
+  position    String?  // e.g., "1st Floor, Section A"
   isAvailable Boolean  @default(true)
   isActive    Boolean  @default(true) // For soft delete/maintenance
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
   // Relationships
+  seatTypeId  String      @db.ObjectId
+  seatType    SeatType    @relation(fields: [seatTypeId], references: [id], onDelete: Cascade)
   library     Library      @relation(fields: [libraryId], references: [id], onDelete: Cascade)
   libraryId   String       @db.ObjectId
   bookings    SeatBooking[]
@@ -267,9 +273,9 @@ model Seat {
 model SeatBooking {
   id            String        @id @default(auto()) @map("_id") @db.ObjectId
   date          DateTime      // Booking date
+  seatName     String        // Name of the seat booked
   startTime     String        // Format: "HH:MM"
   endTime       String        // Format: "HH:MM"
-  duration      Int           // Duration in hours (calculated)
   bookingPrice  Float         // Final price calculated at booking time
   currency      String        @default("INR")
   status        BookingStatus @default(PENDING)

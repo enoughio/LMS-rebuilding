@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useEffect, useState } from "react"
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react"
 import { useUser } from "@auth0/nextjs-auth0"
 import { useRouter, usePathname } from "next/navigation"
 import type { User } from "@/types/user"
@@ -23,9 +23,8 @@ export function Auth0AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
   const pathname = usePathname() || ""
-
   // Function to sync user with backend database
-  const syncUser = async () => {
+  const syncUser = useCallback(async () => {
     if (!auth0User) return
 
     try {
@@ -39,13 +38,16 @@ export function Auth0AuthProvider({ children }: { children: React.ReactNode }) {
 
         const response = await syncResponse.json()
         // console.log("Syncing user with backend...", auth0User)
-        // console.log("Sync response:", response)
+        console.log("Sync response:", response.data)
         if (response.success !== true) {
           console.error("Failed to sync user:", response)
           throw new Error("Failed to sync user data")
         }
 
       const syncedUser: User = response.data
+
+      console.log("Backend response libraryId:", syncedUser.libraryId);
+      console.log("Backend response libraryId type:", typeof syncedUser.libraryId);
 
       const transformedUser: User = {
         id: syncedUser.id,
@@ -59,9 +61,13 @@ export function Auth0AuthProvider({ children }: { children: React.ReactNode }) {
         bio: syncedUser.bio || "",
         phone: syncedUser.phone || "",
         address: syncedUser.address || "",
-        createdAt: syncedUser.createdAt,
+        libraryId: syncedUser.libraryId,        createdAt: syncedUser.createdAt,
         updatedAt: syncedUser.updatedAt
       }
+      
+      console.log("Transformed user libraryId:", transformedUser.libraryId);
+      console.log("Transformed user libraryId type:", typeof transformedUser.libraryId);
+      
       setUser(transformedUser)
       
       // Store user data in localStorage for persistence
@@ -73,7 +79,7 @@ export function Auth0AuthProvider({ children }: { children: React.ReactNode }) {
       // console.error("Error syncing user:", error)
       toast.error(`Failed to sync user data ${error}`)
     }
-  }
+  }, [auth0User])
 
   // Handle Auth0 user changes
   useEffect(() => {
@@ -91,11 +97,10 @@ export function Auth0AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
       
-      setIsLoading(false)
-    }
-
+      setIsLoading(false)    }
+    
     handleAuth0User()
-  }, [auth0User, auth0Loading, ])
+  }, [auth0User, auth0Loading, syncUser])
 
   // Handle initial load from localStorage
   useEffect(() => {
