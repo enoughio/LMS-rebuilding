@@ -104,24 +104,21 @@ const Explore: React.FC = () => {
       icon: <Clock className="w-6 h-6" />,
       title: "Pomodoro Timer",
       descriptions: [
-        "There are many variant of passages of",
-        "enginner's available, have suffered",
+        "There are many variant of passages of enginner's available, have suffered",
       ],
       learnMoreLink: "/features/pomodoro",
     },
     {
       icon: <Calendar className="w-6 h-6" />,
       title: "Daily Planner",
-      descriptions: ["Create daily tasks & goals", "Drag-and-drop reordering"],
+      descriptions: ["Create daily tasks & goals Drag-and-drop reordering"],
       learnMoreLink: "/features/planner",
     },
     {
       icon: <Clock className="w-6 h-6" />,
       title: "Time Tracker",
       descriptions: [
-        "Session logging by subject/task",
-        "Analytics for weekly/monthly study time",
-        "Visual stats to stay accountable",
+        "Session logging by subject/task Analytics for weekly/monthly study time Visual stats to stay accountable",
       ],
       learnMoreLink: "/features/tracker",
     },
@@ -129,9 +126,7 @@ const Explore: React.FC = () => {
       icon: <BarChart2 className="w-6 h-6" />,
       title: "Streak Overview",
       descriptions: [
-        "Visual streak charts (weekly/monthly)",
-        "XP or rewards-based motivation",
-        '"Don\'t break the chain" gamification',
+        "Visual streak charts (weekly/monthly)XP or rewards-based motivation 'Don\'t break the chain' gamification",
       ],
       learnMoreLink: "/features/streaks",
     },
@@ -139,9 +134,7 @@ const Explore: React.FC = () => {
       icon: <Headphones className="w-6 h-6" />,
       title: "Focus Music",
       descriptions: [
-        "Lo-fi beats, nature sounds, café ambience",
-        "Playlists optimized for focus",
-        "Timer-based playback",
+        "Lo-fi beats, nature sounds, café ambience Playlists optimized for focus Timer-based playback",
       ],
       learnMoreLink: "/features/music",
     },
@@ -151,7 +144,7 @@ const Explore: React.FC = () => {
     <section className="py-8 sm:py-12 lg:py-16 bg-[#ECE3DA] w-full">
       <div className="container mx-auto px-3 sm:px-4 max-w-[1030px]">
         <div className="flex flex-col md:flex-row gap-6 lg:gap-8">
-          <div className="flex-col md:flex-row flex items-center justify-between mb-6 sm:mb-8 md:mb-0 bg-[#f4f1ea] rounded-lg w-full">
+          <div className="flex-col md:flex-row flex items-center justify-between mb-6 sm:mb-8 md:mb-0 bg-[#f4f1ea] rounded-lg w-full max-w-4xl mx-auto">
             <div className="p-3 sm:p-6 md:p-10 w-full">
               {/* Mobile Header - Improved spacing */}
               <div className="md:hidden mb-4 sm:mb-6">
@@ -165,12 +158,12 @@ const Explore: React.FC = () => {
               </div>
 
               {/* Desktop Grid Layout */}
-              <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div>
-                  <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
+              <div className="hidden md:grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 max-w-5xl">
+                <div className="md:col-span-2 xl:col-span-1">
+                  <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900">
                     Explore Our
                   </h2>
-                  <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                  <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 mb-4">
                     Standout Features
                   </h2>
                   <div className="w-24 h-1 bg-amber-800 rounded-full"></div>
@@ -204,7 +197,7 @@ const Explore: React.FC = () => {
         </div>
 
         {/* "Are you ready to start?" Section - Mobile optimized */}
-        <div className="mt-8 sm:mt-12 relative">
+        <div className="mt-8 sm:mt-12 relative max-w-4xl mx-auto">
           {/* Book image - Hidden on mobile, visible on desktop */}
           <div className="hidden md:block absolute -top-16 right-8 z-10">
             <Image
@@ -219,7 +212,7 @@ const Explore: React.FC = () => {
           <div className="bg-[#796146] rounded-lg overflow-hidden pt-6 sm:pt-8 md:pt-12 pb-4 sm:pb-6 px-3 sm:px-6 md:px-12">
             <div className="flex flex-col items-center text-center md:text-left md:flex-row md:items-start md:justify-between">
               <div className="text-white w-full md:max-w-[60%]">
-                <h2 className="text-xl sm:text-2xl md:text-4xl font-bold mb-3 sm:mb-4">
+                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">
                   Are you ready to start?
                 </h2>
                 <p className="mb-1 sm:mb-2 text-xs sm:text-sm md:text-base">
