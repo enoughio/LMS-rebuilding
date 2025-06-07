@@ -208,7 +208,11 @@ const Approvals: React.FC = () => {
                     <span className="font-medium">Email</span>
                     <span>{selectedLibrary.admin.email}</span>
                     <span className="font-medium">Joined On</span>
-                    <span>{new Date(selectedLibrary.admin.createdAt).toLocaleDateString()}</span>
+                    <span>
+                      {selectedLibrary.admin.createdAt
+                        ? new Date(selectedLibrary.admin.createdAt).toLocaleDateString()
+                        : '—'}
+                    </span>
                     {selectedLibrary.AdminBio && (
                       <>
                         <span className="font-medium">Bio</span>

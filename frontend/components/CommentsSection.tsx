@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import CommentCard from './CommentCard';
 import { Button } from './ui/button';
@@ -26,9 +26,8 @@ export default function PostComments({ postId }: PostCommentsProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentInput, setCommentInput] = useState('');
   const [loading, setLoading] = useState(true);
-
   /* --------- Helpers --------- */
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     try {
       const res = await fetch(`/api/forum/posts/${postId}/comments`, 
       {
@@ -45,7 +44,7 @@ export default function PostComments({ postId }: PostCommentsProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [postId]);
 
   const submitComment = async () => {
     if (!commentInput.trim()) {
@@ -77,15 +76,14 @@ export default function PostComments({ postId }: PostCommentsProps) {
   const handleDelete = async (commentId: string) => {
     setComments((prev) => prev.filter((c) => c.id !== commentId));
   };
-
   /* --------- Effects --------- */
   useEffect(() => {
     fetchComments();
-  }, [postId]);
+  }, [postId, fetchComments]);
 
   /* --------- Render --------- */
   return (
-    <div className="mx-auto w-full max-w-[95%] sm:max-w-[90%] md:max-w-[80%] flex flex-col items-center gap-4 sm:gap-6 bg-[#EFEAE5]/60 p-4 sm:p-6 rounded-2xl">
+    <div className="mx-auto w-full mt-4 max-w-[95%] sm:max-w-[90%] md:max-w-[80%] flex flex-col items-center gap-4 sm:gap-6 bg-[#EFEAE5]/60 p-4 sm:p-6 rounded-2xl">
       {/* Comment input */}
       <div className="w-full flex flex-col sm:flex-row items-center gap-2 sm:gap-3 md:max-w-[80%]">
         <Textarea

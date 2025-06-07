@@ -143,13 +143,12 @@ export const getRevenueReports = async (req: Request, res: Response) => {
         }
       }
     });
-
   } catch (error: unknown) {
     console.error('Revenue Reports Error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch revenue reports',
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     });
   }
 };
@@ -250,13 +249,12 @@ export const getUserActivityReports = async (req: Request, res: Response) => {
         }
       }
     });
-
   } catch (error: unknown) {
     console.error('User Activity Reports Error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch user activity reports',
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     });
   }
 };
@@ -345,13 +343,12 @@ export const getLibraryPerformanceReports = async (req: Request, res: Response) 
         }
       }
     });
-
   } catch (error: unknown) {
     console.error('Library Performance Reports Error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch library performance reports',
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     });
   }
 };
@@ -430,18 +427,17 @@ export const getBookingAnalytics = async (req: Request, res: Response) => {
         id: true,
         seatType: true,
       },
-    });
-
-    // Create seat type mapping
+    });    // Create seat type mapping
     const seatTypeMap = new Map(seats.map(seat => [seat.id, seat.seatType]));
 
     // Aggregate by seat type
     const seatTypeAggregated = bookingsBySeatType.reduce((acc, booking) => {
-      const seatType = seatTypeMap.get(booking.seatId) || 'UNKNOWN';
-      if (!acc[seatType]) {
-        acc[seatType] = 0;
+      const seatTypeObj = seatTypeMap.get(booking.seatId);
+      const seatTypeName = seatTypeObj?.name || 'UNKNOWN';
+      if (!acc[seatTypeName]) {
+        acc[seatTypeName] = 0;
       }
-      acc[seatType] += booking._count;
+      acc[seatTypeName] += booking._count;
       return acc;
     }, {} as Record<string, number>);
 
@@ -523,13 +519,12 @@ export const getBookingAnalytics = async (req: Request, res: Response) => {
         }
       }
     });
-
   } catch (error: unknown) {
     console.error('Booking Analytics Error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch booking analytics',
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     });
   }
 };
@@ -662,13 +657,12 @@ export const getReportsOverview = async (req: Request, res: Response) => {
         }
       }
     });
-
   } catch (error: unknown) {
     console.error('Reports Overview Error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch reports overview',
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     });
   }
 };
@@ -700,13 +694,12 @@ export const getLibrariesForReports = async (_req: Request, res: Response) => {
         ]
       }
     });
-
   } catch (error: unknown) {
     console.error('Get Libraries Error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch libraries',
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     });
   }
 };

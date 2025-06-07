@@ -35,7 +35,7 @@ export default function RootLayout({
       >
         <Auth0Provider>
           <Auth0AuthProvider>
-            <div className="flex flex-col justify-center items-center bg-[#EFEAE5] min-h-screen">
+            <div className="flex flex-col  bg-[#EFEAE5] min-h-screen">
               <Navbar />
               <div className="min-h-[100vh]">
               {children}

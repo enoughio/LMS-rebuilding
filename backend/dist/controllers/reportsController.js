@@ -137,7 +137,7 @@ export const getRevenueReports = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch revenue reports',
-            error: error
+            error: error instanceof Error ? error.message : String(error)
         });
     }
 };
@@ -235,7 +235,7 @@ export const getUserActivityReports = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch user activity reports',
-            error: error
+            error: error instanceof Error ? error.message : String(error)
         });
     }
 };
@@ -321,7 +321,7 @@ export const getLibraryPerformanceReports = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch library performance reports',
-            error: error
+            error: error instanceof Error ? error.message : String(error)
         });
     }
 };
@@ -391,16 +391,16 @@ export const getBookingAnalytics = async (req, res) => {
                 id: true,
                 seatType: true,
             },
-        });
-        // Create seat type mapping
+        }); // Create seat type mapping
         const seatTypeMap = new Map(seats.map(seat => [seat.id, seat.seatType]));
         // Aggregate by seat type
         const seatTypeAggregated = bookingsBySeatType.reduce((acc, booking) => {
-            const seatType = seatTypeMap.get(booking.seatId) || 'UNKNOWN';
-            if (!acc[seatType]) {
-                acc[seatType] = 0;
+            const seatTypeObj = seatTypeMap.get(booking.seatId);
+            const seatTypeName = seatTypeObj?.name || 'UNKNOWN';
+            if (!acc[seatTypeName]) {
+                acc[seatTypeName] = 0;
             }
-            acc[seatType] += booking._count;
+            acc[seatTypeName] += booking._count;
             return acc;
         }, {});
         const seatTypeStats = Object.entries(seatTypeAggregated).map(([seatType, count]) => ({
@@ -483,7 +483,7 @@ export const getBookingAnalytics = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch booking analytics',
-            error: error
+            error: error instanceof Error ? error.message : String(error)
         });
     }
 };
@@ -606,7 +606,7 @@ export const getReportsOverview = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch reports overview',
-            error: error
+            error: error instanceof Error ? error.message : String(error)
         });
     }
 };
@@ -642,7 +642,7 @@ export const getLibrariesForReports = async (_req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch libraries',
-            error: error
+            error: error instanceof Error ? error.message : String(error)
         });
     }
 };
