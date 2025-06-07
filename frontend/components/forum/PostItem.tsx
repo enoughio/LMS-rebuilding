@@ -83,7 +83,7 @@ export default function PostItem({
     <Card className=" mb-4 border-0  max-h-[250px] hover:shadow-lg shadow-md transition-shadow px-2 bg-[#EFEAE5]">
       <Link href={`/forum/${id}`} className="block">
         <CardContent className="px-4">
-          <h3 className="text-lg font-semibold mb-2 hover:text-primary transition-colors">
+          <h3 className="text-lg font-semibold mb-2 hover:text-primary transition-colors py-2">
             {title}
           </h3>
           {/* <p className="text-gray-600 line-clamp-2">

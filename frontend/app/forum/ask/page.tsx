@@ -143,7 +143,7 @@ const AskQuestion: React.FC = () => {
   };
 
   return (
-    <div className="w-full bg-[#ECE3DA] min-h-screen py-20">
+    <div className=" w-[99vw] bg-[#ECE3DA] min-h-screen py-10 md:py-20">
       <div className="w-[70%] mx-auto p-4">
         <h1 className="text-3xl font-bold mb-4">Ask the Community</h1>
 
@@ -259,14 +259,14 @@ const AskQuestion: React.FC = () => {
           <div className="flex gap-4 shadow-t-md px-4 rounded-lg">
             <button
               type="submit"
-              className="bg-black text-white px-6 py-2 rounded-full hover:bg-gray-800"
+              className="bg-black text-white px-4 py-1 sm:px-6 sm:py-2 rounded-full text-xs text-nowrap sm:text-sm hover:bg-gray-800"
             >
               Post Question
             </button>
             <button
               type="button"
               onClick={() => setSuccess("Draft saved!")}
-              className="border border-black px-6 py-2 rounded-full hover:bg-gray-100"
+              className="border border-black px-4 py-1 sm:px-6 sm:py-2 rounded-md sm:rounded-full text-xs sm:text-sm text-nowrap hover:bg-gray-100"
             >
               Save as Draft
             </button>

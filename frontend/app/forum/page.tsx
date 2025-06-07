@@ -136,7 +136,7 @@ export default function Forum() {
   ];
 
   return (
-    <div className="min-h-screen w-full px-4 md:px-2 py-4 max-w-[1920px] bg-[#ECE3DA] md:pb-20">
+   <div className="min-h-screen w-[99vw] px-4 md:px-8 py-4 bg-[#ECE3DA] flex flex-col items-center">
       <div className=" flex flex-col items-center">
         <h1 className="text-2xl md:text-3xl font-light text-center text-gray-800 mb-6">
           India&apos;s <span className="font-medium">Smartest Student Forum</span> — Built by You
