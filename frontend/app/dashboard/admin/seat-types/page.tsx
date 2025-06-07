@@ -129,7 +129,7 @@ export default function SeatTypesPage() {
       setLoading(true);
       try {
         console.log("Fetching seat types for library:", libraryId);
-        const response = await fetch(`/api/seats/seattype/${libraryId}`);
+        const response = await fetch(`/api/seats/seattype/libraries/${libraryId}`);
 
         if (!response.ok) {
           throw new Error(`Failed to fetch seat types: ${response.status} ${response.statusText}`);
@@ -204,7 +204,7 @@ export default function SeatTypesPage() {
       };
 
       try {
-        const response = await fetch(`/api/seats/${editingSeatType.id}`, {
+        const response = await fetch(`/api/seats/seattype/${editingSeatType.id}`, {
           method: "PATCH", // Backend expects PATCH for updates
           headers: {
             "Content-Type": "application/json",
@@ -256,7 +256,7 @@ export default function SeatTypesPage() {
       try {
         console.log("Creating new seat type:", newSeatType);
         console.log("User library ID:", user.libraryId);
-        const response = await fetch(`/api/seats/seattype/${user.libraryId}`, {
+        const response = await fetch(`/api/seats/seattype/libraries/${user.libraryId}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -329,7 +329,7 @@ export default function SeatTypesPage() {
 
   const handleDelete = async (seatTypeId: string) => {
     try {
-      const response = await fetch(`/api/seats/${seatTypeId}`, {
+      const response = await fetch(`/api/seats/seattype/${seatTypeId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

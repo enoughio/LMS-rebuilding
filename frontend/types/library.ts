@@ -132,14 +132,17 @@ export type Library = {
 export type Seat = {
   id: string
   name: string // e.g., "A-001", "Computer-01", "Study Room-1"
-  seatType: SeatType
-  floor?: number
-  section?: string
+  seatTypeId: string // Reference to SeatType
   isAvailable?: boolean
   isActive?: boolean
   createdAt?: string
   updatedAt?: string
   libraryId: string
+  position?: {
+    x: number // X coordinate for UI representation
+    y: number // Y coordinate for UI representation
+  }
+  booking?: SeatBooking // Optional relation to latest booking  
 }
 
 export type SeatBooking = {
