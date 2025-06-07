@@ -200,22 +200,36 @@ export default function BookSeatPage() {
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">
-                  Open today:{" "}
-                  {
-                    library.openingHours[
-                      ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"][
-                        new Date().getDay()
-                      ]
-                    ].open
-                  }{" "}
-                  -{" "}
-                  {
-                    library.openingHours[
-                      ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"][
-                        new Date().getDay()
-                      ]
-                    ].close
-                  }
+                  {library.openingHours ? (
+                    (() => {
+                      const today = new Date().getDay()
+                      const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+                      const todayName = dayNames[today] as keyof typeof library.openingHours
+                      
+                      // Check if it's the legacy format (object with day keys)
+                      if (library.openingHours && typeof library.openingHours === 'object' && !Array.isArray(library.openingHours)) {
+                        const legacyHours = library.openingHours as Record<string, { open: string; close: string }>
+                        const daySchedule = legacyHours[todayName]
+                        if (daySchedule && typeof daySchedule === 'object' && 'open' in daySchedule && 'close' in daySchedule) {
+                          return `Open today: ${daySchedule.open} - ${daySchedule.close}`
+                        }
+                      }
+                      
+                      // If it's the new format (array), find today's schedule
+                      if (Array.isArray(library.openingHours)) {
+                        const todaySchedule = library.openingHours.find(hour => hour.dayOfWeek === today)
+                        if (todaySchedule && !todaySchedule.isClosed) {
+                          return `Open today: ${todaySchedule.openTime} - ${todaySchedule.closeTime}`
+                        } else if (todaySchedule?.isClosed) {
+                          return "Closed today"
+                        }
+                      }
+                      
+                      return "Opening hours not available"
+                    })()
+                  ) : (
+                    "Opening hours not available"
+                  )}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -247,11 +261,13 @@ export default function BookSeatPage() {
                     <div className="space-y-2">
                       <span className="text-sm font-medium">Amenities</span>
                       <div className="flex flex-wrap gap-1">
-                        {seatType.amenities.map((amenity, index) => (
+                        {seatType.amenities?.map((amenity, index) => (
                           <Badge key={index} variant="secondary" className="text-xs">
                             {amenity}
                           </Badge>
-                        ))}
+                        )) || (
+                          <span className="text-xs text-muted-foreground">No amenities listed</span>
+                        )}
                       </div>
                     </div>
 

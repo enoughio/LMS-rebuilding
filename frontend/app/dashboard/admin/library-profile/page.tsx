@@ -68,19 +68,22 @@ export default function LibraryProfilePage() {
         const libraryData: Library = data.data || data
         
         // Convert openingHours array to object format for frontend
-        const convertOpeningHours = (hours: any) => {
+        const convertOpeningHours = (
+          hours: OpeningHours | Array<{ dayOfWeek: number; openTime: string; closeTime: string; isClosed?: boolean }>
+        ) => {
           if (Array.isArray(hours)) {
             const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-            const openingHoursObj: any = {};
-            
-            hours.forEach((hour: any) => {
+            const openingHoursObj: OpeningHours = {} as OpeningHours;
+
+            hours.forEach((hour: { dayOfWeek: number; openTime: string; closeTime: string; isClosed?: boolean }) => {
+              const isClosed = hour.isClosed ?? false;
               const dayName = dayNames[hour.dayOfWeek];
-              openingHoursObj[dayName] = {
-                open: hour.isClosed ? "" : hour.openTime,
-                close: hour.isClosed ? "" : hour.closeTime
+              openingHoursObj[dayName as keyof OpeningHours] = {
+                open: isClosed ? "" : hour.openTime,
+                close: isClosed ? "" : hour.closeTime
               };
             });
-            
+
             return openingHoursObj;
           }
           return hours || {
@@ -95,7 +98,7 @@ export default function LibraryProfilePage() {
         };
 
         // Also normalize amenities to match frontend expectations
-        const normalizeAmenities = (amenities: any) => {
+        const normalizeAmenities = (amenities: string[] | undefined) => {
           if (!amenities || !Array.isArray(amenities)) return [];
           
           // Map backend amenities to frontend LibraryAmenity enum values
@@ -135,7 +138,7 @@ export default function LibraryProfilePage() {
           email: libraryData.email,
           phone: libraryData.phone,
           amenities: normalizeAmenities(libraryData.amenities),
-          openingHours: convertOpeningHours(libraryData.openingHours),
+          openingHours: convertOpeningHours(libraryData.openingHours ?? []),
           images: libraryData.images || [],
         })
         toast.success("Library profile loaded successfully")
@@ -207,20 +210,21 @@ export default function LibraryProfilePage() {
       };
 
       // Convert opening hours object back to array format for backend
-      const convertOpeningHoursToArray = (hours: any) => {
+      const convertOpeningHoursToArray = (hours: Record<string, unknown>) => {
         if (!hours || typeof hours !== 'object') return [];
         
         const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-        const openingHoursArray: any[] = [];
+        const openingHoursArray: Array<Record<string, unknown>> = [];
         
         dayNames.forEach((dayName, index) => {
           const dayHours = hours[dayName];
-          if (dayHours) {
+          if (dayHours && typeof dayHours === 'object' && dayHours !== null) {
+            const typedDayHours = dayHours as { open?: string; close?: string };
             openingHoursArray.push({
               dayOfWeek: index,
-              openTime: dayHours.open || "00:00",
-              closeTime: dayHours.close || "00:00",
-              isClosed: !dayHours.open || !dayHours.close
+              openTime: typedDayHours.open || "00:00",
+              closeTime: typedDayHours.close || "00:00",
+              isClosed: !typedDayHours.open || !typedDayHours.close
             });
           }
         });
@@ -236,7 +240,11 @@ export default function LibraryProfilePage() {
             typeof a === "string" && Object.keys(amenityLabels).includes(a)
           )
         ),
-        openingHours: convertOpeningHoursToArray(formData.openingHours)
+        openingHours: convertOpeningHoursToArray(
+          (formData.openingHours && typeof formData.openingHours === 'object' && !Array.isArray(formData.openingHours))
+            ? formData.openingHours as Record<string, unknown>
+            : {}
+        )
       };
 
       const response = await fetch(`/api/libraries/${user.libraryId}`, {
@@ -256,13 +264,13 @@ export default function LibraryProfilePage() {
       const updatedLibrary = updatedData.data || updatedData
       
       // Convert the response back to frontend format
-      const convertOpeningHours = (hours: any) => {
+      const convertOpeningHours = (hours: unknown) => {
         if (Array.isArray(hours)) {
           const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-          const openingHoursObj: any = {};
+          const openingHoursObj: Record<string, unknown> = {};
           
-          hours.forEach((hour: any) => {
-            const dayName = dayNames[hour.dayOfWeek];
+          hours.forEach((hour: Record<string, unknown>) => {
+            const dayName = dayNames[hour.dayOfWeek as number];
             openingHoursObj[dayName] = {
               open: hour.isClosed ? "" : hour.openTime,
               close: hour.isClosed ? "" : hour.closeTime
@@ -275,7 +283,7 @@ export default function LibraryProfilePage() {
       };
 
       // Normalize amenities again
-      const normalizeAmenities = (amenities: any) => {
+      const normalizeAmenities = (amenities: unknown) => {
         if (!amenities || !Array.isArray(amenities)) return [];
         
         const amenityMap: Record<string, LibraryAmenity> = {
@@ -347,7 +355,7 @@ export default function LibraryProfilePage() {
     <div className="container mx-0 max-w-none px-0 min-w-[70vw] pb-20">
       <div className="flex flex-col gap-2 mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Library Profile</h1>
-        <p className="text-muted-foreground">Manage your library's information and settings</p>
+        <p className="text-muted-foreground">Manage your library&apos;s information and settings</p>
       </div>
 
       <Tabs defaultValue="general" className="w-full">
@@ -362,7 +370,7 @@ export default function LibraryProfilePage() {
           <Card className="w-full border-0 shadow-none">
             <CardHeader className="px-0">
               <CardTitle>Basic Information</CardTitle>
-              <CardDescription>Update your library's basic details</CardDescription>
+              <CardDescription>Update your library&apos;s basic details</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 px-0">
               <div className="space-y-2">
@@ -538,13 +546,13 @@ export default function LibraryProfilePage() {
           <Card className="w-full border-0 shadow-none">
             <CardHeader className="px-0">
               <CardTitle>Opening Hours</CardTitle>
-              <CardDescription>Set your library's operating hours</CardDescription>
+              <CardDescription>Set your library&apos;s operating hours</CardDescription>
             </CardHeader>
             <CardContent className="px-0">
               <div className="space-y-6">
                 {formData.openingHours && typeof formData.openingHours === 'object' && !Array.isArray(formData.openingHours) && 
                   Object.keys(formData.openingHours).map((day) => {
-                    const dayHours = (formData.openingHours as any)?.[day] || { open: "", close: "" };
+                    const dayHours = (formData.openingHours as Record<string, unknown>)?.[day] as Record<string, string> || { open: "", close: "" };
                     return (
                       <div key={day} className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                         <div className="space-y-2">

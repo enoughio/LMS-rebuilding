@@ -59,6 +59,23 @@ export async function POST( request: Request,
 
     try {
 
+      const session = await auth0.getSession();
+        if (!session ) {
+            return NextResponse.json(
+                { success: false, error: 'Unauthorized', message: 'No valid session found' },
+                { status: 401 }
+            );
+        }
+
+        const { token: accessToken } = await auth0.getAccessToken();
+        if (!accessToken) {
+            return NextResponse.json(
+                { success: false, error: "Unauthorized", message: "Access token is required" },
+                { status: 401 }
+            );
+        }
+
+
         const { libraryId: id } = await params;
         if (!id || typeof id !== "string") {
             return NextResponse.json(
@@ -90,6 +107,7 @@ export async function POST( request: Request,
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    Authorization: `Bearer ${accessToken}`,
                 },
                 body: JSON.stringify(requestBody),
             }

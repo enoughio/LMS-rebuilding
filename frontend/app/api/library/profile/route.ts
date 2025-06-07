@@ -3,7 +3,7 @@ import { auth0 } from '@/lib/auth0';
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
 
     const session  = await auth0.getSession()
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const { token: accessToken } = await auth0.getAccessToken(request as any, NextResponse as any);
+    const { token: accessToken } = await auth0.getAccessToken();
     
     if (!accessToken) {
       return NextResponse.json(

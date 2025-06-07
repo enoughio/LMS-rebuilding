@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Plus, Edit, Trash2, Armchair, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -49,7 +49,7 @@ export default function SeatTypesPage() {
   // Draft saving functionality
   const DRAFT_KEY = 'seat-type-form-draft';
   
-  const saveDraft = (data: typeof formData, isEditing: boolean, editId?: string) => {
+  const saveDraft = useCallback((data: typeof formData, isEditing: boolean, editId?: string) => {
     const draft = {
       formData: data,
       isEditing,
@@ -57,7 +57,7 @@ export default function SeatTypesPage() {
       timestamp: Date.now(),
     };
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-  };
+  }, []);
 
   const loadDraft = () => {
     try {
@@ -84,7 +84,7 @@ export default function SeatTypesPage() {
     if (isAddDialogOpen && (formData.name || formData.description || formData.pricePerHour > 0 || formData.amenities)) {
       saveDraft(formData, !!editingSeatType, editingSeatType?.id);
     }
-  }, [formData, isAddDialogOpen, editingSeatType]);
+  }, [formData, isAddDialogOpen, editingSeatType, saveDraft]);
 
   // Load draft when opening dialog
   useEffect(() => {
@@ -141,7 +141,7 @@ export default function SeatTypesPage() {
         }
 
         // Transform Prisma types to frontend types
-        const transformedSeatTypes: SeatType[] = seatTypeData.data.map((seatType: any) => ({
+        const transformedSeatTypes: SeatType[] = seatTypeData.data.map((seatType: Record<string, unknown>) => ({
           ...seatType,
           name: String(seatType.name),
           description: String(seatType.description || ""),
@@ -163,7 +163,7 @@ export default function SeatTypesPage() {
     };
 
     fetchSeatTypes();
-  }, [user?.libraryId, authLoading]);
+  }, [user?.libraryId, authLoading, user]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>

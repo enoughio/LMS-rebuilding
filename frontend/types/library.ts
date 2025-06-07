@@ -9,9 +9,9 @@ export type SeatType = {
   id: string
   name: string // e.g., "Regular", "Quiet Zone", "Computer", "Study Room", "Group Table"
   pricePerHour?: number | 0 // Optional, can be set to 0 if not applicable
-  description: String
-  color:       String // Color code for UI representation
-  amenities?:   String[]
+  description: string
+  color: string // Color code for UI representation
+  amenities?: string[]
   isActive?: boolean
   createdAt?: string
   updatedAt?: string

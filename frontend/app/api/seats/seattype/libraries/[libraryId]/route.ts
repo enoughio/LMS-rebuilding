@@ -104,10 +104,9 @@ export async function POST(
     if (!accessToken) {
       return NextResponse.json(
         { error: "Unauthorized: Access token not found" },
-        { status: 401 }
-      );
+        { status: 401 }      );
     }
-    const body : any = {}
+    const body: Record<string, unknown> = {}
     const requestBody = await request.json();
     const { Type, description, pricePerHour, amenities, color } = requestBody;
     if (Type){

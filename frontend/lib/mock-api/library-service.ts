@@ -174,29 +174,29 @@ const seats: Seat[] = [
       id: `seat-lib1-${i + 1}`,
       libraryId: "lib-1",
       name: `Seat ${i + 1}`,
-      seatType: (i < 10 ? "QUIET_ZONE" : i < 30 ? "REGULAR" : "COMPUTER") as SeatType,
+      seatType: (i < 10 ? "QUIET_ZONE" : i < 30 ? "REGULAR" : "COMPUTER") as unknown as SeatType,
+      seatTypeId: (i < 10 ? "seatType-quiet" : i < 30 ? "seatType-regular" : "seatType-computer"),
       isAvailable: i % 3 !== 0, // Some seats are unavailable
     })),
 
-  // Library 2 seats
   ...Array(30)
     .fill(0)
     .map((_, i) => ({
       id: `seat-lib2-${i + 1}`,
       libraryId: "lib-2",
       name: `Seat ${i + 1}`,
-      seatType: (i < 5 ? "QUIET_ZONE" : "REGULAR") as SeatType,
+      seatType: (i < 5 ? "QUIET_ZONE" : "REGULAR") as unknown as SeatType,
+      seatTypeId: (i < 5 ? "seatType-quiet" : "seatType-regular"),
       isAvailable: i % 4 !== 0, // Some seats are unavailable
     })),
-
-  // Library 3 seats
   ...Array(80)
     .fill(0)
     .map((_, i) => ({
       id: `seat-lib3-${i + 1}`,
       libraryId: "lib-3",
       name: `Seat ${i + 1}`,
-      seatType: (i < 20 ? "QUIET_ZONE" : i < 50 ? "REGULAR" : "COMPUTER") as SeatType,
+      seatType: (i < 20 ? "QUIET_ZONE" : i < 50 ? "REGULAR" : "COMPUTER") as unknown as SeatType,
+      seatTypeId: (i < 20 ? "seatType-quiet" : i < 50 ? "seatType-regular" : "seatType-computer"),
       isAvailable: i % 5 !== 0, // Some seats are unavailable
     })),
 ]
@@ -214,6 +214,8 @@ const bookings: SeatBooking[] = [
     date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], // 2 days from now
     startTime: "10:00",
     endTime: "14:00",
+    duration: 4, // hours
+    bookingPrice: 200, // example price
     status: "CONFIRMED" as BookingStatus,
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
   },
@@ -228,6 +230,8 @@ const bookings: SeatBooking[] = [
     date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], // 5 days from now
     startTime: "12:00",
     endTime: "18:00",
+    duration: 6, // hours
+    bookingPrice: 300, // example price
     status: "CONFIRMED",
     createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
   },
@@ -242,6 +246,8 @@ const bookings: SeatBooking[] = [
     date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], // 3 days ago
     startTime: "09:00",
     endTime: "13:00",
+    duration: 4, // hours
+    bookingPrice: 180, // example price
     status: "COMPLETED",
     createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
   },
@@ -427,7 +433,7 @@ export const mockLibraryService = {
   },
 
   // Borrow a book
-  borrowBook: async (bookId: string, userId: string): Promise<Book> => {
+  borrowBook: async (bookId: string): Promise<Book> => {
     await delay(800) // Simulate network delay
 
     // Find the book
@@ -448,15 +454,15 @@ export const mockLibraryService = {
     }
 
     // Create a borrowing record (in a real app, this would be stored in a database)
-    const borrowing = {
-      id: `borrow-${Date.now()}`,
-      bookId,
-      userId,
-      borrowDate: new Date().toISOString(),
-      dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days from now
-      returnDate: null,
-      status: "borrowed",
-    }
+    // const borrowing = {
+    //   id: `borrow-${Date.now()}`,
+    //   bookId,
+    //   userId,
+    //   borrowDate: new Date().toISOString(),
+    //   dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days from now
+    //   returnDate: null,
+    //   status: "borrowed",
+    // }
 
     return books[bookIndex]
   },

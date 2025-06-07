@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import CommentCard from './CommentCard';
 import { Button } from './ui/button';
@@ -26,9 +26,8 @@ export default function PostComments({ postId }: PostCommentsProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentInput, setCommentInput] = useState('');
   const [loading, setLoading] = useState(true);
-
   /* --------- Helpers --------- */
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     try {
       const res = await fetch(`/api/forum/posts/${postId}/comments`, 
       {
@@ -45,7 +44,7 @@ export default function PostComments({ postId }: PostCommentsProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [postId]);
 
   const submitComment = async () => {
     if (!commentInput.trim()) {
@@ -77,11 +76,10 @@ export default function PostComments({ postId }: PostCommentsProps) {
   const handleDelete = async (commentId: string) => {
     setComments((prev) => prev.filter((c) => c.id !== commentId));
   };
-
   /* --------- Effects --------- */
   useEffect(() => {
     fetchComments();
-  }, [postId]);
+  }, [postId, fetchComments]);
 
   /* --------- Render --------- */
   return (

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useEffect, useState } from "react"
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react"
 import { useUser } from "@auth0/nextjs-auth0"
 import { useRouter, usePathname } from "next/navigation"
 import type { User } from "@/types/user"
@@ -23,9 +23,8 @@ export function Auth0AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
   const pathname = usePathname() || ""
-
   // Function to sync user with backend database
-  const syncUser = async () => {
+  const syncUser = useCallback(async () => {
     if (!auth0User) return
 
     try {
@@ -80,7 +79,7 @@ export function Auth0AuthProvider({ children }: { children: React.ReactNode }) {
       // console.error("Error syncing user:", error)
       toast.error(`Failed to sync user data ${error}`)
     }
-  }
+  }, [auth0User])
 
   // Handle Auth0 user changes
   useEffect(() => {
@@ -98,11 +97,10 @@ export function Auth0AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
       
-      setIsLoading(false)
-    }
-
+      setIsLoading(false)    }
+    
     handleAuth0User()
-  }, [auth0User, auth0Loading, ])
+  }, [auth0User, auth0Loading, syncUser])
 
   // Handle initial load from localStorage
   useEffect(() => {

@@ -1,4 +1,3 @@
-import { auth0 } from "@/lib/auth0";
 import { NextResponse } from "next/server";
 
 // Update seat
@@ -87,6 +86,7 @@ export async function DELETE ( request: Request,
             method: "DELETE",
             headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${request.headers.get("Authorization") || ""}`,
             },
         }
     );

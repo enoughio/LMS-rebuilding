@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/lib/context/AuthContext'; 
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
@@ -99,28 +99,9 @@ export default function LibraryRegistrationForm() {
           console.error('Error loading draft:', error);
         }
       }
-    }
-  }, [user]);
+    }  }, [user]);
 
-  // Auto-save draft every 30 seconds
-  useEffect(() => {
-    if (!draftKey) return;
-
-    const autoSaveInterval = setInterval(() => {
-      saveDraft();
-    }, 30000);
-
-    return () => clearInterval(autoSaveInterval);
-  }, [formData, draftKey]);
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!userLoading && !user) {
-      router.push('/auth/login');
-    }
-  }, [user, userLoading, router]);
-
-  const saveDraft = async () => {
+  const saveDraft = useCallback(async () => {
     if (!draftKey) return;
     
     setIsSavingDraft(true);
@@ -133,7 +114,24 @@ export default function LibraryRegistrationForm() {
     } finally {
       setIsSavingDraft(false);
     }
-  };
+  }, [draftKey, formData]);
+
+  // Auto-save draft every 30 seconds
+  useEffect(() => {
+    if (!draftKey) return;
+
+    const autoSaveInterval = setInterval(() => {
+      saveDraft();
+    }, 30000);
+
+    return () => clearInterval(autoSaveInterval);
+  }, [formData, draftKey, saveDraft]);
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!userLoading && !user) {
+      router.push('/auth/login');
+    }  }, [user, userLoading, router]);
 
   const clearDraft = () => {
     if (draftKey) {

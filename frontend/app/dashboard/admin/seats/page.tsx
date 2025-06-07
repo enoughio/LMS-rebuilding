@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect, use } from "react"
+import { useState, useEffect } from "react"
 import { Plus, Edit, Trash2, Armchair, Loader2, MapPin } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -139,7 +139,7 @@ export default function SeatsPage() {
           throw new Error(errorData.message || "Failed to update seat")
         }
 
-        const result = await response.json()
+        await response.json()
         
         // Update state with the edited seat
         const updatedSeat: Seat = {

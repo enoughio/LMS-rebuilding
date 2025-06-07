@@ -19,8 +19,16 @@ import type { Library, SeatType } from "@/types/library"
 import { useAuth } from "@/lib/auth-provider"
 import { useToast } from "@/components/ui/use-toast"
 
+// Mock seat type for this page
+type MockSeat = {
+  id: string
+  number: string
+  seatTypeId: string
+  isAvailable: boolean
+}
+
 // Mock seat data
-const generateMockSeats = (seatTypeId: string, count = 20) => {
+const generateMockSeats = (seatTypeId: string, count = 20): MockSeat[] => {
   return Array.from({ length: count }, (_, i) => ({
     id: `seat-${seatTypeId}-${i + 1}`,
     number: `${String.fromCharCode(65 + Math.floor(i / 5))}${(i % 5) + 1}`,
@@ -39,7 +47,7 @@ export default function SelectSeatPage() {
 
   const [library, setLibrary] = useState<Library | null>(null)
   const [seatType, setSeatType] = useState<SeatType | null>(null)
-  const [seats, setSeats] = useState<any[]>([])
+  const [seats, setSeats] = useState<MockSeat[]>([])
   const [selectedSeat, setSelectedSeat] = useState<string | null>(null)
   const [duration, setDuration] = useState<number>(1)
   const [loading, setLoading] = useState(true)
@@ -219,7 +227,7 @@ export default function SelectSeatPage() {
     )
   }
 
-  const totalPrice = seatType.pricePerHour * duration
+  const totalPrice = (seatType.pricePerHour || 0) * duration
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -414,7 +422,7 @@ export default function SelectSeatPage() {
                   <div className="space-y-2">
                     <span className="text-sm font-medium">Amenities</span>
                     <div className="flex flex-wrap gap-1">
-                      {seatType.amenities.map((amenity, index) => (
+                      {seatType.amenities?.map((amenity, index) => (
                         <Badge key={index} variant="secondary" className="text-xs">
                           {amenity}
                         </Badge>

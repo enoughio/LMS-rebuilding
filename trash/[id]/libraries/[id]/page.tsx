@@ -148,19 +148,19 @@ export default function LibraryDetailsPage() {
     router.push(`/libraries/${id}/book-seat`)
   }
 
-  const handleBuyMembership = () => {
-    if (!user) {
-      toast({
-        title: "Login Required",
-        description: "Please login to purchase membership",
-        variant: "destructive",
-      })
-      router.push("/login")
-      return
-    }
+  // const handleBuyMembership = () => {
+  //   if (!user) {
+  //     toast({
+  //       title: "Login Required",
+  //       description: "Please login to purchase membership",
+  //       variant: "destructive",
+  //     })
+  //     router.push("/login")
+  //     return
+  //   }
 
-    router.push(`/libraries/${id}/membership`)
-  }
+  //   router.push(`/libraries/${id}/membership`)
+  // }
 
   if (loading) {
     return (

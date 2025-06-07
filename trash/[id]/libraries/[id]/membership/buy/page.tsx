@@ -56,7 +56,7 @@ export default function MembershipBuyPage() {
         const libraryData = await mockLibraryService.getLibrary(id as string)
         setLibrary(libraryData)
 
-        const selectedPlan =  ( libraryData ? libraryData.membershipPlans.find((p) => p.id === planId) : null) as MembershipPlan | null
+        const selectedPlan = (libraryData ? libraryData.membershipPlans?.find((p) => p.id === planId) : null) as MembershipPlan | null
         if (!libraryData) {
           toast({
             title: "Error",

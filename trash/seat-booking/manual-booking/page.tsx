@@ -71,7 +71,7 @@ export default function ManualBookingPage() {
     }
 
     if (typeFilter !== "all") {
-      filtered = filtered.filter((seat) => seat.type === typeFilter)
+      filtered = filtered.filter((seat) => seat.seatTypeId === typeFilter)
     }
 
     setFilteredSeats(filtered)
@@ -119,10 +119,17 @@ export default function ManualBookingPage() {
         seatId: selectedSeat.id,
         seatName: selectedSeat.name,
         libraryId: user.libraryId,
-        libraryName: user.libraryName || "",
+        // libraryName: user. || "",
         date: selectedDate,
         startTime: bookingDetails.startTime,
         endTime: bookingDetails.endTime,
+        duration: (() => {
+          // Calculate duration in minutes
+          const [startHour, startMin] = bookingDetails.startTime.split(":").map(Number)
+          const [endHour, endMin] = bookingDetails.endTime.split(":").map(Number)
+          return (endHour * 60 + endMin) - (startHour * 60 + startMin)
+        })(),
+        bookingPrice: 0, // Set to 0 or calculate as needed
       }
 
       await mockLibraryService.bookSeat(bookingData)
@@ -221,9 +228,9 @@ export default function ManualBookingPage() {
                     >
                       <div
                         className={`mb-2 flex h-10 w-10 items-center justify-center rounded-full ${
-                          seat.type === "quiet_zone"
+                          seat.seatTypeId === "REGULAR"
                             ? "bg-blue-100 text-blue-600"
-                            : seat.type === "computer"
+                            : seat.seatTypeId === "COMPUTER"
                               ? "bg-purple-100 text-purple-600"
                               : "bg-green-100 text-green-600"
                         }`}
@@ -231,7 +238,7 @@ export default function ManualBookingPage() {
                         {seat.name.split(" ")[1]}
                       </div>
                       <p className="font-medium">{seat.name}</p>
-                      <p className="text-xs text-muted-foreground capitalize">{seat.type.replace("_", " ")}</p>
+                      <p className="text-xs text-muted-foreground capitalize">{seat.seatTypeId.replace("_", " ")}</p>
                       {selectedSeat?.id === seat.id && (
                         <div className="absolute right-2 top-2 rounded-full bg-primary p-1 text-white">
                           <Check className="h-3 w-3" />
@@ -305,7 +312,7 @@ export default function ManualBookingPage() {
                   </div>
                   <div className="mt-1 flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Type:</span>
-                    <span className="text-sm capitalize">{selectedSeat.type.replace("_", " ")}</span>
+                    <span className="text-sm capitalize">{selectedSeat.name}</span>
                   </div>
                 </div>
               )}

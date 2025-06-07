@@ -184,7 +184,7 @@ export default function SeatBookingPage() {
       <Tabs defaultValue="bookings">
         <TabsList>
           <TabsTrigger value="bookings">All Bookings</TabsTrigger>
-          <TabsTrigger value="today">Today's Bookings</TabsTrigger>
+          <TabsTrigger value="today">Today&apos;s Bookings</TabsTrigger>
           <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
         </TabsList>
 

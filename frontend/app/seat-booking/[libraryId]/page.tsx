@@ -19,7 +19,7 @@ export default function SeatBookingPage() {
   // redirect to login if not authenticated
   useEffect(() => {
     if (!isLoading && !user) login()
-  }, [isLoading, user])
+  }, [isLoading, user, login])
 
   // load seats and draft
   useEffect(() => {
@@ -38,7 +38,7 @@ export default function SeatBookingPage() {
       }
     }
     loadSeats()
-  }, [libraryId])
+  }, [libraryId, draftKey])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -63,8 +63,8 @@ export default function SeatBookingPage() {
       if (!res.ok) throw new Error(result.error || 'Booking failed')
       localStorage.removeItem(draftKey)
       router.push('/dashboard/member/bookings')
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
     }
     setLoading(false)
   }

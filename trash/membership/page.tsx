@@ -76,7 +76,7 @@ export default function MembershipPage() {
       })
 
       // In a real app, we would update the user's membership status
-    } catch (error) {
+    } catch {
       toast({
         title: "Payment Failed",
         description: "There was an error processing your payment. Please try again.",
@@ -87,10 +87,10 @@ export default function MembershipPage() {
     }
   }
 
-  const getLibraryPlans = (libraryId: string) => {
-    const library = libraries.find((lib) => lib.id === libraryId)
-    return library ? library.membershipPlans : []
-  }
+  // const getLibraryPlans = (libraryId: string) => {
+  //   const library = libraries.find((lib) => lib.id === libraryId)
+  //   return library ? library.membershipPlans : []
+  // }
 
   const isPlanActive = (plan: MembershipPlan) => {
     return user?.membership?.planId === plan.id && user?.membership?.status === "active"
