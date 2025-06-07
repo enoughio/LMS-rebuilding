@@ -295,7 +295,7 @@ export const getSuperAdminDashboard = async (_req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch super admin dashboard stats',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -375,20 +375,17 @@ export const getStatsController = async (_req: Request, res: Response) => {
         }
       },
     });
-
   } catch (error: unknown) {
     console.error('Stats Controller Error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch platform stats',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
 
-// ==========================================
-// 2. REVENUE CONTROLLER
-// ==========================================
+
 export const getRevenueController = async (_req: Request, res: Response) => {
   try {
     // Date calculations
@@ -503,13 +500,12 @@ export const getRevenueController = async (_req: Request, res: Response) => {
         totalRevenue: totalRevenue
       },
     });
-
   } catch (error: unknown) {
     console.error('Revenue Controller Error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch revenue data',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -568,13 +564,12 @@ export const getPlatformGrowthController = async (_req: Request, res: Response) 
         period: "past 12 months"
       },
     });
-
   } catch (error: unknown) {
     console.error('Platform Growth Controller Error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch platform growth data',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -805,13 +800,12 @@ export const getMemberDashboard = async (req: Request, res: Response): Promise<v
           },
         },
       },
-    });
-  } catch (error: unknown) {
+    });  } catch (error: unknown) {
     console.error('Dashboard error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch member dashboard stats',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };

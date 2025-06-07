@@ -4,12 +4,12 @@ import TopLibraries from "@/components/dashboard/sa/topLibraries"
 import Revenue from "@/components/dashboard/sa/revenue"
 import PlatformGrowth from "@/components/dashboard/sa/platformGrowth"
 import PlatformStats from "@/components/dashboard/sa/platformStats"
-
+// import { myCustomFont } from "@/app/fonts"
 
 export default function SuperAdminDashboardPage() {
 
   return (
-    <div className="space-y-6 w-[75vw]  py-10 px-5">
+    <div className={`  space-y-6 w-[75vw]  py-10 px-5`}>
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">Platform Overview</h1>
         <p className="text-muted-foreground">
@@ -35,7 +35,7 @@ export default function SuperAdminDashboardPage() {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
  
 
-        <TopLibraries />
+        <TopLibraries  />
 
         {/* System Status */}
           {/* <Card>

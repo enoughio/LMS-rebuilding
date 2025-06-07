@@ -69,7 +69,7 @@ const TopLibraries: React.FC = () => {
   const skeletonItems = Array.from({ length: 6 });
 
   return (
-    <Card>
+    <Card className='bg-white border-0 rounded-md'>
       <CardHeader>
         <CardTitle>Library Performance</CardTitle>
         <CardDescription>Top performing libraries this month</CardDescription>
@@ -78,13 +78,13 @@ const TopLibraries: React.FC = () => {
         <div className="space-y-4">
           {loading ? (
             skeletonItems.map((_, idx) => (
-              <Skeleton key={idx} className="h-[72px] rounded-lg" />
+              <Skeleton key={idx} className="h-[72px] rounded-lg " />
             ))
           ) : topLibraries.length > 0 ? (
             topLibraries.map((library, idx) => (
               <div
                 key={`${library.name}-${idx}`}
-                className="flex items-center justify-between rounded-lg bg-muted/50 p-4"
+                className="flex items-center justify-between rounded-lg bg-[#F6EDE5] p-4"
               >
                 <div>
                   <h3 className="font-medium">{library.name}</h3>

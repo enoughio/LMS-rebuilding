@@ -16,6 +16,10 @@ export type SeatType = {
   createdAt?: string
   updatedAt?: string
   libraryId: string
+  // New fields from API response
+  totalSeats?: number
+  availableSeats?: number
+  occupiedSeats?: number
 }
 
 

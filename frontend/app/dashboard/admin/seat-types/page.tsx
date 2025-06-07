@@ -113,11 +113,11 @@ export default function SeatTypesPage() {
 
       if (!user || !user.libraryId) {
         console.error("No library ID found for user:", user);
-        if (user) {
-          console.log("User object keys:", Object.keys(user));
-          console.log("Library ID value:", user.libraryId);
-          console.log("Library ID type:", typeof user.libraryId);
-        }
+        // if (user) {
+        //   console.log("User object keys:", Object.keys(user));
+        //   console.log("Library ID value:", user.libraryId);
+        //   console.log("Library ID type:", typeof user.libraryId);
+        // }
         toast.error("No library ID found for user. Please contact support.");
         setLoading(false);
         return;

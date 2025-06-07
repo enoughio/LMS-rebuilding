@@ -113,7 +113,7 @@ const Approvals: React.FC = () => {
     <>
       {/* List --------------------------------------------------------------- */}
       <div className="min-w-fit">
-        <Card className="w-[5 00px]">
+        <Card className="w-[5 00px] bg-white border-0 rounded-md ">
           <CardHeader>
             <CardTitle>Pending Approvals</CardTitle>
             <CardDescription>
@@ -128,7 +128,7 @@ const Approvals: React.FC = () => {
                 pendingApprovals.map(library => (
                   <div
                     key={library.id}
-                    className="flex items-center justify-between rounded-lg border p-4 max-w-[600px]"
+                    className="flex items-center justify-between bg-[#F6EDE5] rounded-lg  p-4 max-w-[600px]"
                   >
                     <div>
                       <h3 className="font-medium">{library.name}</h3>
@@ -138,7 +138,7 @@ const Approvals: React.FC = () => {
                       <p className="text-sm text-muted-foreground">{library.address}</p>
                     </div>
                     <div className="flex gap-2 px-5">
-                      <Button size="sm" variant="outline" onClick={() => setSelectedLibrary(library)}>
+                      <Button className='bg-[#3B82F6] border-0 text-white' size="sm" variant="outline" onClick={() => setSelectedLibrary(library)}>
                         Review
                       </Button>
                     </div>

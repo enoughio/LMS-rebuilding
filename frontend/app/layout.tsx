@@ -7,6 +7,7 @@ import { Auth0Provider } from "@auth0/nextjs-auth0";
 import { Auth0AuthProvider } from "@/lib/context/AuthContext";
 import { Toaster } from "react-hot-toast";
 
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -30,11 +31,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable}   antialiased`}
       >
         <Auth0Provider>
           <Auth0AuthProvider>
+
             <div className="flex flex-col justify-center items-center bg-[#ede3db] min-h-screen">
+
               <Navbar />
               <div className="min-h-[100vh]">
               {children}

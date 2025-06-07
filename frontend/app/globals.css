@@ -25,6 +25,7 @@
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
 }
 
+
 @theme inline {
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -35,6 +36,8 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 }
+
+
 
 /* @layer base {
   /* * {

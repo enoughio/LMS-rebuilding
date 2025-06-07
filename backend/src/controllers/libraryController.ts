@@ -207,7 +207,7 @@ export const getLibraryById = async (req: Request, res: Response) => {
         rating: true,
         reviewCount: true,
         amenities: true,
-        totalSeats: true,
+        // totalSeats: true,
         status: true,
         isActive: true,
         AdminBio: true,
@@ -237,15 +237,15 @@ export const getLibraryById = async (req: Request, res: Response) => {
           },
           orderBy: { dayOfWeek: "asc" },
         },
-        seats: {
-          select: {
-            id: true,
-            seatType: true,
-            isAvailable: true,
-            isActive: true,
-          },
-          where: { isActive: true },
-        },
+        // seats: {
+        //   select: {
+        //     id: true,
+        //     seatType: true,
+        //     isAvailable: true,
+        //     isActive: true,
+        //   },
+        //   where: { isActive: true },
+        // },
         membershipPlans: {
           select: {
             id: true,
@@ -255,6 +255,7 @@ export const getLibraryById = async (req: Request, res: Response) => {
             duration: true,
             features: true,
             isActive: true,
+            allowedBookingsPerMonth: true,
           },
           where: { isActive: true },
         },

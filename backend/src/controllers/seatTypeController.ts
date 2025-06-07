@@ -276,24 +276,48 @@ export async function getSeatTypes(req: Request, res: Response): Promise<void> {
                 message: 'Library not found',
             });
             return;
-        }
-
-        // Fetch seat types for the library
+        }        // Fetch seat types for the library with seat counts
         const seatTypes = await prisma.seatType.findMany({
             where: {
                 libraryId: libraryId,
                 isActive: true, // Only fetch active seat types
+            },
+            include: {
+                seats: {
+                    where: {
+                        isActive: true, // Only count active seats
+                    },
+                    select: {
+                        id: true,
+                        isAvailable: true,
+                    },
+                },
             },
             orderBy: {
                 createdAt: 'asc', // Order by creation date
             },
         });
 
+        // Transform the data to include seat counts
+        const seatTypesWithCounts = seatTypes.map((seatType) => {
+            const totalSeats = seatType.seats.length;
+            const availableSeats = seatType.seats.filter(seat => seat.isAvailable).length;
+            
+            const { seats, ...seatTypeData } = seatType;
+            
+            return {
+                ...seatTypeData,
+                totalSeats,
+                availableSeats,
+                occupiedSeats: totalSeats - availableSeats,
+            };
+        });
+
         res.status(200).json({
             success: true,
             message: 'Seat types fetched successfully',
-            data: seatTypes,
-        }); 
+            data: seatTypesWithCounts,
+        });
 
     }
     catch (error) {
