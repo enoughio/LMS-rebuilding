@@ -5,7 +5,6 @@ import SuccessStory from "@/components/about/SuccessStory";
 import OurStory from "@/components/about/OurStory";
 import WhyChooseUs from "@/components/about/WhyChooseUs";
 import Advertisement from "@/components/about/Advertisement";
-import MeetTeam from "@/components/about/MeetTeam";
 import JoinUs from "@/components/about/JoinUs";
 
 export default function Story() {
@@ -28,12 +27,6 @@ export default function Story() {
 
 			{/*why choose us section*/}
 			<WhyChooseUs />
-
-			{/* advertisement section */}
-			<Advertisement />
-
-			{/* meet team */}
-			<MeetTeam />
 
 			{/* advertisement section */}
 			<Advertisement />

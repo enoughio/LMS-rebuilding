@@ -31,7 +31,7 @@ const FAQ = () => {
 
   return (
     <div className='bg-[#ECE3DA]'>
-      <div className="py-16 px-5 font-sans bg-[#ECE3DA] max-w-7xl mx-auto">
+      <div className="container mx-auto px-4 max-w-[1030px] py-16 font-sans">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
           
           {/* Left Image Grid */}
@@ -69,7 +69,6 @@ const FAQ = () => {
                   className="w-full h-full object-cover rounded-2xl"
                 />
               </div>
-            
             </div>
           </div>
 
