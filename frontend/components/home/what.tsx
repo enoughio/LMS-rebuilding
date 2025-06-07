@@ -2,12 +2,12 @@ import Image from "next/image";
 
 export default function What() {
   return (
-    <section className="bg-[#ede3db] text-center max-w-[1920px] lg:overflow-x-auto items-center justify-center overflow-x-hidden py-4 px-4 md:px-14">
+    <section className="bg-[#ede3db] text-center max-w-[1140px] lg:overflow-x-auto items-center justify-center overflow-x-hidden py-4 px-4 md:px-14 mx-auto">
       <div className="px-2 sm:px-4 py-6 md:py-10 text-center">
         {/* Heading */}
         <div>
           <h1 className="text-[24px] sm:text-[36px] md:text-[41px] lg:text-[45px] leading-[28px] sm:leading-[42px] md:leading-[48.55px] tracking-[-0.04em] font-bold text-center text-gray-800 font-['Plus_Jakarta_Sans'] mb-4 sm:mb-5 md:mb-6">
-          What is Student Adda
+          What is Student Adda ?
         </h1>
 
         <div className="w-[98px] h-[5px] bg-[#824800] mb-6 lg:mb-3 mx-auto rounded"></div>
@@ -18,8 +18,10 @@ export default function What() {
               src="/home/managmentDashboard.png"
               alt="Student Adda Illustration"
               fill
-              className="object-cover rounded-xl"
+              className="object-cover rounded-t-xl"
             />
+            {/* Fade out overlay at bottom */}
+            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#ede3db] to-transparent pointer-events-none"></div>
           </div>
 
           <p className="text-gray-600 text-[14px] leading-[20px] sm:text-base tracking-[-0.04em] font-normal max-w-xs sm:max-w-lg md:max-w-3xl mx-auto text-left order-2 lg:order-1">

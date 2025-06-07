@@ -6,7 +6,7 @@ import Link from "next/link";
 const SmartLibrary = () => {
   return (
     <section className="py-15 bg-[#ECE3DA] w-full">
-      <div className="grid grid-cols-1 xl:grid-cols-[120px_1fr_120px] gap-4 max-w-[1440px] mx-auto px-4">
+      <div className="flex justify-center items-start gap-4 w-full px-4">
         
         {/* Left Ad Block - Desktop */}
         <div className="hidden xl:flex justify-center items-center">
@@ -16,7 +16,7 @@ const SmartLibrary = () => {
         </div>
 
         {/* Main Content */}
-        <div className="w-full max-w-7xl mx-auto">
+        <div className="w-full max-w-[990px] md:p-8 mx-auto">
           {/* Top Quote */}
           <div className="text-center max-w-4xl mx-auto">
             <p className="text-base md:text-lg lg:text-xl xl:text-2xl leading-relaxed font-normal">
@@ -81,14 +81,18 @@ const SmartLibrary = () => {
 
             {/* Right image */}
             <div className="w-full lg:w-[60%] flex justify-center items-center">
-              <div className="relative w-full max-w-[600px]">
+              <div className="relative w-full max-w-[600px] group">
                 <Image
                   src={`/home/image.png`}
                   alt="Dashboard Preview"
                   width={900}
                   height={400}
-                  className="object-contain w-full h-auto rounded-lg shadow-lg shadow-black/15"
+                  className="object-contain w-full h-auto rounded-lg "
                 />
+                {/* Right fade overlay */}
+                <div className="absolute top-0 right-0 w-16 h-full bg-gradient-to-l from-[#ECE3DA] to-transparent rounded-r-lg pointer-events-none"></div>
+                {/* Bottom fade overlay */}
+                <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-[#ECE3DA] to-transparent rounded-b-lg pointer-events-none"></div>
               </div>
             </div>
           </div>

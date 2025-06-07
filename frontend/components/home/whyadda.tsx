@@ -114,9 +114,9 @@ const WhyAdda = () => {
                 </div>
               </div>
 
-              {/* Right - Two stacked images */}
-              <div className="sm:w-1/2 flex flex-col gap-4">
-                <div className="bg-white rounded-2xl shadow-lg">
+              {/* Right - Two images in 2x2 grid on mobile, stacked on larger screens */}
+              <div className="sm:w-1/2 flex flex-row sm:flex-col gap-4">
+                <div className="flex-1 bg-white rounded-2xl shadow-lg">
                   <Image
                     src="/home/why/tools_that_feel.svg"
                     alt="Tools interface"
@@ -126,7 +126,7 @@ const WhyAdda = () => {
                   />
                 </div>
                 
-                <div className="bg-white rounded-2xl shadow-lg">
+                <div className="flex-1 bg-white rounded-2xl shadow-lg">
                   <Image
                     src="/home/why/step_community.svg"
                     alt="Study habits interface"

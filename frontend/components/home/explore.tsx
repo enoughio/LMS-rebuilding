@@ -18,35 +18,40 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
 }) => {
   return (
     <>
-      {/* Mobile Layout */}
-      <div className="md:hidden bg-white rounded-lg p-5 shadow-sm mb-4">
+      {/* Mobile Layout - Improved for smaller screens */}
+      <div className="md:hidden bg-white rounded-lg p-3 sm:p-5 shadow-sm mb-3 sm:mb-4">
         <div className="flex items-start">
-          <div className="w-12 h-12 rounded-full bg-white border border-gray-200 flex items-center justify-center mr-4 flex-shrink-0">
-            {icon}
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white border border-gray-200 flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0">
+            <div className="w-5 h-5 sm:w-6 sm:h-6">{icon}</div>
           </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-base mb-1">{title}</h3>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-sm sm:text-base mb-1 leading-tight">
+              {title}
+            </h3>
             {descriptions.map((desc, index) => (
-              <p key={index} className="text-gray-600 text-sm mb-0.5">
+              <p
+                key={index}
+                className="text-gray-600 text-xs sm:text-sm mb-0.5 leading-relaxed"
+              >
                 {desc}
               </p>
             ))}
             <Link
               href={learnMoreLink}
-              className="text-sm font-medium text-primary flex items-center mt-2"
+              className="text-xs sm:text-sm font-medium text-primary flex items-center mt-2"
             >
               Learn More
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
+                width="14"
+                height="14"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="ml-1"
+                className="ml-1 sm:w-4 sm:h-4"
               >
                 <path d="M5 12h14"></path>
                 <path d="m12 5 7 7-7 7"></path>
@@ -143,20 +148,20 @@ const Explore: React.FC = () => {
   ];
 
   return (
-    <section className="py-16 bg-[#ECE3DA] w-full">
-      <div className="container mx-auto px-4 max-w-7xl">
-        <div className="flex flex-col md:flex-row gap-8">
-          <div className="flex-col md:flex-row flex items-center justify-between mb-8 md:mb-0 bg-[#f4f1ea] rounded-lg w-full">
-            <div className="p-4 md:p-10 w-full">
-              {/* Mobile Header */}
-              <div className="md:hidden mb-6">
-                <h2 className="text-3xl font-bold text-gray-900">
+    <section className="py-8 sm:py-12 lg:py-16 bg-[#ECE3DA] w-full">
+      <div className="container mx-auto px-3 sm:px-4 max-w-[1030px]">
+        <div className="flex flex-col md:flex-row gap-6 lg:gap-8">
+          <div className="flex-col md:flex-row flex items-center justify-between mb-6 sm:mb-8 md:mb-0 bg-[#f4f1ea] rounded-lg w-full">
+            <div className="p-3 sm:p-6 md:p-10 w-full">
+              {/* Mobile Header - Improved spacing */}
+              <div className="md:hidden mb-4 sm:mb-6">
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
                   Explore Our
                 </h2>
-                <h2 className="text-3xl font-bold text-gray-900 mb-3">
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">
                   Standout Features
                 </h2>
-                <div className="w-20 h-1 bg-amber-800 rounded-full"></div>
+                <div className="w-16 sm:w-20 h-1 bg-amber-800 rounded-full"></div>
               </div>
 
               {/* Desktop Grid Layout */}
@@ -182,8 +187,8 @@ const Explore: React.FC = () => {
                 ))}
               </div>
 
-              {/* Mobile Stack Layout */}
-              <div className="md:hidden space-y-4">
+              {/* Mobile Stack Layout - Improved spacing */}
+              <div className="md:hidden space-y-3 sm:space-y-4">
                 {features.map((feature, index) => (
                   <FeatureCard
                     key={index}
@@ -198,46 +203,46 @@ const Explore: React.FC = () => {
           </div>
         </div>
 
-        {/* "Are you ready to start?" Section */}
-        <div className="mt-12 relative">
-          {/* Book image positioned to overlap */}
-          <div className="absolute -top-36 left-1/2 transform -translate-x-1/2 md:left-auto md:-top-32 md:right-12 z-10">
+        {/* "Are you ready to start?" Section - Mobile optimized */}
+        <div className="mt-8 sm:mt-12 relative">
+          {/* Book image - Hidden on mobile, visible on desktop */}
+          <div className="hidden md:block absolute -top-16 right-8 z-10">
             <Image
               src="/home/explore/book.svg"
               alt="Books illustration"
-              width={380}
-              height={260}
+              width={280}
+              height={200}
               className="object-contain"
             />
           </div>
 
-          <div className="bg-[#796146] rounded-lg overflow-hidden pt-12 pb-6 px-4 md:pt-8 md:px-12">
+          <div className="bg-[#796146] rounded-lg overflow-hidden pt-6 sm:pt-8 md:pt-12 pb-4 sm:pb-6 px-3 sm:px-6 md:px-12">
             <div className="flex flex-col items-center text-center md:text-left md:flex-row md:items-start md:justify-between">
-              <div className="text-white w-full md:max-w-[50%] ">
-                <h2 className="text-2xl md:text-4xl font-bold mb-4 pt-8 md:pt-0">
+              <div className="text-white w-full md:max-w-[60%]">
+                <h2 className="text-xl sm:text-2xl md:text-4xl font-bold mb-3 sm:mb-4">
                   Are you ready to start?
                 </h2>
-                <p className="mb-2 text-xs md:text-base">
+                <p className="mb-1 sm:mb-2 text-xs sm:text-sm md:text-base">
                   Custom Software Development Tailored Solutions for Your Business
                 </p>
-                <p className="mb-6 text-xs md:text-base">
+                <p className="mb-4 sm:mb-6 text-xs sm:text-sm md:text-base">
                   Custom Software Development Tailored Solutions
                 </p>
 
-                <div className="flex flex-col w-full gap-4 items-center md:items-start">
+                <div className="flex flex-col w-full gap-3 sm:gap-4 items-center md:items-start">
                   <input
                     type="email"
                     placeholder="Enter Email"
-                    className="bg-transparent border border-[#a59680] rounded-full px-4 py-2 text-white placeholder-[#d4c9bb] w-full max-w-xs text-sm"
+                    className="bg-transparent border border-[#a59680] rounded-full px-3 sm:px-4 py-2 text-white placeholder-[#d4c9bb] w-full max-w-xs text-xs sm:text-sm"
                   />
-                  <button className="bg-white text-gray-800 rounded-full px-6 py-2 font-medium text-sm whitespace-nowrap">
+                  <button className="bg-white text-gray-800 rounded-full px-4 sm:px-6 py-2 font-medium text-xs sm:text-sm whitespace-nowrap">
                     Contact us
                   </button>
                 </div>
               </div>
 
-              {/* Empty div to balance the layout on mobile */}
-              <div className="h-0 md:h-0 w-full"></div>
+              {/* Space for the book image on desktop */}
+              <div className="hidden md:block w-[40%]"></div>
             </div>
           </div>
         </div>
