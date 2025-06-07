@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import {  NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 
 const API_URL = process.env.NODE_BACKEND_URL || "http://localhost:5000";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await auth0.getSession();
     if (!session) {

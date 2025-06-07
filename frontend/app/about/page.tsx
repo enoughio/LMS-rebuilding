@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import AboutHeader from "@/components/about/AboutHeader";
 import StudentAddaDrives from "@/components/about/StudentAddaDrives";
 import SuccessStory from "@/components/about/SuccessStory";

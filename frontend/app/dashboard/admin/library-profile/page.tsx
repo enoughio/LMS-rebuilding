@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { Coffee, Loader2, Monitor, Save, Users, VolumeX, Wifi, Zap } from "lucide-react"
+import { Coffee, Loader2, Monitor, Save, Users, VolumeX, Wifi, Zap, Car, Lock, Shield, Printer } from "lucide-react"
 import toast from "react-hot-toast"
 
 import { Button } from "@/components/ui/button"
@@ -254,7 +254,7 @@ export default function LibraryProfilePage() {
         )
       };
 
-      const response = await fetch(`/api/libraries/${user.libraryId}`, {
+      const response = await fetch(`/api/libraries/${user?.libraryId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -540,7 +540,7 @@ export default function LibraryProfilePage() {
                       className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                     >
                       {amenityIcons[amenity] || null}
-                      {amenityLabels[amenity] || amenity}
+                      {amenityLabels[amenity as LibraryAmenity] || amenity}
                     </Label>
                   </div>
                 ))}

@@ -37,10 +37,8 @@ const WhyChooseUs = () => {
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#796146] leading-tight">
               study companion.
             </h2>
-          </div>
-
-          <p className="text-gray-700 text-sm sm:text-base lg:text-lg leading-relaxed mb-8">
-            Student Adda isn't just a library booking system — it's a complete
+          </div>          <p className="text-gray-700 text-sm sm:text-base lg:text-lg leading-relaxed mb-8">
+            Student Adda isn&apos;t just a library booking system — it&apos;s a complete
             platform designed to elevate the study experience. From reserving
             seats and accessing a rich digital library to using built-in
             productivity tools like a Pomodoro timer, habit tracker, and

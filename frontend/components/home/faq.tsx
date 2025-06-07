@@ -6,7 +6,7 @@ interface FAQItem {
   answer: string;
 }
 
-const faq = () => {
+const FAQ = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const toggleFaq = (index: number) => {
@@ -75,4 +75,4 @@ const faq = () => {
   );
 };
 
-export default faq;
+export default FAQ;
