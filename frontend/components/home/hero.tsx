@@ -6,12 +6,12 @@ import Link from "next/link";
 
 const Hero = () => {
   return (
-    <section className="py-8 bg-[#ECE3DA] w-full mx-auto relative mt-10 xl:min-h-[90vh] flex flex-col">
+    <section className="py-4 bg-[#ECE3DA] w-full mx-auto relative mt-15 xl:min-h-[90vh] flex flex-col">
       <div className="mx-auto px-3 max-w-[1000px] xl:max-w-[1200px] 2xl:max-w-[1400px] w-full flex-1 flex flex-col">
         {/* Desktop Hero - Only show on large screens */}
-        <div className="hidden lg:block bg-[#EFEAE5] rounded-[20px] mb-6 overflow-visible relative min-h-[45vh]">
+        <div className="hidden lg:block bg-[#EFEAE5] rounded-[20px] mb-2 overflow-visible relative min-h-[45vh]">
           <div className="flex items-center p-8 h-full">
-            <div className="max-w-[50%] flex flex-col gap-4 z-10">
+            <div className="max-w-[45%] flex flex-col gap-2 z-10">
               <div>
                 <h1 className={`text-4xl xl:text-5xl font-light text-[#796146]`}>
                   <span className="font-bold">Smart</span> Library
@@ -22,7 +22,7 @@ const Hero = () => {
               <p className="text-base xl:text-lg text-gray-700">
                 Manage books, seat bookings, members, and digital libraries
               </p>
-              <div className="mt-4">
+              <div className="mt-3">
                 <Button className="rounded-full bg-slate-950 px-6 py-5">
                   <Link
                     href="/register"
@@ -33,13 +33,13 @@ const Hero = () => {
                 </Button>
               </div>
             </div>
-            <div className="absolute right-[-120px] xl:right-[-50px] 2xl:right-0 top-1/3 transform -translate-y-[45%]">
+            <div className="absolute right-[-80px] xl:right-[-20px] 2xl:right-[20px] top-1/3 transform -translate-y-[45%]">
               <Image
                 src="/home/hero/hero.png"
                 priority
                 alt="hero"
-                width={450}
-                height={350}
+                width={580}
+                height={450}
                 className="object-contain"
               />
             </div>
@@ -47,7 +47,7 @@ const Hero = () => {
         </div>
 
         {/* Mobile/Tablet Hero - Show on small and medium screens */}
-        <div className="block lg:hidden bg-[#EFEAE5] rounded-[16px] p-4 mb-4">
+        <div className="block lg:hidden bg-[#EFEAE5] rounded-[16px] p-4 mb-2">
           <div className="flex items-center">
             <div className="flex-1 pr-2">
               <h1
@@ -68,13 +68,13 @@ const Hero = () => {
                 </Link>
               </Button>
             </div>
-            <div className="w-[40%]">
+            <div className="w-[50%]">
               <Image
                 src="/home/hero/hero.png"
                 priority
                 alt="hero"
-                width={150}
-                height={120}
+                width={180}
+                height={140}
                 className="object-contain"
               />
             </div>
@@ -82,7 +82,7 @@ const Hero = () => {
         </div>
 
         {/* Feature Cards - Desktop - Only show on large screens */}
-        <div className="hidden lg:grid lg:grid-cols-3 lg:gap-6 pt-3 pb-4 mt-auto">
+        <div className="hidden lg:grid lg:grid-cols-3 lg:gap-6 pb-4 mt-10">
           {featureCards.map((card, idx) => (
             <div
               key={idx}
@@ -109,9 +109,9 @@ const Hero = () => {
         </div>
 
         {/* Feature Cards - Mobile/Tablet - Show on small and medium screens */}
-        <div className="lg:hidden grid grid-cols-1 gap-4 pt-3 pb-4">
+        <div className="lg:hidden grid grid-cols-1 gap-3 pt-1 pb-4">
           {/* Top row with two cards */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             {/* Smart Library Access */}
             <div className="bg-transparent border border-[#ef8b00] rounded-xl p-4">
               <div className="mb-2">
