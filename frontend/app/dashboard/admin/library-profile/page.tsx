@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { Coffee, Loader2, Monitor, Save, Users, VolumeX, Wifi, Zap } from "lucide-react"
+import { Coffee, Loader2, Monitor, Save, Users, VolumeX, Wifi, Zap, Car, Lock, Shield, Printer } from "lucide-react"
 import toast from "react-hot-toast"
 
 import { Button } from "@/components/ui/button"
@@ -30,15 +30,20 @@ const amenityLabels: Record<LibraryAmenity, string> = {
 }
 
 // Map amenity to icon
-const amenityIcons: Record<LibraryAmenity, React.ReactNode> = {
-  wifi: <Wifi className="h-4 w-4" />,
-  ac: <Zap className="h-4 w-4" />,
-  cafe: <Coffee className="h-4 w-4" />,
-  power_outlets: <Zap className="h-4 w-4" />,
-  quiet_zones: <VolumeX className="h-4 w-4" />,
-  meeting_rooms: <Users className="h-4 w-4" />,
-  computers: <Monitor className="h-4 w-4" />,
-}
+const amenityIcons: Record<string, React.ReactNode> = {
+  "WiFi": <Wifi className="h-4 w-4" />,
+  "Parking": <Car className="h-4 w-4" />,
+  "Study Rooms": <Users className="h-4 w-4" />,
+  "Cafeteria": <Coffee className="h-4 w-4" />,
+  "Lockers": <Lock className="h-4 w-4" />,
+  "Air Conditioning": <Zap className="h-4 w-4" />,
+  "Quiet Zone": <VolumeX className="h-4 w-4" />,
+  "Computer Lab": <Monitor className="h-4 w-4" />,
+  "Security": <Shield className="h-4 w-4" />,
+  "Group Study Area": <Users className="h-4 w-4" />,
+  "Power Outlets": <Zap className="h-4 w-4" />,
+  "Printing Services": <Printer className="h-4 w-4" />,
+};
 
 export default function LibraryProfilePage() {
   const { user } = useAuth()
@@ -159,12 +164,14 @@ export default function LibraryProfilePage() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleAmenityChange = (amenity: LibraryAmenity, checked: boolean) => {
+  const handleAmenityChange = (amenity: string, checked: boolean) => {
     setFormData((prev) => {
       const currentAmenities = prev.amenities || []
       return {
         ...prev,
-        amenities: checked ? [...currentAmenities, amenity] : currentAmenities.filter((a) => a !== amenity),
+        amenities: checked 
+          ? [...currentAmenities, amenity] 
+          : currentAmenities.filter((a) => a !== amenity),
       }
     })
   }
@@ -189,7 +196,7 @@ export default function LibraryProfilePage() {
   }
 
   const handleSave = async () => {
-    if (!user?.libraryId || !formData) return
+    if (!formData) return
 
     setSaving(true)
 
@@ -247,7 +254,7 @@ export default function LibraryProfilePage() {
         )
       };
 
-      const response = await fetch(`/api/libraries/${user.libraryId}`, {
+      const response = await fetch(`/api/libraries/${user?.libraryId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -521,7 +528,7 @@ export default function LibraryProfilePage() {
             </CardHeader>
             <CardContent className="px-0">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-                {(Object.keys(amenityLabels) as LibraryAmenity[]).map((amenity) => (
+                {Object.keys(amenityLabels).map((amenity) => (
                   <div key={amenity} className="flex items-center space-x-2">
                     <Checkbox
                       id={`amenity-${amenity}`}
@@ -532,8 +539,8 @@ export default function LibraryProfilePage() {
                       htmlFor={`amenity-${amenity}`}
                       className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                     >
-                      {amenityIcons[amenity]}
-                      {amenityLabels[amenity]}
+                      {amenityIcons[amenity] || null}
+                      {amenityLabels[amenity as LibraryAmenity] || amenity}
                     </Label>
                   </div>
                 ))}
