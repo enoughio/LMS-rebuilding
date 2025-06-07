@@ -275,7 +275,7 @@ const Revenue = () => {
 
   if (isLoading) {
     return (
-      <Card className="bg-white dark:bg-gray-800 min-w-[300px] min-h-[400px]">
+      <Card className="bg-white dark:bg-gray-800 min-w-[300px] border-0 min-h-[400px]">
         <CardHeader>
           <CardTitle>Revenue Breakdown</CardTitle>
           <CardDescription>Loading revenue data...</CardDescription>
@@ -286,7 +286,7 @@ const Revenue = () => {
 
   if (error || !revenueData) {
     return (
-      <Card className="bg-white dark:bg-gray-800 min-w-[300px] min-h-[400px]">
+      <Card className="bg-white dark:bg-gray-800 min-w-[300px] border-0 min-h-[400px]">
         <CardHeader>
           <CardTitle>Revenue Breakdown</CardTitle>
           <CardDescription>Error: {error || 'Failed to load revenue data'}</CardDescription>
@@ -296,7 +296,7 @@ const Revenue = () => {
   }
 
   return (
-    <Card className="bg-white dark:bg-gray-800 min-w-[300px] min-h-[400px]">
+    <Card className="bg-white dark:bg-gray-800 min-w-[300px] min-h-[400px] border-0">
       <CardHeader>
         <CardTitle>Revenue Breakdown</CardTitle>
         <CardDescription>Revenue sources for the current month</CardDescription>

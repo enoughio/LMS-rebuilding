@@ -339,15 +339,15 @@ export default function ReportsPage() {  const [date] = useState<DateRange>({
           </Select> */}
 
           <Select value={libraryFilter} onValueChange={setLibraryFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] bg-white opacity-60 border-none">
               <SelectValue placeholder="Filter by library" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white">
               <SelectItem value="all">All Libraries</SelectItem>
               <SelectSeparator />
               <SelectGroup><SelectLabel>Available Libraries</SelectLabel></SelectGroup>
               {libraries.map((library) => (
-                <SelectItem key={library.id} value={library.id}>
+                <SelectItem key={library.id} value={library.id}> 
                   {library.name}
                 </SelectItem>
               ))}
@@ -358,11 +358,11 @@ export default function ReportsPage() {  const [date] = useState<DateRange>({
         </div>
 
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button  className="bg-white opacity-60 text-black">
             <Printer className="mr-2 h-4 w-4" />
             Print
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" className="bg-black text-white">
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
@@ -382,7 +382,7 @@ export default function ReportsPage() {  const [date] = useState<DateRange>({
             <>
               {/* Show library-specific header when a library is selected */}
               {libraryFilter !== "all" && (
-                <Card>
+                <Card >
                   <CardHeader>
                     <CardTitle>
                       {libraries.find(lib => lib.id === libraryFilter)?.name || "Selected Library"} - Overview
@@ -395,7 +395,7 @@ export default function ReportsPage() {  const [date] = useState<DateRange>({
               )}
 
               <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
-                <Card>
+                <Card className="bg-black text-white">
                   <CardHeader>
                     <CardTitle>Monthly Revenue</CardTitle>
                   </CardHeader>                  <CardContent>
@@ -405,7 +405,7 @@ export default function ReportsPage() {  const [date] = useState<DateRange>({
                   </CardContent>
                 </Card>
                 
-                <Card>
+                <Card className="bg-black text-white">
                   <CardHeader>
                     <CardTitle>Monthly Bookings</CardTitle>
                   </CardHeader>
@@ -416,7 +416,7 @@ export default function ReportsPage() {  const [date] = useState<DateRange>({
                   </CardContent>
                 </Card>
                 
-                <Card>
+                <Card className="bg-black text-white">
                   <CardHeader>
                     <CardTitle>Active Users</CardTitle>
                   </CardHeader>
@@ -427,7 +427,7 @@ export default function ReportsPage() {  const [date] = useState<DateRange>({
                   </CardContent>
                 </Card>
                 
-                <Card>
+                <Card className="bg-black text-white">
                   <CardHeader>
                     <CardTitle>New Users</CardTitle>
                   </CardHeader>
@@ -441,7 +441,7 @@ export default function ReportsPage() {  const [date] = useState<DateRange>({
 
               {/* Keep the charts using filteredOverviewData */}
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <Card>
+                <Card className="bg-white border-0 rounded-md">
                   <CardHeader>
                     <CardTitle>Revenue Overview</CardTitle>
                     <CardDescription>
@@ -471,7 +471,7 @@ export default function ReportsPage() {  const [date] = useState<DateRange>({
                   </CardContent>
                 </Card>
                 
-                <Card>
+                <Card className="bg-white border-0 rounded-md">
                   <CardHeader>
                     <CardTitle>User Growth</CardTitle>
                     <CardDescription>Monthly user growth for the past year</CardDescription>
@@ -564,7 +564,7 @@ export default function ReportsPage() {  const [date] = useState<DateRange>({
               </div>
               
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <Card>
+                <Card className="bg-white border-0 rounded-md">
                   <CardHeader>
                     <CardTitle>
                       {libraryFilter === "all" ? "Top Performing Libraries" : "Library Details"}
@@ -578,7 +578,7 @@ export default function ReportsPage() {  const [date] = useState<DateRange>({
                   </CardHeader>
                   <CardContent>                    <div className="space-y-4">
                       {overviewData?.topLibraries && Array.isArray(overviewData.topLibraries) ? (overviewData.topLibraries as TopLibrary[]).map((library: TopLibrary, i: number) => (
-                        <div key={i} className="flex items-center justify-between rounded-lg bg-muted/50 p-4">
+                        <div key={i} className="flex items-center  shadow-gray/70 shadow-lg justify-between rounded-lg bg-muted/50 p-4">
                           <div>
                             <h3 className="font-medium">{library.name}</h3>
                             <p className="text-sm text-muted-foreground">{library.members} members • {library.city}</p>
@@ -599,7 +599,7 @@ export default function ReportsPage() {  const [date] = useState<DateRange>({
 
         <TabsContent value="revenue" className="mt-4 space-y-6">
           {revenueData && (
-            <Card>
+            <Card className="bg-white border-0">
               <CardHeader>
                 <CardTitle>Revenue Breakdown</CardTitle>
                 <CardDescription>Revenue by payment type</CardDescription>
@@ -658,7 +658,7 @@ export default function ReportsPage() {  const [date] = useState<DateRange>({
         <TabsContent value="users" className="mt-4 space-y-6">
           {userActivityData && (
             <>              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                <Card>
+                <Card className="bg-black text-white">
                   <CardHeader>
                     <CardTitle>Total Users</CardTitle>
                   </CardHeader>                  <CardContent>
@@ -668,7 +668,7 @@ export default function ReportsPage() {  const [date] = useState<DateRange>({
                   </CardContent>
                 </Card>
                 
-                <Card>
+                <Card className="bg-black text-white">
                   <CardHeader>
                     <CardTitle>Active Today</CardTitle>
                   </CardHeader>
@@ -679,7 +679,7 @@ export default function ReportsPage() {  const [date] = useState<DateRange>({
                   </CardContent>
                 </Card>
                 
-                <Card>
+                <Card className="bg-black text-white">
                   <CardHeader>
                     <CardTitle>New This Month</CardTitle>
                   </CardHeader>
