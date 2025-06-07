@@ -6,23 +6,23 @@ import Link from "next/link";
 
 const Hero = () => {
   return (
-    <section className="py-8 bg-[#ECE3DA] w-full mx-auto mt-15 relative lg:max-h-[90vh] lg:flex lg:flex-col lg:justify-between">
-      <div className="mx-auto px-3 max-w-[1000px] lg:flex lg:flex-col lg:h-full">
+    <section className="py-8 bg-[#ECE3DA] w-full mx-auto relative mt-10 xl:min-h-[90vh] flex flex-col">
+      <div className="mx-auto px-3 max-w-[1000px] xl:max-w-[1200px] 2xl:max-w-[1400px] w-full flex-1 flex flex-col">
         {/* Desktop Hero - Only show on large screens */}
-        <div className="hidden lg:block bg-[#EFEAE5] rounded-[20px] mb-6 overflow-visible relative">
-          <div className="flex items-center p-8">
-            <div className="max-w-[50%] flex flex-col gap-3 z-10">
+        <div className="hidden lg:block bg-[#EFEAE5] rounded-[20px] mb-6 overflow-visible relative min-h-[45vh]">
+          <div className="flex items-center p-8 h-full">
+            <div className="max-w-[50%] flex flex-col gap-4 z-10">
               <div>
-                <h1 className={`text-4xl font-light text-[#796146]`}>
+                <h1 className={`text-4xl xl:text-5xl font-light text-[#796146]`}>
                   <span className="font-bold">Smart</span> Library
                   <div className="mt-[-5px]">Management,</div>
                   <div className="font-bold mt-[-5px]">All in One Place</div>
                 </h1>
               </div>
-              <p className="text-base text-gray-700">
+              <p className="text-base xl:text-lg text-gray-700">
                 Manage books, seat bookings, members, and digital libraries
               </p>
-              <div className="mt-3">
+              <div className="mt-4">
                 <Button className="rounded-full bg-slate-950 px-6 py-5">
                   <Link
                     href="/register"
@@ -33,7 +33,7 @@ const Hero = () => {
                 </Button>
               </div>
             </div>
-            <div className="absolute right-[-120px] xl:right-[-50px] top-1/3 transform -translate-y-[45%]">
+            <div className="absolute right-[-120px] xl:right-[-50px] 2xl:right-0 top-1/3 transform -translate-y-[45%]">
               <Image
                 src="/home/hero/hero.png"
                 priority
@@ -82,7 +82,7 @@ const Hero = () => {
         </div>
 
         {/* Feature Cards - Desktop - Only show on large screens */}
-        <div className="hidden lg:grid lg:grid-cols-3 lg:gap-6 pt-3 pb-4">
+        <div className="hidden lg:grid lg:grid-cols-3 lg:gap-6 pt-3 pb-4 mt-auto">
           {featureCards.map((card, idx) => (
             <div
               key={idx}
