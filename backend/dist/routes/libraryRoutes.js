@@ -30,12 +30,12 @@ router.post('/register', verifyToken, authenticate, authorizeRoles([UserRole.MEM
 // router.post('/:libraryId/updateseats', authenticate, authorizeRoles(UserRole.ADMIN, UserRole.SUPER_ADMIN), libraryController.updateLibrarySeats);
 // //some more routes
 // // Admin library management routes (protected)
-// router.put('/:id', authenticate, authorizeRoles(UserRole.ADMIN, UserRole.SUPER_ADMIN), libraryController.updateLibrary);
+router.patch('/:id', libraryController.updateLibrary);
 // router.post('/:id/books', authenticate, authorizeRoles(UserRole.ADMIN), libraryController.addBook);
 // router.get('/:id/members', authenticate, authorizeRoles(UserRole.ADMIN), libraryController.getLibraryMembers);
 // // Super Admin routes
 // router.get('/admin/requests/:id', authenticate, authorizeRoles(UserRole.SUPER_ADMIN), libraryController.getLibraryRequestById);
-router.patch('/:libraryId/approve', verifyToken, authenticate, authorizeRoles([UserRole.SUPER_ADMIN]), libraryController.approvLibrary);
+router.patch('/:libraryId/approve', verifyToken, authenticate, authorizeRoles([UserRole.SUPER_ADMIN]), libraryController.approveLibrary);
 router.patch('/:libraryId/reject', verifyToken, authenticate, authorizeRoles([UserRole.SUPER_ADMIN]), libraryController.rejectLibrary);
 // router.delete('/:id', authenticate, authorizeRoles(UserRole.SUPER_ADMIN), libraryController.deleteLibrary);
 export default router;

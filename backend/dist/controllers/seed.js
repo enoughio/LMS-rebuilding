@@ -577,7 +577,7 @@ export {};
 //     res.status(200).json({ message: 'Database seeded successfully.' });
 //   } catch (error) {
 //     console.error("Error during seeding:", error);
-//     res.status(500).json({ error: 'Error during seeding', details: error instanceof Error ? error : error });
+//     res.status(500).json({ error: 'Error during seeding', details: error instanceof Error ? error.message : error });
 //   }
 // };
 //# sourceMappingURL=seed.js.map

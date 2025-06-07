@@ -56,7 +56,7 @@ import { PaymentType } from '../../generated/prisma/index.js';
 //     res.status(500).json({
 //       success: false,
 //       message: 'Failed to fetch super admin dashboard stats',
-//       error: error,
+//       error: error.message,
 //     });
 //   }
 // };
@@ -245,7 +245,7 @@ export const getSuperAdminDashboard = async (_req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch super admin dashboard stats',
-            error: error,
+            error: error instanceof Error ? error.message : String(error),
         });
     }
 };
@@ -318,7 +318,7 @@ export const getStatsController = async (_req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch platform stats',
-            error: error,
+            error: error instanceof Error ? error.message : String(error),
         });
     }
 };
@@ -431,7 +431,7 @@ export const getRevenueController = async (_req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch revenue data',
-            error: error,
+            error: error instanceof Error ? error.message : String(error),
         });
     }
 };
@@ -490,7 +490,7 @@ export const getPlatformGrowthController = async (_req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch platform growth data',
-            error: error,
+            error: error instanceof Error ? error.message : String(error),
         });
     }
 };
@@ -601,7 +601,7 @@ export const getPlatformGrowthController = async (_req, res) => {
 //     res.status(500).json({
 //       success: false,
 //       message: 'Failed to fetch admin dashboard stats',
-//       error: error,
+//       error: error.message,
 //     });
 //     return;
 //   }
@@ -699,7 +699,7 @@ export const getMemberDashboard = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch member dashboard stats',
-            error: error,
+            error: error instanceof Error ? error.message : String(error),
         });
     }
 };

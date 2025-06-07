@@ -7,6 +7,26 @@ export const getLibrarySeats = async (req: Request, res: Response) => {
   try {
     const { libraryId } = req.params;
 
+    if (!libraryId) {
+      res.status(400).json({ success: false, error: 'Library ID is required' });
+      return;
+    }
+
+    // Check if the library exists
+    const library = await prisma.library.findUnique({
+      where: { id: libraryId },
+      select: {
+        id: true,
+        name: true,
+        address: true,
+        description: true,
+        email: true,
+        phone: true,
+        
+      }
+    });
+
+
     const seats = await prisma.seat.findMany({
       where: {
         libraryId,
@@ -17,14 +37,15 @@ export const getLibrarySeats = async (req: Request, res: Response) => {
       },
     });
 
-    const seattype = await prisma.seatType.findMany({
-      where: {
-        libraryId,
-      },
-    });
+    // const seattype = await prisma.seatType.findMany({
+    //   where: {
+    //     libraryId,
+    //   },
+    // });
 
 
-    res.json({ success: true, data: { seats, seattype } });
+    res.json({ success: true, data: { library, seats } });
+    // res.json({ success: true, data: {   seats, seattype } });
   } catch (error) {
     console.error('Error fetching library seats:', error);
     res.status(500).json({ success: false, error: 'Internal server error' });
@@ -32,56 +53,160 @@ export const getLibrarySeats = async (req: Request, res: Response) => {
 };
 
 // Get seat availability for a specific date
-// export const getSeatAvailability = async (req: Request, res: Response) => {
-//   try {
-//     const { libraryId } = req.params;
-//     const { date } = req.query;
+export const getSeatAvailability = async (req: Request, res: Response) => {
+  try {
+    const { libraryId } = req.params;
+    const { date, seatTypeId } = req.query;
 
-//     if (!date || typeof date !== 'string') {
-//       res.status(400).json({ success: false, error: 'Date is required' });
-//       return;
-//     }
+    if (!date || typeof date !== 'string') {
+      res.status(400).json({ 
+        success: false, 
+        message: 'Date is required',
+        error: 'Date parameter is missing or invalid' 
+      });
+      return;
+    }
 
-//     const queryDate = new Date(date);
+    // Validate date format
+    const queryDate = new Date(date);
+    if (isNaN(queryDate.getTime())) {
+      res.status(400).json({ 
+        success: false, 
+        message: 'Invalid date format',
+        error: 'Please provide a valid date in ISO format' 
+      });
+      return;
+    }
 
-//     const seats = await prisma.seat.findMany({
-//       where: {
-//         libraryId,
-//       },
-//       include: {
-//         bookings: {
-//           where: {
-//             AND: [
-//               { date: queryDate },
-//               { status: BookingStatus.CONFIRMED },
-//             ],
-//           },
-//         },
-//       },
-//     });
+    // Check if library exists
+    const library = await prisma.library.findUnique({
+      where: { id: libraryId },
+      select: { id: true, name: true }
+    });
 
-//     // Transform the data to show availability slots
-//     const availability = seats.map(seat => {
-//       const bookedSlots = seat.bookings.map(booking => ({
-//         date: booking.date,
-//         start: booking.startTime,
-//         end: booking.endTime,
-//       }));
+    if (!library) {
+      res.status(404).json({
+        success: false,
+        message: 'Library not found',
+        error: 'The specified library does not exist'
+      });
+      return;
+    }
 
-//       return {
-//         seatId: seat.id,
-//         name: seat.name,
-//         type: seat.seatType,
-//         bookedSlots,
-//       };
-//     });
+    // Build where clause for seats
+    const whereClause: any = {
+      libraryId,
+      isActive: true,
+    };
 
-//     res.json({ success: true, data: availability });
-//   } catch (error) {
-//     console.error('Error fetching seat availability:', error);
-//     res.status(500).json({ success: false, error: 'Internal server error' });
-//   }
-// };
+    // If seatTypeId is provided, filter by seat type
+    if (seatTypeId && typeof seatTypeId === 'string') {
+      whereClause.seatTypeId = seatTypeId;
+    }
+
+    const seats = await prisma.seat.findMany({
+      where: whereClause,
+      include: {
+        seatType: {
+          select: {
+            id: true,
+            name: true,
+            pricePerHour: true,
+            description: true,
+            color: true,
+            amenities: true,
+          }
+        },
+        bookings: {
+          where: {
+            date: {
+              gte: new Date(queryDate.toDateString()), // Start of day
+              lt: new Date(queryDate.getTime() + 24 * 60 * 60 * 1000), // End of day
+            },
+            status: {
+              in: ['CONFIRMED', 'PENDING'] // Consider both confirmed and pending bookings
+            }
+          },
+          select: {
+            id: true,
+            startTime: true,
+            endTime: true,
+            status: true,
+          }
+        },
+      },
+      orderBy: [
+        { seatType: { name: 'asc' } },
+        { name: 'asc' }
+      ]
+    });
+
+    // Transform the data to show availability with booking details
+    const availability = seats.map(seat => {
+      const bookedSlots = seat.bookings.map(booking => ({
+        bookingId: booking.id,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        status: booking.status,
+      }));
+
+      // Check if seat is available (no active bookings for the day)
+      const isAvailableForDay = seat.isAvailable && bookedSlots.length === 0;
+
+      return {
+        seatId: seat.id,
+        name: seat.name,
+        seatType: seat.seatType,
+        isAvailable: isAvailableForDay,
+        isActive: seat.isActive,
+        bookedSlots,
+        totalBookings: bookedSlots.length,
+      };
+    });
+
+    // Group by seat type for better organization
+    const groupedByType = availability.reduce((acc, seat) => {
+      const typeName = seat.seatType.name;
+      if (!acc[typeName]) {
+        acc[typeName] = {
+          seatType: seat.seatType,
+          seats: [],
+          availableCount: 0,
+          totalCount: 0,
+        };
+      }
+      acc[typeName].seats.push(seat);
+      acc[typeName].totalCount++;
+      if (seat.isAvailable) {
+        acc[typeName].availableCount++;
+      }
+      return acc;
+    }, {} as any);
+
+    res.json({ 
+      success: true, 
+      data: {
+        library,
+        date: queryDate.toISOString().split('T')[0],
+        seatTypeFilter: seatTypeId || null,
+        availability,
+        groupedByType,
+        summary: {
+          totalSeats: availability.length,
+          availableSeats: availability.filter(s => s.isAvailable).length,
+          bookedSeats: availability.filter(s => !s.isAvailable).length,
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching seat availability:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch seat availability',
+      error: 'Internal server error' 
+    });
+  }
+};
 
 
 

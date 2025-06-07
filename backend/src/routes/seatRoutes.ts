@@ -3,7 +3,7 @@ import express from 'express';
 // import { UserRole } from '../../generated/prisma/index.js';
 import {
   getLibrarySeats,
-//   getSeatAvailability,
+  getSeatAvailability,
   createSeat,
   updateSeat,
   deleteSeat,
@@ -22,10 +22,10 @@ const router = express.Router();
 // router.use(authenticate);
 
 // // Get all seats in a library
-router.get('/:libraryId/', getLibrarySeats);
+router.get('/:libraryId', getLibrarySeats);
 
 // // Get seat availability for a specific date
-// router.get('/library/:libraryId/availability', getSeatAvailability);
+router.get('/:libraryId/availability', getSeatAvailability);
 
 // // Create a new seat (Admin only)
 router.post(
