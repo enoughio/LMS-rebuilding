@@ -6,40 +6,43 @@ import Link from "next/link";
 
 const Hero = () => {
   return (
-    <section className="py-4 bg-[#ECE3DA] w-full mx-auto relative mt-15 xl:min-h-[90vh] flex flex-col">
+    <section className="py-4 bg-[#ECE3DA] w-full mx-auto relative mt-14 xl:min-h-[90vh] flex flex-col">
       <div className="mx-auto px-3 max-w-[1000px] xl:max-w-[1200px] 2xl:max-w-[1400px] w-full flex-1 flex flex-col">
         {/* Desktop Hero - Only show on large screens */}
-        <div className="hidden lg:block bg-[#EFEAE5] rounded-[20px] mb-2 overflow-visible relative min-h-[45vh]">
-          <div className="flex items-center p-8 h-full">
-            <div className="max-w-[45%] flex flex-col gap-2 z-10">
+        <div className="hidden lg:block bg-[#EFEAE5] rounded-[20px] mb-2 overflow-visible relative min-h-[58vh] max-h-[400px]">
+          <div className="flex items-center p-11 h-full">
+            <div className="max-w-[55%] flex flex-col gap-2 z-10">
               <div>
-                <h1 className={`text-4xl xl:text-5xl font-light text-[#796146]`}>
-                  <span className="font-bold">Smart</span> Library
-                  <div className="mt-[-5px]">Management,</div>
-                  <div className="font-bold mt-[-5px]">All in One Place</div>
-                </h1>
+          <h1 className={`text-6xl xl:text-7xl font-light text-[#796146]`}>
+            <span className="font-bold">Smart</span> Library
+            <div className="mt-[-5px]">Management,</div>
+            <div className="font-bold mt-[-5px]">All in One Place</div>
+          </h1>
               </div>
-              <p className="text-base xl:text-lg text-gray-700">
-                Manage books, seat bookings, members, and digital libraries
+              <p className="text-4xl xl:text-3xl text-gray-700">
+          Manage books, seat bookings, members,
+              </p>
+                            <p className="text-4xl xl:text-3xl text-gray-700">
+          and digital libraries
               </p>
               <div className="mt-3">
-                <Button className="rounded-full bg-slate-950 px-6 py-5">
-                  <Link
-                    href="/register"
-                    className="flex items-center text-white"
-                  >
-                    Get started <ArrowRight className="ml-2 w-4 h-4" />
-                  </Link>
-                </Button>
+          <Button className="rounded-full bg-slate-950 px-8 py-6 text-base">
+            <Link
+              href="/register"
+              className="flex items-center text-white"
+            >
+              Get started <ArrowRight className="ml-2 w-5 h-5" />
+            </Link>
+          </Button>
               </div>
             </div>
-            <div className="absolute right-[-80px] xl:right-[-20px] 2xl:right-[20px] top-1/3 transform -translate-y-[45%]">
+            <div className="absolute right-[-70px] xl:right-[15px] 2xl:right-[30px] top-1/3 transform -translate-y-[45%]">
               <Image
                 src="/home/hero/hero.png"
                 priority
                 alt="hero"
-                width={580}
-                height={450}
+                width={700}
+                height={650}
                 className="object-contain"
               />
             </div>
@@ -51,7 +54,7 @@ const Hero = () => {
           <div className="flex items-center">
             <div className="flex-1 pr-2">
               <h1
-                className={`${urbanist.className} text-base leading-tight mb-2`}
+                className={`${urbanist.className} text-lg leading-tight mb-2`}
               >
                 <span className="font-bold text-[#796146]">Smart</span> Library{" "}
                 Management,{" "}
@@ -59,12 +62,12 @@ const Hero = () => {
                   All in One Place
                 </span>
               </h1>
-              <p className="text-xs mb-2 text-gray-700">
+              <p className="text-sm mb-2 text-gray-700">
                 Manage books, seat bookings, members, and digital libraries
               </p>
-              <Button className="rounded-full bg-black text-white px-3 py-1 text-xs flex items-center">
+              <Button className="rounded-full bg-black text-white px-4 py-2 text-sm flex items-center">
                 <Link href="/register" className="flex items-center">
-                  Get started <ArrowRight className="ml-1 w-3 h-3" />
+                  Get started <ArrowRight className="ml-1 w-4 h-4" />
                 </Link>
               </Button>
             </div>
@@ -73,8 +76,8 @@ const Hero = () => {
                 src="/home/hero/hero.png"
                 priority
                 alt="hero"
-                width={180}
-                height={140}
+                width={280}
+                height={240}
                 className="object-contain"
               />
             </div>
@@ -82,7 +85,7 @@ const Hero = () => {
         </div>
 
         {/* Feature Cards - Desktop - Only show on large screens */}
-        <div className="hidden lg:grid lg:grid-cols-3 lg:gap-6 pb-4 mt-10">
+        <div className="hidden lg:grid lg:grid-cols-3 lg:gap-6 pb-3 mt-6">
           {featureCards.map((card, idx) => (
             <div
               key={idx}
