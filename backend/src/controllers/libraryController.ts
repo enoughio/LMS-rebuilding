@@ -1,35 +1,40 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma.js";
 
-
 export const getAllLibraries = async (req: Request, res: Response) => {
   const page = Math.max(1, parseInt(req.query.page as string) || 1);
   const limit = Math.max(1, parseInt(req.query.limit as string) || 10);
   const skip = (page - 1) * limit;
-  const search = req.query.search as string || '';
-  const city = req.query.city as string || '';
-  const minSeats = req.query.minSeats ? (req.query.minSeats as string).split(',').map(Number) : [];
-  const membership = req.query.membership ? (req.query.membership as string).split(',') : [];
-  const minRating = req.query.minRating ? (req.query.minRating as string).split(',').map(Number) : [];
+  const search = (req.query.search as string) || "";
+  const city = (req.query.city as string) || "";
+  const minSeats = req.query.minSeats
+    ? (req.query.minSeats as string).split(",").map(Number)
+    : [];
+  const membership = req.query.membership
+    ? (req.query.membership as string).split(",")
+    : [];
+  const minRating = req.query.minRating
+    ? (req.query.minRating as string).split(",").map(Number)
+    : [];
 
   try {
     let filter: any = {
-      status: 'APPROVED',
+      status: "APPROVED",
       isActive: true,
     };
 
     // Search filter
     if (search) {
       filter.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { address: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
+        { name: { contains: search, mode: "insensitive" } },
+        { address: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
       ];
     }
 
     // City filter
     if (city) {
-      filter.city = { contains: city, mode: 'insensitive' };
+      filter.city = { contains: city, mode: "insensitive" };
     }
 
     // Rating filter
@@ -41,11 +46,12 @@ export const getAllLibraries = async (req: Request, res: Response) => {
     if (membership.length > 0) {
       filter.membershipPlans = {
         some: {
-          price: membership.includes('Free') && membership.includes('Paid')
-            ? undefined
-            : membership.includes('Free')
-            ? { equals: 0 }
-            : { gt: 0 },
+          price:
+            membership.includes("Free") && membership.includes("Paid")
+              ? undefined
+              : membership.includes("Free")
+              ? { equals: 0 }
+              : { gt: 0 },
           isActive: true,
         },
       };
@@ -59,7 +65,8 @@ export const getAllLibraries = async (req: Request, res: Response) => {
 
     // Get total count for pagination
 
-    const totalCount = await prisma.library.count({ where: filter });    const libraries = await prisma.library.findMany({
+    const totalCount = await prisma.library.count({ where: filter });
+    const libraries = await prisma.library.findMany({
       where: filter,
       select: {
         id: true,
@@ -83,7 +90,7 @@ export const getAllLibraries = async (req: Request, res: Response) => {
             closeTime: true,
             isClosed: true,
           },
-          orderBy: { dayOfWeek: 'asc' },
+          orderBy: { dayOfWeek: "asc" },
         },
         seats: {
           select: {
@@ -93,14 +100,7 @@ export const getAllLibraries = async (req: Request, res: Response) => {
           },
           where: { isActive: true },
         },
-        seatPrices: {
-          select: {
-            seatType: true,
-            price: true,
-            currency: true,
-            isHourly: true,
-          },
-        },
+
         _count: {
           select: {
             seats: { where: seatFilter },
@@ -116,48 +116,46 @@ export const getAllLibraries = async (req: Request, res: Response) => {
       },
       skip,
       take: limit,
-      orderBy: { createdAt: 'desc' },
-    });    // Filter libraries by available seats ranges
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Filter libraries by available seats ranges
     const filteredLibraries = libraries.filter((library) => {
       // Calculate total available seats from all seat types
-      const totalAvailableSeats = library.seats.filter((seat) => seat.isAvailable).length;
-      
+      const totalAvailableSeats = library.seats.filter(
+        (seat) => seat.isAvailable
+      ).length;
+
       if (minSeats.length === 0) return true;
       return minSeats.some((range) => {
-        if (range === 0) return totalAvailableSeats >= 0 && totalAvailableSeats <= 10;
-        if (range === 10) return totalAvailableSeats > 10 && totalAvailableSeats <= 20;
+        if (range === 0)
+          return totalAvailableSeats >= 0 && totalAvailableSeats <= 10;
+        if (range === 10)
+          return totalAvailableSeats > 10 && totalAvailableSeats <= 20;
         if (range === 20) return totalAvailableSeats > 20;
         return false;
       });
     });
 
-    const totalPages = Math.ceil(totalCount / limit);    res.status(200).json({
+    // Calculate total available seats
+    const totalAvailableSeats = filteredLibraries.reduce((sum, library) => {
+      return sum + library.seats.filter((seat) => seat.isAvailable).length;
+    }, 0);
+
+    const totalPages = Math.ceil(totalCount / limit);
+    res.status(200).json({
       success: true,
       data: {
         libraries: filteredLibraries.map((library) => {
-          // Calculate seat types availability
-          const seatTypes = library.seatPrices.map((seatPrice) => {
-            const seatsOfType = library.seats.filter((seat) => seat.seatType === seatPrice.seatType);
-            const availableSeats = seatsOfType.filter((seat) => seat.isAvailable).length;
-            return {
-              type: seatPrice.seatType,
-              price: seatPrice.price,
-              currency: seatPrice.currency,
-              isHourly: seatPrice.isHourly,
-              availableSeats,
-              totalSeats: seatsOfType.length,
-            };
-          });
-
-          // Calculate total available seats
-          const totalAvailableSeats = seatTypes.reduce((total, seatType) => total + seatType.availableSeats, 0);
-
           return {
             ...library,
             availableSeats: totalAvailableSeats,
-            seatTypes,
-            hasFreeMembership: library.membershipPlans.some((plan) => plan.price === 0),
-            hasPaidMembership: library.membershipPlans.some((plan) => plan.price > 0),
+            hasFreeMembership: library.membershipPlans.some(
+              (plan) => plan.price === 0
+            ),
+            hasPaidMembership: library.membershipPlans.some(
+              (plan) => plan.price > 0
+            ),
           };
         }),
         pagination: {
@@ -170,17 +168,14 @@ export const getAllLibraries = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error('Error fetching libraries:', error);
+    console.error("Error fetching libraries:", error);
     res.status(500).json({
       success: false,
-      error: 'Internal server error',
-      message: 'Failed to fetch libraries',
+      error: "Internal server error",
+      message: "Failed to fetch libraries",
     });
   }
 };
-
-
-
 
 export const getLibraryById = async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -188,13 +183,14 @@ export const getLibraryById = async (req: Request, res: Response) => {
   if (!id) {
     res.status(400).json({
       success: false,
-      error: 'Bad Request',
-      message: 'Library ID is required',
+      error: "Bad Request",
+      message: "Library ID is required",
     });
     return;
   }
 
-  try {    const library = await prisma.library.findUnique({
+  try {
+    const library = await prisma.library.findUnique({
       where: { id },
       select: {
         id: true,
@@ -239,16 +235,7 @@ export const getLibraryById = async (req: Request, res: Response) => {
             closeTime: true,
             isClosed: true,
           },
-          orderBy: { dayOfWeek: 'asc' },
-        },
-        seatPrices: {
-          select: {
-            id: true,
-            seatType: true,
-            price: true,
-            currency: true,
-            isHourly: true,
-          },
+          orderBy: { dayOfWeek: "asc" },
         },
         seats: {
           select: {
@@ -274,57 +261,202 @@ export const getLibraryById = async (req: Request, res: Response) => {
       },
     });
 
-    if (!library || !library.isActive || library.status !== 'APPROVED') {
-       res.status(404).json({
+    if (!library || !library.isActive || library.status !== "APPROVED") {
+      res.status(404).json({
         success: false,
-        error: 'Not found',
-        message: 'Library not found or not approved',
+        error: "Not found",
+        message: "Library not found or available yet",
       });
-      return
+      return;
     }
 
-    // Aggregate seat availability by seat type
-    const seatTypes = library.seatPrices.map((seatPrice) => {
-      const seatsOfType = library.seats.filter((seat) => seat.seatType === seatPrice.seatType);
-      const availableSeats = seatsOfType.filter((seat) => seat.isAvailable).length;
-      return {
-        type: seatPrice.seatType,
-        price: seatPrice.price,
-        currency: seatPrice.currency,
-        isHourly: seatPrice.isHourly,
-        availableSeats,
-        totalSeats: seatsOfType.length,
-      };
-    });
+    //     // Aggregate seat availability by seat type
+    //     const seatTypes = library.seatPrices.map((seatPrice) => {
+    //       const seatsOfType = library.seats.filter((seat) => seat.seatType === seatPrice.seatType);
+    //       const availableSeats = seatsOfType.filter((seat) => seat.isAvailable).length;
+    //       return {
+    //         type: seatPrice.seatType,
+    //         price: seatPrice.price,
+    //         currency: seatPrice.currency,
+    //         isHourly: seatPrice.isHourly,
+    //         availableSeats,
+    //         totalSeats: seatsOfType.length,
+    //       };
+    //     });
 
-    const formattedLibrary = {
-      ...library,
-      seatTypes,
-      hasFreeMembership: library.membershipPlans.some((plan) => plan.price === 0),
-      hasPaidMembership: library.membershipPlans.some((plan) => plan.price > 0),
-      isOpen: library.openingHours.some(
-        (hour) =>
-          !hour.isClosed &&
-          new Date().getHours() >= parseInt(hour.openTime.split(':')[0]) &&
-          new Date().getHours() < parseInt(hour.closeTime.split(':')[0])
-      ),
-    };
+    //     const formattedLibrary = {
+    //       ...library,
+    //       seatTypes,
+    //       hasFreeMembership: library.membershipPlans.some((plan) => plan.price === 0),
+    //       hasPaidMembership: library.membershipPlans.some((plan) => plan.price > 0),
+    //       isOpen: library.openingHours.some(
+    //         (hour) =>
+    //           !hour.isClosed &&
+    //           new Date().getHours() >= parseInt(hour.openTime.split(':')[0]) &&
+    //           new Date().getHours() < parseInt(hour.closeTime.split(':')[0])
+    //       ),
+    //     };
 
     res.status(200).json({
       success: true,
-      data: formattedLibrary,
+      data: library,
     });
   } catch (error) {
-    console.error('Error fetching library:', error);
+    console.error("Error fetching library:", error);
     res.status(500).json({
       success: false,
-      error: 'Internal server error',
-      message: 'Failed to fetch library details',
+      error: "Internal server error",
+      message: "Failed to fetch library details",
     });
   }
 };
 
+export const updateLibrary = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
 
+    if (!id) {
+      res.status(400).json({
+        success: false,
+        error: "Bad Request",
+        message: "Library ID is required",
+      });
+      return;
+    }
+
+    const {
+      name,
+      description,
+      address,
+      city,
+      state,
+      country,
+      postalCode,
+      email,
+      phone,
+      images = [],
+      amenities,  
+    } = req.body;
+
+    // Validate required fields
+    if (
+      !name ||
+      amenities.length <= 0 ||
+      !description ||
+      !address ||
+      !city ||
+      !state ||
+      !country ||
+      !postalCode ||
+      !email ||
+      !phone
+    ) {
+      res.status(400).json({
+        success: false,
+        error: "Bad Request",
+        message: "All required fields must be provided",
+      });
+      return;
+    }
+
+    const updatedLibrary = await prisma.library.update({
+      where: { id },
+      data: {
+        name,
+        description,
+        address,
+        city,
+        state,
+        country,
+        postalCode,
+        email,
+        phone,
+        images,
+        amenities,
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        address: true,
+        city: true,
+        state: true,
+        country: true,
+        postalCode: true,
+        email: true,
+        phone: true,
+        images: true,
+        rating: true,
+        reviewCount: true,
+        amenities: true,
+        totalSeats: true,
+        status: true,
+        isActive: true,
+        AdminBio: true,
+        AdminCompleteAddress: true,
+        AdminPhone: true,
+        AdminGovernmentId: true,
+        AdminPhoto: true,
+        additinalInformation: true,
+        createdAt: true,
+        admin: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            createdAt: true,
+            auth0UserId: true,
+          },
+        },
+        openingHours: {
+          select: {
+            id: true,
+            dayOfWeek: true,
+            openTime: true,
+            closeTime: true,
+            isClosed: true,
+          },
+          orderBy: { dayOfWeek: "asc" },
+        },
+        seats: {
+          select: {
+            id: true,
+            seatType: true,
+            isAvailable: true,
+            isActive: true,
+          },
+          where: { isActive: true },
+        },
+        membershipPlans: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            price: true,
+            duration: true,
+            features: true,
+            isActive: true,
+          },
+          where: { isActive: true },
+        },
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Library updated successfully",
+      data: updatedLibrary,
+    });
+  } catch (error) {
+    console.error("Error updating library:", error);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error",
+      message: "Failed to update library",
+    });
+  }
+};
 
 interface LibraryRegistrationRequest extends Request {
   body: {
@@ -342,14 +474,14 @@ interface LibraryRegistrationRequest extends Request {
     amenities: string[];
     totalSeats: number;
     additionalInformation?: string;
-    
+
     // Admin Information
     adminBio?: string;
     adminCompleteAddress: string;
     adminPhone: string;
     adminGovernmentId?: string;
     adminPhoto?: string;
-    
+
     // Opening Hours
     openingHours: {
       dayOfWeek: number;
@@ -357,7 +489,7 @@ interface LibraryRegistrationRequest extends Request {
       closeTime: string;
       isClosed: boolean;
     }[];
-    
+
     // From Next.js API
     adminId: string; // Auth0 user ID
     userEmail: string;
@@ -365,8 +497,10 @@ interface LibraryRegistrationRequest extends Request {
   };
 }
 
-
-export const registerLibrary = async (req: LibraryRegistrationRequest, res: Response) => {
+export const registerLibrary = async (
+  req: LibraryRegistrationRequest,
+  res: Response
+) => {
   try {
     const {
       name,
@@ -390,32 +524,29 @@ export const registerLibrary = async (req: LibraryRegistrationRequest, res: Resp
       openingHours,
       adminId,
       userEmail,
-      userName
+      userName,
     } = req.body;
 
     // Check for existing library outside transaction first
     const existingLibraryCheck = await prisma.library.findFirst({
       where: {
-        OR: [
-          { name: name },
-          { email: email },
-        ]
-      }
+        OR: [{ name: name }, { email: email }],
+      },
     });
 
     if (existingLibraryCheck) {
-     res.status(400).json({
+      res.status(400).json({
         success: false,
-        error: 'Library already exists',
-        message: 'A library with this name or email already exists.'
+        error: "Library already exists",
+        message: "A library with this name or email already exists.",
       });
-      return
+      return;
     }
 
     const result = await prisma.$transaction(async (tx) => {
       // 1. Check if user exists, if not create one
       let user = await tx.user.findUnique({
-        where: { auth0UserId: adminId }
+        where: { auth0UserId: adminId },
       });
 
       if (!user) {
@@ -424,8 +555,8 @@ export const registerLibrary = async (req: LibraryRegistrationRequest, res: Resp
             auth0UserId: adminId,
             name: userName,
             email: userEmail,
-            role: 'MEMBER' // Will be updated to ADMIN after library approval
-          }
+            role: "MEMBER", // Will be updated to ADMIN after library approval
+          },
         });
       }
 
@@ -433,15 +564,15 @@ export const registerLibrary = async (req: LibraryRegistrationRequest, res: Resp
       const existingAdmin = await tx.library.findFirst({
         where: {
           adminId: user.id,
-        }
+        },
       });
 
       if (existingAdmin) {
         // throw new Error('User is already an admin of another library');
         res.status(400).json({
           success: false,
-          error: 'User is already an admin of another library',
-          message: 'A user can only be an admin of one library at a time.'
+          error: "User is already an admin of another library",
+          message: "A user can only be an admin of one library at a time.",
         });
         return;
       }
@@ -467,72 +598,71 @@ export const registerLibrary = async (req: LibraryRegistrationRequest, res: Resp
           AdminPhone: adminPhone,
           AdminGovernmentId: adminGovernmentId,
           AdminPhoto: adminPhoto,
-          status: 'PENDING', // Will be reviewed by admin
+          status: "PENDING", // Will be reviewed by admin
           isActive: false, // Activated after approval
-          adminId: user.id
-        }
+          adminId: user.id,
+        },
       });
-      
+
       // 4. Create opening hours
       if (openingHours && openingHours.length > 0) {
-        const openingHoursData = openingHours.map(hour => ({
+        const openingHoursData = openingHours.map((hour) => ({
           dayOfWeek: hour.dayOfWeek,
           openTime: hour.openTime,
           closeTime: hour.closeTime,
           isClosed: hour.isClosed,
-          libraryId: library.id
+          libraryId: library.id,
         }));
 
         await tx.openingHour.createMany({
-          data: openingHoursData
+          data: openingHoursData,
         });
       }
 
       return { library, user };
     });
 
-     res.status(201).json({
+    res.status(201).json({
       success: true,
-      message: 'Library registered successfully. It will be reviewed by an admin.',
+      message:
+        "Library registered successfully. It will be reviewed by an admin.",
       data: {
         library: result?.library,
-        user: result?.user
-      }
+        user: result?.user,
+      },
     });
     return;
-    
   } catch (error) {
-    console.error('Error registering library:', error);
-    
+    console.error("Error registering library:", error);
+
     // Handle specific error for existing admin
-    if (error instanceof Error && error === 'User is already an admin of another library') {
-       res.status(400).json({
+    if (
+      error instanceof Error &&
+      error.message === "User is already an admin of another library"
+    ) {
+      res.status(400).json({
         success: false,
-        error: 'You already have a library',
-        message: 'A user can only be an admin of one library at a time.'
+        error: "You already have a library",
+        message: "A user can only be an admin of one library at a time.",
       });
       return;
     }
-    
-     res.status(500).json({
+
+    res.status(500).json({
       success: false,
-      error: 'Internal server error',
-      message: 'Failed to register library',
+      error: "Internal server error",
+      message: "Failed to register library",
     });
   }
-}
-
-
+};
 
 export const getLibraryRequests = async (_req: Request, res: Response) => {
-
   // console.log("USer role:", req.user?.role)
-
 
   try {
     const libraries = await prisma.library.findMany({
       where: {
-        status: 'PENDING',
+        status: "PENDING",
         isActive: false,
       },
       select: {
@@ -564,65 +694,48 @@ export const getLibraryRequests = async (_req: Request, res: Response) => {
             auth0UserId: true,
             role: true,
             createdAt: true,
-          }}
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     res.status(200).json({
       success: true,
-      message: 'Library requests fetched successfully',
+      message: "Library requests fetched successfully",
       data: libraries,
     });
   } catch (error) {
-    console.error('Error fetching library requests:', error);
+    console.error("Error fetching library requests:", error);
     res.status(500).json({
       success: false,
-      error: 'Internal server error',
-      message: 'Failed to fetch library requests',
+      error: "Internal server error",
+      message: "Failed to fetch library requests",
     });
   }
+};
 
-
-
-}
-
-
-
-export  const approvLibrary = async (req: Request, res: Response) => {
-  const { libraryId :id } = req.params;
+export const approveLibrary = async (req: Request, res: Response) => {
+  const { libraryId: id } = req.params;
 
   const role = req.user?.role;
-  if (role !== 'SUPER_ADMIN') {
+  if (role !== "SUPER_ADMIN") {
     res.status(403).json({
       success: false,
-      error: 'Forbidden',
-      message: 'You do not have permission to approve libraries',
+      error: "Forbidden",
+      message: "You do not have permission to approve libraries",
     });
     return;
   }
-
-  const userId = req.user?.id;
-
-  if (!userId) {
-    res.status(401).json({
-      success: false,
-      error: 'Unauthorized',
-      message: 'User ID is required',
-    });
-    return;
-  } 
 
   if (!id) {
     res.status(400).json({
       success: false,
-      error: 'Bad Request',
-      message: 'Library ID is required',
+      error: "Bad Request",
+      message: "Library ID is required",
     });
     return;
   }
-
-
 
   try {
     const library = await prisma.library.findUnique({
@@ -637,30 +750,42 @@ export  const approvLibrary = async (req: Request, res: Response) => {
     });
 
     if (!library) {
-       res.status(404).json({
+      res.status(404).json({
         success: false,
-        error: 'Not found',
-        message: 'Library not found',
+        error: "Not found",
+        message: "Library not found",
       });
       return;
     }
 
-    if (library.status !== 'PENDING') {
+    if (library.status !== "PENDING") {
       res.status(400).json({
         success: false,
-        error: 'Invalid status',
-        message: 'Library is not in pending status',
+        error: "Invalid status",
+        message: "Library is not in pending status",
       });
       return;
     }
 
-    const update = prisma.$transaction(async (tx) => {
+    const adminId = library.adminId;
+
+    if (!adminId) {
+      res.status(400).json({
+        success: false,
+        error: "Failed to approve library",
+        message: "Admin ID is required to approve the library",
+      });
+      return;
+    }
+
+    const updatedLibrary = await prisma.$transaction(async (tx) => {
       // Update library status to APPROVED and activate it
       const updatedLibrary = await tx.library.update({
         where: { id },
         data: {
-          status: 'APPROVED',
+          status: "APPROVED",
           isActive: true,
+          totalSeats: 0, // Reset totalSeats to 0 on approval
         },
         select: {
           id: true,
@@ -670,64 +795,47 @@ export  const approvLibrary = async (req: Request, res: Response) => {
           adminId: true,
         },
       });
-      
+
       // Update admin role to ADMIN
       await tx.user.update({
-        where: { id: updatedLibrary.adminId },
-        data: { role: 'ADMIN' },
+        where: { id: adminId },
+        data: {
+          role: "ADMIN",
+          libraryId: updatedLibrary.id, // Associate user with the library
+        },
       });
-      return updatedLibrary;
-    }
-    );
-    const updatedLibrary = await update;
-    if (!updatedLibrary) {
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error',
-        message: 'Failed to update library status',
-      });
-      return
-    }
-    // Return success response
-    if (!updatedLibrary.isActive) {
-       res.status(400).json({
-        success: false,
-        error: 'Library not active',
-        message: 'Library is not active after approval',
-      });
-      return;
-    }
 
-     res.status(200).json({
+      return updatedLibrary;
+    });
+
+    res.status(200).json({
       success: true,
-      message: 'Library approved successfully',
+      message: "Library approved successfully",
       data: updatedLibrary,
     });
   } catch (error) {
-    console.error('Error approving library:', error);
-     res.status(500).json({
+    console.error("Error approving library:", error);
+    res.status(500).json({
       success: false,
-      error: 'Internal server error',
-      message: 'Failed to approve library',
+      error: "Internal server error",
+      message: "Failed to approve library",
     });
   }
-}
-
+};
 
 export const rejectLibrary = async (req: Request, res: Response) => {
   const { libraryId } = req.params;
 
-  const role =  req.user?.role;
+  const role = req.user?.role;
 
-  if (role !== 'SUPER_ADMIN') {
-     res.status(403).json({
+  if (role !== "SUPER_ADMIN") {
+    res.status(403).json({
       success: false,
-      error: 'Forbidden',
-      message: 'You do not have permission to reject libraries',
+      error: "Forbidden",
+      message: "You do not have permission to reject libraries",
     });
     return;
   }
-
 
   try {
     const library = await prisma.library.findUnique({
@@ -740,21 +848,19 @@ export const rejectLibrary = async (req: Request, res: Response) => {
       },
     });
 
-  
     if (!library) {
       res.status(404).json({
         success: false,
-        error: 'Not found',
-        message: 'Library not found',
+        error: "Not found",
+        message: "Library not found",
       });
       return;
     }
 
-
-    if (library.status !== 'PENDING') {
-       res.status(400).json({
+    if (library.status !== "PENDING") {
+      res.status(400).json({
         success: false,
-        error: 'Invalid status',
+        error: "Invalid status",
         message: `Library is in ${library.status} status`,
       });
       return;
@@ -764,29 +870,25 @@ export const rejectLibrary = async (req: Request, res: Response) => {
     const updatedLibrary = await prisma.library.update({
       where: { id: libraryId },
       data: {
-        status: 'REJECTED',
+        status: "REJECTED",
         isActive: false, // Deactivate the library
       },
     });
 
-     res.status(200).json({
+    res.status(200).json({
       success: true,
-      message: 'Library rejected successfully',
+      message: "Library rejected successfully",
       data: updatedLibrary,
     });
   } catch (error) {
-    console.error('Error rejecting library:', error);
-     res.status(500).json({
+    console.error("Error rejecting library:", error);
+    res.status(500).json({
       success: false,
-      error: 'Internal server error',
-      message: 'Failed to reject library',
+      error: "Internal server error",
+      message: "Failed to reject library",
     });
   }
-}
-
-
-
-
+};
 
 // export const deleteMembershipPlan = async (req: Request, res: Response) => {
 //   const { planId } = req.params;
@@ -844,9 +946,6 @@ export const rejectLibrary = async (req: Request, res: Response) => {
 //   }
 // };
 
-
-
-
 export const getTopLibraries = async (_req: Request, res: Response) => {
   // This function should be called on a route like GET /api/libraries/top
   // Make sure it's not conflicting with GET /api/libraries/:id routes
@@ -855,7 +954,7 @@ export const getTopLibraries = async (_req: Request, res: Response) => {
     const libraries = await prisma.library.findMany({
       where: {
         isActive: true,
-        status: 'APPROVED', // Only include approved libraries
+        status: "APPROVED", // Only include approved libraries
       },
       include: {
         seatBookings: {
@@ -870,7 +969,7 @@ export const getTopLibraries = async (_req: Request, res: Response) => {
           },
           where: {
             status: {
-              in: ['CONFIRMED', 'COMPLETED'], // Only count confirmed/completed bookings
+              in: ["CONFIRMED", "COMPLETED"], // Only count confirmed/completed bookings
             },
           },
         },
@@ -892,9 +991,10 @@ export const getTopLibraries = async (_req: Request, res: Response) => {
       .map((library) => {
         // Calculate total revenue from completed payments
         const totalRevenue = library.seatBookings.reduce((sum, booking) => {
-          const paymentAmount = booking.payment?.status === 'COMPLETED' 
-            ? booking.payment.amount 
-            : 0;
+          const paymentAmount =
+            booking.payment?.status === "COMPLETED"
+              ? booking.payment.amount
+              : 0;
           return sum + paymentAmount;
         }, 0);
 
@@ -904,7 +1004,7 @@ export const getTopLibraries = async (_req: Request, res: Response) => {
           location: `${library.city}, ${library.state}`,
           address: library.address,
           revenue: totalRevenue,
-          currency: 'INR', // Default currency from schema
+          currency: "INR", // Default currency from schema
           memberCount: library.members.length,
           totalBookings: library.seatBookings.length,
           reviewCount: library._count.reviews,
@@ -919,40 +1019,42 @@ export const getTopLibraries = async (_req: Request, res: Response) => {
     // Return successful response
     res.status(200).json({
       success: true,
-      message: 'Top libraries fetched successfully',
+      message: "Top libraries fetched successfully",
       data: {
         libraries: topLibraries,
         total: topLibraries.length,
         timestamp: new Date().toISOString(),
       },
     });
-
   } catch (error) {
-    console.error('Error fetching top libraries:', error);
-    
+    console.error("Error fetching top libraries:", error);
+
     // Handle specific Prisma errors
     if (error instanceof Error) {
       res.status(500).json({
         success: false,
-        error: 'Internal server error',
-        message: 'Failed to fetch top libraries',
-        details: process.env.NODE_ENV === 'development' ? error : undefined,
+        error: "Internal server error",
+        message: "Failed to fetch top libraries",
+        details: process.env.NODE_ENV === "development" ? error : undefined,
       });
     } else {
       res.status(500).json({
         success: false,
-        error: 'Unknown error occurred',
-        message: 'Failed to fetch top libraries',
+        error: "Unknown error occurred",
+        message: "Failed to fetch top libraries",
       });
     }
   }
 };
 
 // Get library members with pagination and search
-export const getLibraryMembers = async (req: Request, res: Response): Promise<void> => {
+export const getLibraryMembers = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const { libraryId } = req.params;
-    const { page = 1, limit = 10, search = '' } = req.query;
+    const { page = 1, limit = 10, search = "" } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
 
     // Validate library exists and user has access
@@ -960,26 +1062,38 @@ export const getLibraryMembers = async (req: Request, res: Response): Promise<vo
       where: {
         id: libraryId,
         isActive: true,
-        status: 'APPROVED',
+        status: "APPROVED",
       },
     });
 
     if (!library) {
       res.status(404).json({
         success: false,
-        error: 'Not found',
-        message: 'Library not found or not approved',
+        error: "Not found",
+        message: "Library not found or not approved",
       });
       return;
     }
 
     // Build search filter
-    const searchFilter = search ? {
-      OR: [
-        { name: { contains: search as string, mode: 'insensitive' as const } },
-        { email: { contains: search as string, mode: 'insensitive' as const } },
-      ],
-    } : {};
+    const searchFilter = search
+      ? {
+          OR: [
+            {
+              name: {
+                contains: search as string,
+                mode: "insensitive" as const,
+              },
+            },
+            {
+              email: {
+                contains: search as string,
+                mode: "insensitive" as const,
+              },
+            },
+          ],
+        }
+      : {};
 
     // Get total count for pagination
     const totalCount = await prisma.user.count({
@@ -1028,7 +1142,7 @@ export const getLibraryMembers = async (req: Request, res: Response): Promise<vo
             },
           },
           orderBy: {
-            createdAt: 'desc',
+            createdAt: "desc",
           },
           take: 1, // Get the latest membership
         },
@@ -1045,7 +1159,7 @@ export const getLibraryMembers = async (req: Request, res: Response): Promise<vo
       skip,
       take: Number(limit),
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
 
@@ -1074,26 +1188,29 @@ export const getLibraryMembers = async (req: Request, res: Response): Promise<vo
       },
     });
   } catch (error) {
-    console.error('Error fetching library members:', error);
+    console.error("Error fetching library members:", error);
     res.status(500).json({
       success: false,
-      error: 'Internal server error',
-      message: 'Failed to fetch library members',
+      error: "Internal server error",
+      message: "Failed to fetch library members",
     });
   }
 };
 
 // Get library bookings with pagination and filtering
-export const getLibraryBookings = async (req: Request, res: Response): Promise<void> => {
+export const getLibraryBookings = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const { libraryId } = req.params;
-    const { 
-      page = 1, 
-      limit = 10, 
-      status = '', 
-      search = '',
-      startDate = '',
-      endDate = '',
+    const {
+      page = 1,
+      limit = 10,
+      status = "",
+      search = "",
+      startDate = "",
+      endDate = "",
     } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
 
@@ -1102,15 +1219,15 @@ export const getLibraryBookings = async (req: Request, res: Response): Promise<v
       where: {
         id: libraryId,
         isActive: true,
-        status: 'APPROVED',
+        status: "APPROVED",
       },
     });
 
     if (!library) {
       res.status(404).json({
         success: false,
-        error: 'Not found',
-        message: 'Library not found or not approved',
+        error: "Not found",
+        message: "Library not found or not approved",
       });
       return;
     }
@@ -1133,9 +1250,21 @@ export const getLibraryBookings = async (req: Request, res: Response): Promise<v
 
     if (search) {
       filters.OR = [
-        { user: { name: { contains: search as string, mode: 'insensitive' as const } } },
-        { user: { email: { contains: search as string, mode: 'insensitive' as const } } },
-        { seat: { name: { contains: search as string, mode: 'insensitive' as const } } },
+        {
+          user: {
+            name: { contains: search as string, mode: "insensitive" as const },
+          },
+        },
+        {
+          user: {
+            email: { contains: search as string, mode: "insensitive" as const },
+          },
+        },
+        {
+          seat: {
+            name: { contains: search as string, mode: "insensitive" as const },
+          },
+        },
       ];
     }
 
@@ -1152,7 +1281,7 @@ export const getLibraryBookings = async (req: Request, res: Response): Promise<v
         date: true,
         startTime: true,
         endTime: true,
-        duration: true,
+        // duration: true,
         bookingPrice: true,
         currency: true,
         status: true,
@@ -1171,8 +1300,6 @@ export const getLibraryBookings = async (req: Request, res: Response): Promise<v
             id: true,
             name: true,
             seatType: true,
-            floor: true,
-            section: true,
           },
         },
         payment: {
@@ -1187,7 +1314,7 @@ export const getLibraryBookings = async (req: Request, res: Response): Promise<v
       skip,
       take: Number(limit),
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
 
@@ -1207,7 +1334,7 @@ export const getLibraryBookings = async (req: Request, res: Response): Promise<v
     const totalRevenue = await prisma.seatBooking.aggregate({
       where: {
         libraryId: libraryId,
-        status: { in: ['CONFIRMED', 'COMPLETED'] },
+        status: { in: ["CONFIRMED", "COMPLETED"] },
       },
       _sum: {
         bookingPrice: true,
@@ -1233,11 +1360,11 @@ export const getLibraryBookings = async (req: Request, res: Response): Promise<v
       },
     });
   } catch (error) {
-    console.error('Error fetching library bookings:', error);
+    console.error("Error fetching library bookings:", error);
     res.status(500).json({
       success: false,
-      error: 'Internal server error',
-      message: 'Failed to fetch library bookings',
+      error: "Internal server error",
+      message: "Failed to fetch library bookings",
     });
   }
 };

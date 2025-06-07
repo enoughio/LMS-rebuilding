@@ -127,10 +127,10 @@ export default function LibrariesPage() {
 
     const matchesRating =
       ratingFilter === "all" ||
-      (ratingFilter === "5" && library.rating >= 4.5) ||
-      (ratingFilter === "4" && library.rating >= 4.0 && library.rating < 4.5) ||
-      (ratingFilter === "3" && library.rating >= 3.0 && library.rating < 4.0) ||
-      (ratingFilter === "below3" && library.rating < 3.0)
+      (ratingFilter === "5" && (library.rating ?? 0) >= 4.5) ||
+      (ratingFilter === "4" && (library.rating ?? 0) >= 4.0 && (library.rating ?? 0) < 4.5) ||
+      (ratingFilter === "3" && (library.rating ?? 0) >= 3.0 && (library.rating ?? 0) < 4.0) ||
+      (ratingFilter === "below3" && (library.rating ?? 0) < 3.0)
 
     return matchesSearch && matchesRating
   })
@@ -330,19 +330,19 @@ export default function LibrariesPage() {
                   <CardContent>
                     <div className="flex items-center gap-2">
                       <div className="flex items-center">
-                        <span className="text-lg font-medium">{library.rating.toFixed(1)}</span>
+                        <span className="text-lg font-medium">{(library.rating ?? 0).toFixed(1)}</span>
                         <span className="ml-1 text-yellow-500">★</span>
                       </div>
-                      <span className="text-sm text-muted-foreground">({library.reviewCount} reviews)</span>
+                      <span className="text-sm text-muted-foreground">({library.reviewCount ?? 0} reviews)</span>
                     </div>
                     <div className="mt-2 flex flex-wrap gap-1">
-                      {library.amenities.slice(0, 4).map((amenity) => (
+                      {library.amenities?.slice(0, 4).map((amenity) => (
                         <Badge key={amenity} variant="outline" className="capitalize">
                           {amenity.replace("_", " ")}
                         </Badge>
                       ))}
-                      {library.amenities.length > 4 && (
-                        <Badge variant="outline">+{library.amenities.length - 4} more</Badge>
+                      {(library.amenities?.length ?? 0) > 4 && (
+                        <Badge variant="outline">+{(library.amenities?.length ?? 0) - 4} more</Badge>
                       )}
                     </div>
                     <div className="mt-4 flex items-center justify-between">
@@ -411,7 +411,7 @@ export default function LibrariesPage() {
                           </div>
                           <div className="flex items-center gap-1">
                             <span className="font-medium">Submitted:</span>
-                            <span>{new Date(library.createdAt).toLocaleDateString()}</span>
+                            <span>{library.createdAt ? new Date(library.createdAt).toLocaleDateString() : 'N/A'}</span>
                           </div>
                         </div>
                       </div>
@@ -508,7 +508,7 @@ export default function LibrariesPage() {
                     <span className="font-medium">Email:</span>
                     <span>{selectedLibrary.admin.email}</span>
                     <span className="font-medium">Joined On:</span>
-                    <span>{new Date(selectedLibrary.admin.createdAt).toLocaleDateString()}</span>
+                    <span>{selectedLibrary.admin.createdAt ? new Date(selectedLibrary.admin.createdAt).toLocaleDateString() : 'N/A'}</span>
                     {selectedLibrary.AdminBio && (
                       <>
                         <span className="font-medium">Bio:</span>
@@ -565,7 +565,7 @@ export default function LibrariesPage() {
                 <h3 className="font-medium text-lg mb-2">Submission Details</h3>
                 <div className="grid grid-cols-[150px_1fr] gap-2 pt-2">
                   <span className="font-medium">Submitted On:</span>
-                  <span>{new Date(selectedLibrary.createdAt).toLocaleDateString()}</span>
+                  <span>{selectedLibrary.createdAt ? new Date(selectedLibrary.createdAt).toLocaleDateString() : 'N/A'}</span>
                 </div>
               </div>
             </div>

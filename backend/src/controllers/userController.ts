@@ -123,6 +123,7 @@ export const syncUser = async (req: Request, res: Response): Promise<void> => {
           emailVerified: true,
           varifiedBySuperAdmin: true,
           address: true,
+          libraryId: true,
           phone: true,
           bio: true,
           role: true,
@@ -161,6 +162,7 @@ export const syncUser = async (req: Request, res: Response): Promise<void> => {
         emailVerified: true,
         varifiedBySuperAdmin: true,
         address: true,
+        libraryId: true,
         phone: true,
         bio: true,
         role: true,
@@ -234,6 +236,7 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
         role: true,
         email: true,
         avatar: true,
+        
         createdAt: true,
         memberships: {
           select: {

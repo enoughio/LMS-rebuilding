@@ -291,10 +291,10 @@ export default function LibraryDetailsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                    {library.amenities.map((amenity) => (
+                    {library.amenities && library.amenities.map((amenity) => (
                       <div key={amenity} className="flex items-center gap-2">
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-                          {amenityIcons[amenity]}
+                          {amenityIcons[amenity as LibraryAmenity]}
                         </div>
                         <span className="capitalize">{amenity.replace(/_/g, " ")}</span>
                       </div>
@@ -309,7 +309,7 @@ export default function LibraryDetailsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {Object.entries(library.openingHours).map(([day, hours]) => (
+                    {Object.entries(library.openingHours ?? {}).map(([day, hours]) => (
                       <div key={day} className="flex items-center justify-between rounded-md border p-3">
                         <span className="capitalize">{day}</span>
                         <span>
@@ -521,10 +521,10 @@ export default function LibraryDetailsPage() {
               <div>
                 <h3 className="font-medium">Rating</h3>
                 <div className="mt-2 flex items-center gap-2">
-                  {library.rating > 0 ? (
+                  {(library.rating ?? 0) > 0 ? (
                     <>
                       <div className="flex items-center">
-                        <span className="text-lg font-medium">{library.rating.toFixed(1)}</span>
+                        <span className="text-lg font-medium">{(library.rating ?? 0).toFixed(1)}</span>
                         <span className="ml-1 text-yellow-500">★</span>
                       </div>
                       <span className="text-sm text-muted-foreground">({library.reviewCount} reviews)</span>
@@ -563,11 +563,11 @@ export default function LibraryDetailsPage() {
                 <span className="text-sm">
                   {(() => {
                     // For OpeningHours type: { monday: { open, close }, ... }
-                    const days: Array<keyof typeof library.openingHours> = [
+                    const days = [
                       "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"
-                    ];
+                    ] as Array<keyof typeof library.openingHours>;
                     const today = days[new Date().getDay()];
-                    const todayHours = library.openingHours?.[today];
+                    const todayHours = library.openingHours?.[today] as { open: string; close: string } | undefined;
                     if (!todayHours) return "No data";
                     if (todayHours.open === "closed" && todayHours.close === "closed") return "Closed";
                     return `${todayHours.open === "closed" ? "Closed" : todayHours.open} - ${todayHours.close === "closed" ? "Closed" : todayHours.close}`;

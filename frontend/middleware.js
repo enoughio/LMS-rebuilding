@@ -2,6 +2,21 @@ import { NextResponse } from "next/server";
 import { auth0 } from "./lib/auth0"
 
 export async function middleware(request) {
+    // Skip middleware for static files and images
+    const pathname = request.nextUrl.pathname;
+    
+    // Skip for static assets, images, and API routes
+    if (
+        pathname.startsWith('/_next/') ||
+        pathname.startsWith('/api/') ||
+        pathname.includes('.') && /\.(png|jpg|jpeg|gif|svg|webp|ico|css|js|woff|woff2|ttf|eot)$/i.test(pathname) ||
+        pathname === '/favicon.ico' ||
+        pathname === '/sitemap.xml' ||
+        pathname === '/robots.txt'
+    ) {
+        return NextResponse.next();
+    }
+
     const authRes = await auth0.middleware(request);
 
     // authentication routes — let the middleware handle it

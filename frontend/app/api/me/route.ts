@@ -14,8 +14,8 @@ export const GET = async function shows() {
 
     const res = new NextResponse();
     const { token: accessToken } = await auth0.getAccessToken();
-    const apiPort = process.env.API_PORT || 5000;
-    const response = await fetch(`http://localhost:${apiPort}/api/me`, {
+    const API = process.env.NODE_BACKEND_URL || 5000;
+    const response = await fetch(`${API}/api/me`, {
       headers: {
         Authorization: `Bearer ${accessToken}`
       }
