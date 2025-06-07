@@ -6,10 +6,10 @@ import Link from "next/link";
 
 const Hero = () => {
   return (
-    <section className="py-8 bg-[#ECE3DA] w-full max-w-[1000px] mt-15 mx-auto relative">
-      <div className="mx-auto px-3 max-w-7xl">
-        {/* Desktop Hero */}
-        <div className="hidden md:block bg-[#EFEAE5] rounded-[20px] mb-6 overflow-visible relative">
+    <section className="py-8 bg-[#ECE3DA] w-full mx-auto mt-15 relative lg:max-h-[90vh] lg:flex lg:flex-col lg:justify-between">
+      <div className="mx-auto px-3 max-w-[1000px] lg:flex lg:flex-col lg:h-full">
+        {/* Desktop Hero - Only show on large screens */}
+        <div className="hidden lg:block bg-[#EFEAE5] rounded-[20px] mb-6 overflow-visible relative">
           <div className="flex items-center p-8">
             <div className="max-w-[50%] flex flex-col gap-3 z-10">
               <div>
@@ -46,8 +46,8 @@ const Hero = () => {
           </div>
         </div>
 
-        {/* Mobile Hero */}
-        <div className="block md:hidden bg-[#EFEAE5] rounded-[16px] p-4 mb-4">
+        {/* Mobile/Tablet Hero - Show on small and medium screens */}
+        <div className="block lg:hidden bg-[#EFEAE5] rounded-[16px] p-4 mb-4">
           <div className="flex items-center">
             <div className="flex-1 pr-2">
               <h1
@@ -81,8 +81,8 @@ const Hero = () => {
           </div>
         </div>
 
-        {/* Feature Cards - Desktop */}
-        <div className="hidden md:grid md:grid-cols-3 md:gap-6 pt-3 pb-4">
+        {/* Feature Cards - Desktop - Only show on large screens */}
+        <div className="hidden lg:grid lg:grid-cols-3 lg:gap-6 pt-3 pb-4">
           {featureCards.map((card, idx) => (
             <div
               key={idx}
@@ -108,8 +108,8 @@ const Hero = () => {
           ))}
         </div>
 
-        {/* Feature Cards - Mobile */}
-        <div className="md:hidden grid grid-cols-1 gap-4 pt-3 pb-4">
+        {/* Feature Cards - Mobile/Tablet - Show on small and medium screens */}
+        <div className="lg:hidden grid grid-cols-1 gap-4 pt-3 pb-4">
           {/* Top row with two cards */}
           <div className="grid grid-cols-2 gap-4">
             {/* Smart Library Access */}
@@ -172,11 +172,6 @@ const Hero = () => {
               {featureCards[1].desc}
             </p>
           </div>
-        </div>
-
-        {/* Advertisement Space */}
-        <div className="w-full bg-blue-100 py-4 my-6 flex items-center justify-center rounded-lg">
-          <p className="text-blue-500">Advertisement Space</p>
         </div>
       </div>
     </section>

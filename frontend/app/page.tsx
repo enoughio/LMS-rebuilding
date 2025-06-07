@@ -5,12 +5,14 @@ import Ready from "@/components/home/readyToJoin";
 import WhyAdda from '@/components/home/whyadda';
 import Explore from "@/components/home/explore";
 import Faq from "@/components/home/faq";
+import Advertisement from "@/components/home/Advertisement";
 
 export default function App() {
   return (
 
       <main className="max-w-[1920px] mx-auto">
         <Hero />
+        <Advertisement />
         <SmartLibrary />
         <WhyAdda />
         <What />
