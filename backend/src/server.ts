@@ -17,8 +17,6 @@ import userRoutes from './routes/userRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import reportsRoutes from './routes/reportsRoutes.js';
 
-
-
 const app = express();
 app.use(express.json());
 
