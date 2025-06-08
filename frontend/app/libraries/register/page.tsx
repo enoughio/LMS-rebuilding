@@ -16,7 +16,7 @@ interface LibraryFormData {
   postalCode: string;
   email: string;
   phone: string;
-  images: string[];
+  images: File[]; // Changed to File array for actual file uploads
   amenities: string[];
   totalSeats: number;
   additionalInformation?: string;
@@ -53,6 +53,7 @@ export default function LibraryRegistrationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [draftKey, setDraftKey] = useState<string>('');
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   const [formData, setFormData] = useState<LibraryFormData>({
     name: '',
@@ -64,7 +65,7 @@ export default function LibraryRegistrationForm() {
     postalCode: '',
     email: '',
     phone: '',
-    images: [],
+    images: [], 
     amenities: [],
     totalSeats: 0,
     additionalInformation: '',
@@ -106,7 +107,12 @@ export default function LibraryRegistrationForm() {
     
     setIsSavingDraft(true);
     try {
-      localStorage.setItem(draftKey, JSON.stringify(formData));
+      // Create a copy without File objects for localStorage
+      const draftData = {
+        ...formData,
+        images: [], // Don't save file objects
+      };
+      localStorage.setItem(draftKey, JSON.stringify(draftData));
       toast.success('Draft saved!', { duration: 2000 });
     } catch (error) {
       console.error('Error saving draft:', error);
@@ -182,6 +188,47 @@ export default function LibraryRegistrationForm() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Handle image upload
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    
+    if (files.length > 4) {
+      toast.error('Maximum 4 images allowed');
+      return;
+    }
+
+    // Validate file types and sizes
+    const validFiles = files.filter(file => {
+      if (!file.type.startsWith('image/')) {
+        toast.error(`${file.name} is not an image file`);
+        return false;
+      }
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error(`${file.name} is too large. Maximum size is 5MB`);
+        return false;
+      }
+      return true;
+    });
+
+    setFormData(prev => ({ ...prev, images: validFiles }));
+
+    // Create previews
+    const previews = validFiles.map(file => URL.createObjectURL(file));
+    setImagePreviews(previews);
+  };
+
+  const removeImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+    
+    // Clean up preview URLs
+    URL.revokeObjectURL(imagePreviews[index]);
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Updated submit handler for FormData
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -193,12 +240,41 @@ export default function LibraryRegistrationForm() {
     setIsSubmitting(true);
     
     try {
+      // Create FormData for file upload
+      const formDataToSend = new FormData();
+      
+      // Add basic form fields
+      formDataToSend.append('name', formData.name.trim());
+      formDataToSend.append('description', formData.description.trim());
+      formDataToSend.append('address', formData.address.trim());
+      formDataToSend.append('city', formData.city.trim());
+      formDataToSend.append('state', formData.state.trim());
+      formDataToSend.append('country', formData.country.trim());
+      formDataToSend.append('postalCode', formData.postalCode.trim());
+      formDataToSend.append('email', formData.email.trim());
+      formDataToSend.append('phone', formData.phone.trim());
+      formDataToSend.append('totalSeats', formData.totalSeats.toString());
+      formDataToSend.append('amenities', JSON.stringify(formData.amenities));
+      formDataToSend.append('additionalInformation', formData.additionalInformation || '');
+      
+      // Add admin info
+      formDataToSend.append('adminBio', formData.adminBio || '');
+      formDataToSend.append('adminCompleteAddress', formData.adminCompleteAddress.trim());
+      formDataToSend.append('adminPhone', formData.adminPhone.trim());
+      formDataToSend.append('adminGovernmentId', formData.adminGovernmentId || '');
+      formDataToSend.append('adminPhoto', formData.adminPhoto || '');
+      
+      // Add opening hours
+      formDataToSend.append('openingHours', JSON.stringify(formData.openingHours));
+      
+      // Add image files
+      formData.images.forEach((file) => {
+        formDataToSend.append('images', file);
+      });
+
       const response = await fetch('/api/libraries/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+        body: formDataToSend, 
       });
 
       const result = await response.json();
@@ -257,6 +333,13 @@ export default function LibraryRegistrationForm() {
         : [...prev.amenities, amenity]
     }));
   };
+
+  // Cleanup previews on unmount
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, []);
 
   if (userLoading) {
     return (
@@ -479,6 +562,45 @@ export default function LibraryRegistrationForm() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
                     placeholder="Any additional information about your library..."
                   />
+                </div>
+
+                {/* Library Images Section */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Library Images (Max 4 images)
+                  </label>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Select up to 4 images. Maximum 5MB per image. Supported formats: JPG, PNG, GIF
+                  </p>
+                  
+                  {/* Image Previews */}
+                  {imagePreviews.length > 0 && (
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {imagePreviews.map((preview, index) => (
+                        <div key={index} className="relative">
+                          <img
+                            src={preview}
+                            alt={`Library preview ${index + 1}`}
+                            className="w-full h-32 object-cover rounded-md border"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

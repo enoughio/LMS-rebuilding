@@ -46,8 +46,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse request body
-    const body: LibraryRegistrationData = await request.json();
+    // Parse FormData instead of JSON
+    const formData = await request.formData();
+    
+    // Extract form fields
+    const body: LibraryRegistrationData = {
+      name: formData.get('name') as string,
+      description: formData.get('description') as string,
+      address: formData.get('address') as string,
+      city: formData.get('city') as string,
+      state: formData.get('state') as string,
+      country: formData.get('country') as string,
+      postalCode: formData.get('postalCode') as string,
+      email: formData.get('email') as string,
+      phone: formData.get('phone') as string,
+      images: [], // Will be handled separately
+      amenities: JSON.parse(formData.get('amenities') as string || '[]'),
+      totalSeats: parseInt(formData.get('totalSeats') as string),
+      additionalInformation: formData.get('additionalInformation') as string,
+      adminBio: formData.get('adminBio') as string,
+      adminCompleteAddress: formData.get('adminCompleteAddress') as string,
+      adminPhone: formData.get('adminPhone') as string,
+      adminGovernmentId: formData.get('adminGovernmentId') as string,
+      adminPhoto: formData.get('adminPhoto') as string,
+      openingHours: JSON.parse(formData.get('openingHours') as string)
+    };
 
     // Basic validation
     type LibraryKey = keyof LibraryRegistrationData;
@@ -189,16 +212,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Create FormData for Node.js API
+    const nodeApiFormData = new FormData();
+    nodeApiFormData.append('libraryData', JSON.stringify(libraryData));
+    
+    // Add image files
+    const images = formData.getAll('images') as File[];
+    images.forEach((file) => {
+      if (file && file.size > 0) {
+        nodeApiFormData.append('images', file);
+      }
+    });
 
     // Call your Node.js API
     const nodeApiUrl = process.env.NODE_BACKEND_URL || 'http://localhost:5000';
     const response = await fetch(`${nodeApiUrl}/api/libraries/register`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${accessToken}`, // If you need auth in Node.js API
       },
-      body: JSON.stringify(libraryData),
+      body: nodeApiFormData,
     });
 
     if (!response.ok) {
