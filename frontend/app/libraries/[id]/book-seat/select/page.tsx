@@ -19,6 +19,20 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 // import type { Library, SeatType } from "@/types/library"
 import { useAuth } from "@/lib/context/AuthContext"
 
+// Interface for booking result from API
+interface BookingResult {
+  booking: {
+    id: string
+    seatName: string
+    date: string
+    startTime: string
+    endTime: string
+  }
+  payment: {
+    amount: number
+  }
+}
+
 // Interface for seat data from API
 interface SeatData {
   id: string
@@ -224,7 +238,7 @@ export default function SelectSeatPage() {
     setSelectedSeat(null) // Clear selection when date changes
   }
 
-  const [bookingResult, setBookingResult] = useState<any>(null)
+  const [bookingResult, setBookingResult] = useState<BookingResult | null>(null)
   const [showBillDownload, setShowBillDownload] = useState(false)
 
   const handleBookSeat = async () => {
@@ -273,7 +287,7 @@ export default function SelectSeatPage() {
       }
 
       if (!result.success) {
-        throw new Error(result.error || 'Booking failed')
+        throw new Error(result || 'Booking failed')
       }
 
       setBookingResult(result.data)
@@ -287,15 +301,15 @@ export default function SelectSeatPage() {
       setFilteredSeats(updatedSeats)
       setSelectedSeat(null) // Clear selection
 
-    } catch (error) {
-      console.error("Error booking seat:", error)
-      const errorMessage = error instanceof Error ? error.message : 'There was an error booking your seat. Please try again.'
-      toast.error(errorMessage, { duration: 3000 })
-    } finally {
-      setBookingInProgress(false)
-    }
-  }
+      } catch (error: unknown) {
+  console.error("Error booking seat:", error)
+  const errorMessage = error instanceof Error ? error.message : 'There was an error booking your seat. Please try again.'
+  toast.error(errorMessage, { duration: 3000 })
+} finally {
+  setBookingInProgress(false)
+}
 
+  }
   const handleDownloadBill = async () => {
     if (!bookingResult?.booking?.id) {
       toast.error('Booking information not available', { duration: 2000 })

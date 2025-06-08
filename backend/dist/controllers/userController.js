@@ -47,6 +47,7 @@ export const getCurrentUser = async (req, res) => {
 // Sync user after login
 export const syncUser = async (req, res) => {
     try {
+        console.log("Sync user endpoint hit");
         // Type assertion for req to include auth property (from express-oauth2-jwt-bearer)
         const authReq = req;
         if (!authReq.auth || !authReq.auth.payload || !authReq.auth.payload.sub) {

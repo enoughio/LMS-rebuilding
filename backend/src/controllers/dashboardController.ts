@@ -152,9 +152,7 @@ export const getSuperAdminDashboard = async (_req: Request, res: Response) => {
           createdAt: true
         }
       })
-    ]);
-
-    const monthlyRevenue = monthlyRevenueResult._sum.amount ?? 0;
+    ]);    const monthlyRevenue = monthlyRevenueResult._sum.amount ?? 0;
     const lastMonthRevenue = lastMonthRevenueResult._sum.amount ?? 0;
     
     // Calculate changes
@@ -180,10 +178,10 @@ export const getSuperAdminDashboard = async (_req: Request, res: Response) => {
           revenueBreakdown.membershipFees += payment.amount;
           break;
         case PaymentType.SEAT_BOOKING:
+        case PaymentType.GUEST_SEAT_BOOKING:
           revenueBreakdown.seatBookings += payment.amount;
           break;
         case PaymentType.PENALTY:
-        case PaymentType.EBOOK_PURCHASE:
         case PaymentType.OTHER:
           revenueBreakdown.otherServices += payment.amount;
           break;
@@ -433,8 +431,7 @@ export const getRevenueController = async (_req: Request, res: Response) => {
 
     const monthlyRevenue = monthlyRevenueResult._sum.amount ?? 0;
     const lastMonthRevenue = lastMonthRevenueResult._sum.amount ?? 0;
-    
-    // Calculate revenue change percentage
+      // Calculate revenue change percentage
     const revenueChangePercent = lastMonthRevenue > 0 
       ? ((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue * 100) 
       : 0;
@@ -455,10 +452,10 @@ export const getRevenueController = async (_req: Request, res: Response) => {
           revenueBreakdown.membershipFees += payment.amount;
           break;
         case PaymentType.SEAT_BOOKING:
+        case PaymentType.GUEST_SEAT_BOOKING:
           revenueBreakdown.seatBookings += payment.amount;
           break;
         case PaymentType.PENALTY:
-        case PaymentType.EBOOK_PURCHASE:
         case PaymentType.OTHER:
           revenueBreakdown.otherServices += payment.amount;
           break;
@@ -728,9 +725,7 @@ export const getMemberDashboard = async (req: Request, res: Response): Promise<v
     if (!user) {
       res.status(401).json({ message: 'Unauthorized' });
       return;
-    }
-
-    const [upcomingBookings, booksReadCount, readingHistory] = await Promise.all([
+    }    const [upcomingBookings, borrowedBooksCount, recentBookBorrowings] = await Promise.all([
       prisma.seatBooking.findMany({
         where: {
           userId,
@@ -741,19 +736,19 @@ export const getMemberDashboard = async (req: Request, res: Response): Promise<v
         orderBy: { date: 'asc' },
         take: 1,
       }),
-      prisma.readingHistory.count({
+      prisma.bookBorrowing.count({
         where: {
           userId,
-          isCompleted: true,
+          status: 'BORROWED',
         },
       }),
-      prisma.readingHistory.findMany({
+      prisma.bookBorrowing.findMany({
         where: {
           userId,
-          isCompleted: false,
+          status: 'BORROWED',
         },
         include: {
-          eBook: true,
+          book: true,
         },
         orderBy: { updatedAt: 'desc' },
         take: 3,
@@ -762,13 +757,11 @@ export const getMemberDashboard = async (req: Request, res: Response): Promise<v
 
     const totalStudyHours = (user as any).totalStudyHours ?? 0;
     const streak = (user as any).streak ?? 0;
-    const quizzes = (user as any).quizzesTaken ?? 0;
-
-    const currentlyReading = readingHistory.map((log: { eBook: { title: any; }; lastReadPage: number; totalPages: number; }) => ({
-      title: log.eBook?.title ?? 'Unknown',
-      progress: Math.floor((log.lastReadPage / log.totalPages) * 100),
-      page: log.lastReadPage,
-      total: log.totalPages,
+    const quizzes = (user as any).quizzesTaken ?? 0;    const currentlyReading = recentBookBorrowings.map((borrowing: any) => ({
+      title: borrowing.book?.title ?? 'Unknown',
+      progress: 0, // Since we don't track reading progress for physical books
+      page: 0,
+      total: 0,
     }));
 
     res.status(200).json({
@@ -777,16 +770,16 @@ export const getMemberDashboard = async (req: Request, res: Response): Promise<v
         streak,
         studyHours: totalStudyHours,
         upcomingBookings: upcomingBookings.length,
-        booksRead: booksReadCount,
+        booksRead: borrowedBooksCount,
         nextBooking: upcomingBookings[0]
           ? `${new Date(upcomingBookings[0].date).toDateString()}, ${upcomingBookings[0].startTime} - ${upcomingBookings[0].endTime}`
           : 'No upcoming booking',
         currentlyReading,
         studyGoals: {
           readBooks: {
-            current: booksReadCount,
+            current: borrowedBooksCount,
             target: 10,
-            percentage: Math.min(100, Math.floor((booksReadCount / 10) * 100)),
+            percentage: Math.min(100, Math.floor((borrowedBooksCount / 10) * 100)),
           },
           studyHours: {
             current: totalStudyHours,

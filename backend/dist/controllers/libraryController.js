@@ -93,10 +93,9 @@ export const getAllLibraries = async (req, res) => {
                                 color: true,
                             }
                         }
-                    },
-                    where: {
-                        isActive: true,
-                        // seatTypeId: { not: null } // Filter out seats with null seatTypeId
+                    }, where: {
+                        isActive: true
+                        // seatTypeId: { isSet: true } // Filter out seats with null seatTypeId
                     },
                 },
                 _count: {

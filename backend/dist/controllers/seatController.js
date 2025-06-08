@@ -269,11 +269,19 @@ export const deleteSeat = async (req, res) => {
 export const bookSeat = async (req, res) => {
     try {
         const { libraryId } = req.params;
-        const { seatId, date, startTime, endTime, duration, paymentMethod = 'OFFLINE' } = req.body;
-        // Get user ID from authenticated request
+        const { seatId, date, startTime, endTime, duration, paymentMethod = 'OFFLINE', guestBooking // For guest bookings
+         } = req.body;
+        // Check if this is a guest booking route
+        const isGuestBooking = req.path.includes('/book-guest');
+        // Get user ID from authenticated request (only for regular bookings)
         const userId = req.user?.id;
-        if (!userId) {
+        // Validate authentication based on booking type
+        if (!isGuestBooking && !userId) {
             res.status(401).json({ success: false, error: 'Authentication required' });
+            return;
+        }
+        if (isGuestBooking && !guestBooking) {
+            res.status(400).json({ success: false, error: 'Guest booking information required' });
             return;
         }
         // Validate required fields
@@ -365,38 +373,62 @@ export const bookSeat = async (req, res) => {
                 error: 'Seat is already booked for the selected time slot'
             });
             return;
-        }
-        // Calculate booking price
-        const bookingPrice = seat.seatType.pricePerHour * duration;
-        // Get user details for the booking
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                phone: true
+        } // Calculate booking price
+        const bookingPrice = seat.seatType.pricePerHour * duration; // Get user details for the booking or use guest info
+        let user;
+        if (!isGuestBooking && userId) {
+            user = await prisma.user.findUnique({
+                where: { id: userId },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    phone: true
+                }
+            });
+            if (!user) {
+                res.status(404).json({ success: false, error: 'User not found' });
+                return;
             }
-        });
-        if (!user) {
-            res.status(404).json({ success: false, error: 'User not found' });
-            return;
         }
-        // Create booking and payment in a transaction
+        else if (isGuestBooking) {
+            // Use guest booking info
+            user = {
+                id: null,
+                name: guestBooking.name,
+                email: guestBooking.email,
+                phone: guestBooking.phone
+            };
+        } // Create booking and payment in a transaction
         const result = await prisma.$transaction(async (tx) => {
             // Create the seat booking
+            const bookingData = {
+                date: bookingDate,
+                seatName: seat.name,
+                startTime,
+                endTime,
+                bookingPrice,
+                status: BookingStatus.CONFIRMED, // Auto-confirm for now
+                isGuest: !userId, // Set guest flag
+                seat: { connect: { id: seatId } },
+                library: { connect: { id: libraryId } }
+            }; // Connect user if authenticated, otherwise create guest booking
+            if (!isGuestBooking && userId) {
+                bookingData.user = { connect: { id: userId } };
+            }
+            else if (isGuestBooking) {
+                // Create a guest record if needed
+                const guest = await tx.guestUser.create({
+                    data: {
+                        name: guestBooking.name,
+                        email: guestBooking.email,
+                        phone: guestBooking.phone
+                    }
+                });
+                bookingData.guestUser = { connect: { id: guest.id } };
+            }
             const booking = await tx.seatBooking.create({
-                data: {
-                    date: bookingDate,
-                    seatName: seat.name,
-                    startTime,
-                    endTime,
-                    bookingPrice,
-                    status: BookingStatus.CONFIRMED, // Auto-confirm for now
-                    user: { connect: { id: userId } },
-                    seat: { connect: { id: seatId } },
-                    library: { connect: { id: libraryId } }
-                },
+                data: bookingData,
                 include: {
                     seat: {
                         include: {
@@ -419,26 +451,38 @@ export const bookSeat = async (req, res) => {
                             email: true,
                             phone: true
                         }
+                    },
+                    guestUser: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                            phone: true
+                        }
                     }
                 }
-            });
-            // Create payment record
+            }); // Create payment record
+            const paymentData = {
+                amount: bookingPrice,
+                type: !isGuestBooking ? PaymentType.SEAT_BOOKING : PaymentType.GUEST_SEAT_BOOKING,
+                status: PaymentStatus.COMPLETED, // Auto-complete for offline payments
+                medium: paymentMethod === 'OFFLINE' ? PaymentMedium.OFFLINE : PaymentMedium.ONLINE,
+                paymentMethod,
+                notes: `Seat booking payment for ${seat.name} on ${bookingDate.toDateString()}`,
+                seatBooking: { connect: { id: booking.id } }
+            };
+            if (!isGuestBooking && userId) {
+                paymentData.user = { connect: { id: userId } };
+            }
+            else if (isGuestBooking) {
+                paymentData.guestUser = { connect: { id: booking.guestUser.id } };
+            }
             const payment = await tx.payment.create({
-                data: {
-                    amount: bookingPrice,
-                    type: PaymentType.SEAT_BOOKING,
-                    status: PaymentStatus.COMPLETED, // Auto-complete for offline payments
-                    medium: paymentMethod === 'OFFLINE' ? PaymentMedium.OFFLINE : PaymentMedium.ONLINE,
-                    paymentMethod,
-                    notes: `Seat booking payment for ${seat.name} on ${bookingDate.toDateString()}`,
-                    user: { connect: { id: userId } },
-                    seatBooking: { connect: { id: booking.id } }
-                }
+                data: paymentData
             });
             return { booking, payment };
-        });
-        // Generate PDF bill
-        const billPath = await generateBookingBill(result.booking, result.payment);
+        }); // Generate PDF bill (optional - for future download)
+        // const billPath = await generateBookingBill(result.booking, result.payment);
         // TODO: Send confirmation email to user
         // await sendBookingConfirmationEmail(user.email, result.booking, billPath);
         res.status(201).json({
