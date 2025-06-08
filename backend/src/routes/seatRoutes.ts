@@ -67,6 +67,8 @@ router.post('/cancel/:bookingId', verifyToken, authenticate, cancelBooking);
 router.get('/download-bill/:bookingId', verifyToken, authenticate, downloadBill);
 
 
+
+
 // Seat Type Routes
 router.get('/seattype/:libraryId',  getSeatTypes);
 router.post('/seattype/:libraryId',  createSeatType );

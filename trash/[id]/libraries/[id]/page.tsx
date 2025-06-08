@@ -380,7 +380,7 @@ export default function LibraryDetailsPage() {
                   <CardDescription>Book any available seat instantly</CardDescription>
                 </CardHeader>
                 <CardFooter>
-                  <Button className="w-full" onClick={handleBookSeat}>
+                  <Button className="w-full bg-gray-400" onClick={handleBookSeat}>
                     <Armchair className="mr-2 h-4 w-4" />
                     Book Any Seat
                   </Button>

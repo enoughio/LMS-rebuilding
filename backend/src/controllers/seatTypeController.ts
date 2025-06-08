@@ -215,11 +215,33 @@ export async function deleteSeatType ( req : Request, res : Response) {
         // }
 
         // Delete the seat type
-        await prisma.seatType.update({
-            where: { id },
-            data: {
-                isActive: false, // Soft delete
+        // await prisma.seatType.update({
+        //     where: { id },
+        //     data: {
+        //         isActive: false, // Soft delete
+        //     },
+        // });
+
+        // Check if there are any seats associated with this seat type
+        const associatedSeats = await prisma.seat.findMany({
+            where: {
+                seatTypeId: id,
+                isActive: true, // Only check active seats
             },
+        });
+
+        if (associatedSeats.length > 0) {
+            res.status(400).json({
+                success: false,
+                error: 'Bad Request',
+                message: 'Cannot delete seat type with associated seats. Please delete the seats first.',
+            });
+            return;
+        }
+        
+        //completely delete the seat type
+        await prisma.seatType.delete({
+            where: { id },
         });
 
         res.status(200).json({

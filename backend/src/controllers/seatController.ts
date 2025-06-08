@@ -33,18 +33,13 @@ export const getLibrarySeats = async (req: Request, res: Response) => {
     const seats = await prisma.seat.findMany({
       where: {
         libraryId,
+        isActive: true, // Only fetch active seats
       },
       include: {
         seatType: true, // Include seat type details
         bookings: true
       },
     });
-
-    // const seattype = await prisma.seatType.findMany({
-    //   where: {
-    //     libraryId,
-    //   },
-    // });
 
 
     res.json({ success: true, data: { library, seats } });
@@ -278,23 +273,94 @@ export const deleteSeat = async (req: Request, res: Response) => {
       return;
     }
 
-    // Check if the seat exists
-    const seat = await prisma.seat.findUnique({
-      where: { id: seatId },
+    // Use a transaction to ensure data consistency
+    const result = await prisma.$transaction(async (tx) => {
+      // Check if the seat exists within the transaction
+      const seat = await tx.seat.findUnique({
+        where: { id: seatId },
+        include: {
+          bookings: {
+            select: {
+              id: true,
+              status: true,
+              date: true,
+              startTime: true,
+              endTime: true
+            }
+          }
+        }
+      });
+
+      if (!seat) {
+        throw new Error('SEAT_NOT_FOUND');
+      }
+
+      // Check if there are any active bookings
+      const activeBookings = seat.bookings.filter(booking => 
+        booking.status === 'CONFIRMED' || booking.status === 'PENDING'
+      );
+
+      if (activeBookings.length > 0) {
+        // throw new Error('ACTIVE_BOOKINGS_EXIST');
+        //delete all active bookings first
+        throw new Error('Cannot delete seat with active bookings. Please cancel all bookings first.');
+
+      }
+
+      // Delete all associated bookings first
+      await tx.seatBooking.deleteMany({
+        where: { seatId },
+      });
+
+      // Delete associated payments if any
+      await tx.payment.deleteMany({
+        where: {
+          seatBooking: {
+            seatId: seatId
+          }
+        }
+      });
+
+      // Delete the seat
+      const deletedSeat = await tx.seat.delete({
+        where: { id: seatId },
+      });
+
+      return deletedSeat;
     });
-    if (!seat) {
+
+    res.json({ 
+      success: true, 
+      message: 'Seat deleted successfully',
+      data: { deletedSeatId: result.id }
+    });
+
+  } catch (error: any) {
+    console.error('Error deleting seat:', error);
+    
+    // Handle specific error cases
+    if (error.message === 'SEAT_NOT_FOUND') {
       res.status(404).json({ success: false, error: 'Seat not found' });
       return;
     }
+    
+    if (error.message === 'ACTIVE_BOOKINGS_EXIST') {
+      res.status(400).json({ 
+        success: false, 
+        error: 'Cannot delete seat with active bookings. Please cancel all bookings first.' 
+      });
+      return;
+    }
 
-    //Delete the seat
-    await prisma.seat.delete({
-      where: { id: seatId },
-    });
+    // Handle Prisma P2025 error (record not found)
+    if (error.code === 'P2025') {
+      res.status(404).json({ 
+        success: false, 
+        error: 'Seat not found or already deleted' 
+      });
+      return;
+    }
 
-    res.json({ success: true, message: 'Seat deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting seat:', error);
     res.status(500).json({ success: false, error: 'Internal server error' });
   }
 };
