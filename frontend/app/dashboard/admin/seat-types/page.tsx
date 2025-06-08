@@ -366,7 +366,7 @@ export default function SeatTypesPage() {
   };
 
   return (
-    <div className="space-y-6 pb-30">
+    <div className="space-y-6 pb-30 min-w-[71vw]">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">
           Seat Types Management

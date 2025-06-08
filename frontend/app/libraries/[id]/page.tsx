@@ -242,7 +242,7 @@ export default function LibraryDetailsPage() {
           {/* Library Details */}
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 ">
             <div className="lg:col-span-2">
-              <Tabs defaultValue="overview overflow-scroll" >
+              <Tabs   defaultValue="overview">
                 <TabsList className="mb-4 rounded-lg gap-0">
                   <TabsTrigger className="border-2 text-xs p-1.5  sm:text-xl" value="overview">Overview</TabsTrigger>
                   <TabsTrigger className="border-2 text-xs p-1.5  sm:text-xl" value="seats">Seat Types</TabsTrigger>
@@ -414,12 +414,12 @@ export default function LibraryDetailsPage() {
                 <CardFooter>
                     {
                     !user ? (
-                      <Link className="w-full" href="/auth/login">
+                      <Link className="w-full bg-gray-400" href="/auth/login">
                         <Armchair className="mr-2 h-4 w-4" />
                         Login to Book
                       </Link>
                     ) : (
-                        <Button className="w-full" onClick={handleBookSeat}>
+                        <Button className="w-full bg-gray-400" onClick={handleBookSeat}>
                     <Armchair className="mr-2 h-4 w-4" />
                     Book Any Seat
                   </Button>
@@ -427,13 +427,6 @@ export default function LibraryDetailsPage() {
                     )
                 }
 
-                    
-                    {/* {user && (
-                      <Button className="w-full" onClick={handleBookSeat}>
-                        <Armchair className="mr-2 h-4 w-4" />
-                        Book Any Seat
-                      </Button>
-                    )} */}
                 </CardFooter>
               </Card>              {/* Membership Plans */}
               <Card>

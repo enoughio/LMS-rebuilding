@@ -384,7 +384,7 @@ import React from 'react'
 
 const page = () => {
   return (
-    <div>
+    <div className='min-w-[71vw]'>
       dashbopard admin page
       <p>Admin Dashboard is under construction</p>
     </div>

@@ -49,9 +49,7 @@ export default function SeatsPage() {
     if(!user?.libraryId ) {
       toast.error("You dont have a library associated with your account. Please contact support.")
       return
-    }
-
-    const fetchData = async () => {
+    }    const fetchData = async () => {
       if (!user?.libraryId) {
         toast.error("You must be associated with a library to manage seats")
         setLoading(false)
@@ -60,24 +58,46 @@ export default function SeatsPage() {
 
       setLoading(true)
       try {
-        const response = await fetch(`/api/seats/library/${user.libraryId}`)
-        if (!response.ok) {
-          const errorData = await response.json()
+        // Fetch seats and seat types separately
+        const seatsResponse = await fetch(`/api/seats/library/${user.libraryId}`)
+        const seatTypesResponse = await fetch(`/api/seats/seattype/libraries/${user.libraryId}`)
+        
+        // Check if both requests were successful
+        if (!seatsResponse.ok) {
+          const errorData = await seatsResponse.json()
           throw new Error(errorData.message || "Failed to fetch seats data")
         }
         
-        const result = await response.json()
+        if (!seatTypesResponse.ok) {
+          const errorData = await seatTypesResponse.json()
+          throw new Error(errorData.message || "Failed to fetch seat types data")
+        }
         
-        if (result.success && result.data) {
-          setSeats(result.data.seats || [])
-          setSeatTypes(result.data.seattype || [])
+        // Parse the responses
+        const seatsResult = await seatsResponse.json()
+        const seatTypesResult = await seatTypesResponse.json()
+        
+        // Handle seats data
+        if (seatsResult.success && seatsResult.data) {
+          console.log("Fetched seats data:", seatsResult)
+          const seatsData = seatsResult.data.seats || []
+          setSeats(seatsData)
+        } else {
+          throw new Error("Invalid seats response structure from server")
+        }
+        
+        // Handle seat types data
+        if (seatTypesResult.success && seatTypesResult.data) {
+          console.log("Fetched seat types data:", seatTypesResult)
+          const seatTypesData = seatTypesResult.data || []
+          setSeatTypes(seatTypesData)
           
           // Check if seat types are available for creating new seats
-          if (!result.data.seattype || result.data.seattype.length === 0) {
+          if (seatTypesData.length === 0) {
             toast.error("No seat types found. Please create seat types first before adding seats.")
           }
         } else {
-          throw new Error("Invalid response structure from server")
+          throw new Error("Invalid seat types response structure from server")
         }
     
       } catch (error) {
@@ -140,11 +160,12 @@ export default function SeatsPage() {
         }
 
         await response.json()
-        
-        // Update state with the edited seat
+          // Update state with the edited seat
+        const selectedSeatTypeForUpdate = seatTypes.find((st) => st.id === formData.seatTypeId)
         const updatedSeat: Seat = {
           ...editingSeat,
           ...updatedSeatData,
+          seatType: selectedSeatTypeForUpdate, // Include the nested seatType object
           updatedAt: new Date().toISOString(),
         }
         setSeats((prev) => prev.map((seat) => (seat.id === editingSeat.id ? updatedSeat : seat)))
@@ -183,12 +204,12 @@ export default function SeatsPage() {
         }
 
         const result = await response.json()
-        
-        // Add the new seat with the ID returned from the server
+          // Add the new seat with the ID returned from the server
         const newSeat: Seat = {
           id: result.data.id || `seat-${Date.now()}`,
           name: formData.name,
           seatTypeId: formData.seatTypeId,
+          seatType: selectedSeatType, // Include the nested seatType object
           libraryId: user.libraryId,
           isAvailable: true,
           position: { x: formData.positionX, y: formData.positionY },
@@ -284,9 +305,8 @@ export default function SeatsPage() {
     })
     setEditingSeat(null)
   }
-
   const getSeatsByType = (seatTypeId: string) => {
-    return seats.filter((seat) => seat.seatTypeId === seatTypeId)
+    return seats.filter((seat) => seat.seatType?.id === seatTypeId || seat.seatTypeId === seatTypeId)
   }
 
   return (
@@ -458,7 +478,7 @@ export default function SeatsPage() {
                               </span>
                             </div>
 
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between flex-col">
                               <Badge variant={seat.isAvailable ? "default" : "destructive"}>
                                 {seat.isAvailable ? "Available" : "Occupied"}
                               </Badge>

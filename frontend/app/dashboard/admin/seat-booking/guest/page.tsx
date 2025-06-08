@@ -1,234 +1,285 @@
-// "use client"
+// "use client";
 
-// import { useState, useEffect } from "react"
-// import { useParams, useRouter, useSearchParams } from "next/navigation"
-// import Link from "next/link"
-// import { ArrowLeft, Armchair, CreditCard, Loader2, Download, CheckCircle, User } from "lucide-react"
-// import toast from 'react-hot-toast'
+// import { useState, useEffect } from "react";
+// import { useParams, useRouter, useSearchParams } from "next/navigation";
+// import Link from "next/link";
+// import {
+//   ArrowLeft,
+//   Armchair,
+//   CreditCard,
+//   Loader2,
+//   Download,
+//   CheckCircle,
+//   User,
+// } from "lucide-react";
+// import toast from "react-hot-toast";
 
-// import { Button } from "@/components/ui/button"
-// import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-// import { Separator } from "@/components/ui/separator"
-// import { Badge } from "@/components/ui/badge"
-// import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-// import { Input } from "@/components/ui/input"
-// import { Label } from "@/components/ui/label"
-// import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+// import { Button } from "@/components/ui/button";
+// import {
+//   Card,
+//   CardContent,
+//   CardDescription,
+//   CardFooter,
+//   CardHeader,
+//   CardTitle,
+// } from "@/components/ui/card";
+// import { Separator } from "@/components/ui/separator";
+// import { Badge } from "@/components/ui/badge";
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogDescription,
+//   DialogFooter,
+//   DialogHeader,
+//   DialogTitle,
+// } from "@/components/ui/dialog";
+// import { Input } from "@/components/ui/input";
+// import { Label } from "@/components/ui/label";
+// import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+// import { useAuth } from "@/lib/context/AuthContext";
 
 // // Interface for seat data from API
 // interface SeatData {
-//   id: string
-//   name: string
-//   position: unknown
-//   isAvailable: boolean
-//   isActive: boolean
-//   seatTypeId: string
-//   libraryId: string
+//   id: string;
+//   name: string;
+//   position: unknown;
+//   isAvailable: boolean;
+//   isActive: boolean;
+//   seatTypeId: string;
+//   libraryId: string;
 //   seatType: {
-//     id: string
-//     name: string
-//     pricePerHour: number
-//     description: string
-//     color: string
-//     amenities: string[]
-//     isActive: boolean
-//     libraryId: string
-//   }
-//   bookings: unknown[]
+//     id: string;
+//     name: string;
+//     pricePerHour: number;
+//     description: string;
+//     color: string;
+//     amenities: string[];
+//     isActive: boolean;
+//     libraryId: string;
+//   };
+//   bookings: unknown[];
 // }
 
 // // Interface for availability API response
 // interface AvailabilitySeat {
-//   seatId: string
-//   name: string
+//   seatId: string;
+//   name: string;
 //   seatType: {
-//     id: string
-//     name: string
-//     pricePerHour: number
-//     description: string
-//     color: string
-//     amenities: string[]
-//   }
-//   isAvailable: boolean
-//   isActive: boolean
+//     id: string;
+//     name: string;
+//     pricePerHour: number;
+//     description: string;
+//     color: string;
+//     amenities: string[];
+//   };
+//   isAvailable: boolean;
+//   isActive: boolean;
 //   bookedSlots: {
-//     bookingId: string
-//     startTime: string
-//     endTime: string
-//     status: string
-//   }[]
-//   totalBookings: number
+//     bookingId: string;
+//     startTime: string;
+//     endTime: string;
+//     status: string;
+//   }[];
+//   totalBookings: number;
 // }
 
 // interface LibraryData {
-//   id: string
-//   name: string
-//   address: string
-//   description: string
-//   email: string
-//   phone: string
+//   id: string;
+//   name: string;
+//   address: string;
+//   description: string;
+//   email: string;
+//   phone: string;
 // }
 
 // export default function GuestBookingSeatPage() {
-//   const { id } = useParams()
-//   const searchParams = useSearchParams()
-//   const seatTypeId = searchParams.get("seatType")
+//   const { user, isLoading: authLoading } = useAuth();
+//   const searchParams = useSearchParams();
+//   const seatTypeId = searchParams.get("seatType");
 
-
-//   const [library, setLibrary] = useState<LibraryData | null>(null)
-//   const [allSeats, setAllSeats] = useState<SeatData[]>([])
-//   const [filteredSeats, setFilteredSeats] = useState<SeatData[]>([])
-//   const [selectedSeat, setSelectedSeat] = useState<string | null>(null)
-//   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0])
-//   const [selectedTime, setSelectedTime] = useState<string>('09:00')
-//   const [duration, setDuration] = useState<number>(1)
-//   const [loading, setLoading] = useState(true)
-//   const [loadingAvailability, setLoadingAvailability] = useState(false)
-//   const [bookingInProgress, setBookingInProgress] = useState(false)
-//   const [error, setError] = useState<string | null>(null)
+//   const [library, setLibrary] = useState<LibraryData | null>(null);
+//   const [allSeats, setAllSeats] = useState<SeatData[]>([]);
+//   const [filteredSeats, setFilteredSeats] = useState<SeatData[]>([]);
+//   const [selectedSeat, setSelectedSeat] = useState<string | null>(null);
+//   const [selectedDate, setSelectedDate] = useState<string>(
+//     new Date().toISOString().split("T")[0]
+//   );
+//   const [selectedTime, setSelectedTime] = useState<string>("09:00");
+//   const [duration, setDuration] = useState<number>(1);
+//   const [loading, setLoading] = useState(true);
+//   const [loadingAvailability, setLoadingAvailability] = useState(false);
+//   const [bookingInProgress, setBookingInProgress] = useState(false);
+//   const [error, setError] = useState<string | null>(null);
 
 //   // Guest information
-//   const [guestName, setGuestName] = useState<string>('')
-//   const [guestEmail, setGuestEmail] = useState<string>('')
-//   const [guestPhone, setGuestPhone] = useState<string>('')
+//   const [guestName, setGuestName] = useState<string>("");
+//   const [guestEmail, setGuestEmail] = useState<string>("");
+//   const [guestPhone, setGuestPhone] = useState<string>("");
 
 //   // Fetch initial library and seats data
 //   useEffect(() => {
 //     const fetchLibraryAndSeats = async () => {
-//       if (!id) return
+//       if (!user || !user.libraryId) {
+//         setError("You must be logged in to book a seat");
+//         return;
+//       }
 
-//       setLoading(true)
-//       setError(null)
-      
+//       setLoading(true);
+//       setError(null);
+
 //       try {
 //         // Fetch library details
-//         const libraryResponse = await fetch(`/api/libraries`)
-//         const libraryResult = await libraryResponse.json()
-        
+//         const [seatResponse, seatTypesResponse] = await Promise.all([
+//           // fetch(`/api/libraries/${user.libraryId}`),
+//            fetch(`/api/seats/library/${user.libraryId}`)
+//           fetch(`/api/seats/seattype/libraries/${user.libraryId}`),
+//         ]);
+
+//         const libraryResult = await libraryResponse.json();
+
 //         if (!libraryResult.success) {
-//           throw new Error(libraryResult.message || 'Failed to fetch library data')
+//           throw new Error(
+//             libraryResult.message || "Failed to fetch library data"
+//           );
 //         }
 
-//         const libraryData = libraryResult.data.find((lib: any) => lib.id === id)
+//         const libraryData = libraryResult.data.find(
+//           (lib: any) => lib.id === id
+//         );
 //         if (!libraryData) {
-//           throw new Error('Library not found')
+//           throw new Error("Library not found");
 //         }
-//         setLibrary(libraryData)
+//         setLibrary(libraryData);
 
 //         // Fetch seats data
-//         const seatsResponse = await fetch(`/api/seats/library/${id}`)
-//         const seatsResult = await seatsResponse.json()
-        
+//         const seatsResponse = await fetch(`/api/seats/library/${id}`);
+//         const seatsResult = await seatsResponse.json();
+
 //         if (!seatsResult.success) {
-//           throw new Error(seatsResult.message || 'Failed to fetch seats data')
+//           throw new Error(seatsResult.message || "Failed to fetch seats data");
 //         }
 
-//         setAllSeats(seatsResult.data)
+//         setAllSeats(seatsResult.data);
 
 //         // Filter seats by seat type if specified
-//         const filtered = seatTypeId 
-//           ? seatsResult.data.filter((seat: SeatData) => seat.seatTypeId === seatTypeId)
-//           : seatsResult.data
+//         const filtered = seatTypeId
+//           ? seatsResult.data.filter(
+//               (seat: SeatData) => seat.seatTypeId === seatTypeId
+//             )
+//           : seatsResult.data;
 
-//         setFilteredSeats(filtered)
-
+//         setFilteredSeats(filtered);
 //       } catch (error) {
-//         console.error("Error fetching data:", error)
-//         const errorMessage = error instanceof Error ? error.message : 'Failed to load seat selection data'
-//         setError(errorMessage)
-//         toast.error(errorMessage, { duration: 3000 })
+//         console.error("Error fetching data:", error);
+//         const errorMessage =
+//           error instanceof Error
+//             ? error.message
+//             : "Failed to load seat selection data";
+//         setError(errorMessage);
+//         toast.error(errorMessage, { duration: 3000 });
 //       } finally {
-//         setLoading(false)
+//         setLoading(false);
 //       }
-//     }
+//     };
 
-//     fetchLibraryAndSeats()
-//   }, [id, seatTypeId])
+//     fetchLibraryAndSeats();
+//   }, [id, seatTypeId, user, authLoading]);
 
 //   // Effect to check availability when date changes
 //   useEffect(() => {
 //     const checkSeatAvailability = async (date: string) => {
-//       if (!id) return
+//       if (!id) return;
 
-//       setLoadingAvailability(true)
-      
+//       setLoadingAvailability(true);
+
 //       try {
-//         const params = new URLSearchParams({ date })
-//         if (seatTypeId) params.append('seatType', seatTypeId)
+//         const params = new URLSearchParams({ date });
+//         if (seatTypeId) params.append("seatType", seatTypeId);
 
-//         const response = await fetch(`/api/seats/library/${id}/availability?${params.toString()}`)
-//         const result = await response.json()
+//         const response = await fetch(
+//           `/api/seats/library/${id}/availability?${params.toString()}`
+//         );
+//         const result = await response.json();
 
 //         if (!result.success) {
-//           throw new Error(result.message || 'Failed to check seat availability')
+//           throw new Error(
+//             result.message || "Failed to check seat availability"
+//           );
 //         }
 
 //         // Update filtered seats with availability info
-//         const availabilityData = result.data.availability as AvailabilitySeat[]
-//         const updatedSeats = filteredSeats.map(seat => {
-//           const availInfo = availabilityData.find(avail => avail.seatId === seat.id)
+//         const availabilityData = result.data.availability as AvailabilitySeat[];
+//         const updatedSeats = filteredSeats.map((seat) => {
+//           const availInfo = availabilityData.find(
+//             (avail) => avail.seatId === seat.id
+//           );
 //           return {
 //             ...seat,
-//             isAvailable: availInfo?.isAvailable ?? seat.isAvailable
-//           }
-//         })
+//             isAvailable: availInfo?.isAvailable ?? seat.isAvailable,
+//           };
+//         });
 
-//         setFilteredSeats(updatedSeats)
+//         setFilteredSeats(updatedSeats);
 
 //         // Clear selection if currently selected seat is no longer available
 //         if (selectedSeat) {
-//           const selectedSeatInfo = updatedSeats.find(s => s.id === selectedSeat)
+//           const selectedSeatInfo = updatedSeats.find(
+//             (s) => s.id === selectedSeat
+//           );
 //           if (!selectedSeatInfo?.isAvailable) {
-//             setSelectedSeat(null)
+//             setSelectedSeat(null);
 //           }
 //         }
-
 //       } catch (error) {
-//         console.error("Error checking seat availability:", error)
-//         toast.error('Failed to check seat availability', { duration: 2000 })
+//         console.error("Error checking seat availability:", error);
+//         toast.error("Failed to check seat availability", { duration: 2000 });
 //       } finally {
-//         setLoadingAvailability(false)
+//         setLoadingAvailability(false);
 //       }
-//     }
+//     };
 
 //     if (selectedDate && allSeats.length > 0) {
-//       checkSeatAvailability(selectedDate)
+//       checkSeatAvailability(selectedDate);
 //     }
-//   }, [selectedDate, allSeats, seatTypeId, id, selectedSeat])
+//   }, [selectedDate, allSeats, seatTypeId, id, selectedSeat]);
 
 //   const handleDateChange = (date: string) => {
-//     setSelectedDate(date)
-//     setSelectedSeat(null) // Clear selection when date changes
-//   }
+//     setSelectedDate(date);
+//     setSelectedSeat(null); // Clear selection when date changes
+//   };
 
-//   const [bookingResult, setBookingResult] = useState<any>(null)
-//   const [showBillDownload, setShowBillDownload] = useState(false)
+//   const [bookingResult, setBookingResult] = useState<any>(null);
+//   const [showBillDownload, setShowBillDownload] = useState(false);
 
 //   const handleBookSeat = async () => {
 //     if (!selectedSeat) {
-//       toast.error('Please select a seat to continue', { duration: 2000 })
-//       return
+//       toast.error("Please select a seat to continue", { duration: 2000 });
+//       return;
 //     }
 
 //     if (!guestName || !guestEmail || !guestPhone) {
-//       toast.error('Please fill in all guest information fields', { duration: 2000 })
-//       return
+//       toast.error("Please fill in all guest information fields", {
+//         duration: 2000,
+//       });
+//       return;
 //     }
 
-//     setBookingInProgress(true)
+//     setBookingInProgress(true);
 
 //     try {
-//       const selectedSeatData = filteredSeats.find(s => s.id === selectedSeat)
+//       const selectedSeatData = filteredSeats.find((s) => s.id === selectedSeat);
 //       if (!selectedSeatData) {
-//         throw new Error('Selected seat not found')
+//         throw new Error("Selected seat not found");
 //       }
 
 //       // Calculate end time based on start time and duration
-//       const startHour = parseInt(selectedTime.split(':')[0])
-//       const startMinute = parseInt(selectedTime.split(':')[1])
-//       const endHour = startHour + duration
-//       const endMinute = startMinute
-//       const endTime = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`
+//       const startHour = parseInt(selectedTime.split(":")[0]);
+//       const startMinute = parseInt(selectedTime.split(":")[1]);
+//       const endHour = startHour + duration;
+//       const endMinute = startMinute;
+//       const endTime = `${endHour.toString().padStart(2, "0")}:${endMinute
+//         .toString()
+//         .padStart(2, "0")}`;
 
 //       const bookingData = {
 //         seatId: selectedSeat,
@@ -236,88 +287,98 @@
 //         startTime: selectedTime,
 //         endTime: endTime,
 //         duration: duration,
-//         paymentMethod: 'OFFLINE',
+//         paymentMethod: "OFFLINE",
 //         guestBooking: {
 //           name: guestName,
 //           email: guestEmail,
-//           phone: guestPhone
-//         }
-//       }
+//           phone: guestPhone,
+//         },
+//       };
 
 //       const response = await fetch(`/api/seats/library/${id}/book-guest`, {
-//         method: 'POST',
+//         method: "POST",
 //         headers: {
-//           'Content-Type': 'application/json'
+//           "Content-Type": "application/json",
 //         },
-//         body: JSON.stringify(bookingData)
-//       })
+//         body: JSON.stringify(bookingData),
+//       });
 
-//       const result = await response.json()
+//       const result = await response.json();
 
 //       if (!response.ok) {
-//         throw new Error(result.error || 'Failed to book seat')
+//         throw new Error(result.error || "Failed to book seat");
 //       }
 
 //       if (!result.success) {
-//         throw new Error(result.error || 'Booking failed')
+//         throw new Error(result.error || "Booking failed");
 //       }
 
-//       setBookingResult(result.data)
-//       setShowBillDownload(true)
-//       toast.success(`Your ${selectedSeatData.seatType.name} seat has been booked successfully!`, { duration: 3000 })
+//       setBookingResult(result.data);
+//       setShowBillDownload(true);
+//       toast.success(
+//         `Your ${selectedSeatData.seatType.name} seat has been booked successfully!`,
+//         { duration: 3000 }
+//       );
 
 //       // Update seat availability immediately
-//       const updatedSeats = filteredSeats.map(seat => 
+//       const updatedSeats = filteredSeats.map((seat) =>
 //         seat.id === selectedSeat ? { ...seat, isAvailable: false } : seat
-//       )
-//       setFilteredSeats(updatedSeats)
-//       setSelectedSeat(null)
-
+//       );
+//       setFilteredSeats(updatedSeats);
+//       setSelectedSeat(null);
 //     } catch (error) {
-//       console.error("Error booking seat:", error)
-//       const errorMessage = error instanceof Error ? error.message : 'There was an error booking your seat. Please try again.'
-//       toast.error(errorMessage, { duration: 3000 })
+//       console.error("Error booking seat:", error);
+//       const errorMessage =
+//         error instanceof Error
+//           ? error.message
+//           : "There was an error booking your seat. Please try again.";
+//       toast.error(errorMessage, { duration: 3000 });
 //     } finally {
-//       setBookingInProgress(false)
+//       setBookingInProgress(false);
 //     }
-//   }
+//   };
 
 //   const handleDownloadBill = async () => {
 //     if (!bookingResult?.booking?.id) {
-//       toast.error('Booking information not available', { duration: 2000 })
-//       return
+//       toast.error("Booking information not available", { duration: 2000 });
+//       return;
 //     }
 
 //     try {
-//       const response = await fetch(`/api/seats/download-bill/${bookingResult.booking.id}`, {
-//         method: 'GET'
-//       })
+//       const response = await fetch(
+//         `/api/seats/download-bill/${bookingResult.booking.id}`,
+//         {
+//           method: "GET",
+//         }
+//       );
 
 //       if (!response.ok) {
-//         throw new Error('Failed to download bill')
+//         throw new Error("Failed to download bill");
 //       }
 
 //       // Create blob and download
-//       const blob = await response.blob()
-//       const url = window.URL.createObjectURL(blob)
-//       const a = document.createElement('a')
-//       a.href = url
-//       a.download = `booking_bill_${bookingResult.booking.id}.pdf`
-//       document.body.appendChild(a)
-//       a.click()
-//       window.URL.revokeObjectURL(url)
-//       document.body.removeChild(a)
+//       const blob = await response.blob();
+//       const url = window.URL.createObjectURL(blob);
+//       const a = document.createElement("a");
+//       a.href = url;
+//       a.download = `booking_bill_${bookingResult.booking.id}.pdf`;
+//       document.body.appendChild(a);
+//       a.click();
+//       window.URL.revokeObjectURL(url);
+//       document.body.removeChild(a);
 
-//       toast.success('Bill downloaded successfully!', { duration: 2000 })
+//       toast.success("Bill downloaded successfully!", { duration: 2000 });
 //     } catch (error) {
-//       console.error("Error downloading bill:", error)
-//       toast.error('Failed to download bill. Please try again.', { duration: 2000 })
+//       console.error("Error downloading bill:", error);
+//       toast.error("Failed to download bill. Please try again.", {
+//         duration: 2000,
+//       });
 //     }
-//   }
+//   };
 
 //   if (loading) {
 //     return (
-//       <div className="flex min-h-screen flex-col">
+//       <div className="flex min-h-screen flex-col min-w-[70vw]">
 //         <div className="container flex flex-1 items-center justify-center py-12">
 //           <div className="flex flex-col items-center gap-2">
 //             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -325,12 +386,12 @@
 //           </div>
 //         </div>
 //       </div>
-//     )
+//     );
 //   }
 
 //   if (error || !library) {
 //     return (
-//       <div className="flex min-h-screen flex-col">
+//       <div className="flex min-h-screen flex-col min-w-[70vw]">
 //         <div className="container flex flex-1 items-center justify-center py-12">
 //           <Card className="w-full max-w-md">
 //             <CardHeader>
@@ -338,7 +399,7 @@
 //             </CardHeader>
 //             <CardContent className="text-center">
 //               <p className="text-muted-foreground mb-4">
-//                 {error || 'Library not found'}
+//                 {error || "Library not found"}
 //               </p>
 //               <Button asChild variant="outline">
 //                 <Link href="/libraries">Back to Libraries</Link>
@@ -347,12 +408,15 @@
 //           </Card>
 //         </div>
 //       </div>
-//     )
+//     );
 //   }
 
 //   // Get seat type info from the first filtered seat (they all have same seat type)
-//   const selectedSeatType = filteredSeats.length > 0 ? filteredSeats[0].seatType : null
-//   const totalPrice = selectedSeatType ? selectedSeatType.pricePerHour * duration : 0
+//   const selectedSeatType =
+//     filteredSeats.length > 0 ? filteredSeats[0].seatType : null;
+//   const totalPrice = selectedSeatType
+//     ? selectedSeatType.pricePerHour * duration
+//     : 0;
 
 //   return (
 //     <div className="flex min-h-screen flex-col md:pb-30">
@@ -430,7 +494,8 @@
 //                 Available Seats
 //                 {selectedSeatType && (
 //                   <Badge variant="secondary">
-//                     {selectedSeatType.name} - ₹{selectedSeatType.pricePerHour}/hour
+//                     {selectedSeatType.name} - ₹{selectedSeatType.pricePerHour}
+//                     /hour
 //                   </Badge>
 //                 )}
 //               </CardTitle>
@@ -447,7 +512,7 @@
 //                     id="date"
 //                     type="date"
 //                     value={selectedDate}
-//                     min={new Date().toISOString().split('T')[0]}
+//                     min={new Date().toISOString().split("T")[0]}
 //                     onChange={(e) => handleDateChange(e.target.value)}
 //                   />
 //                 </div>
@@ -504,17 +569,17 @@
 //                       disabled={!seat.isAvailable}
 //                       onClick={() => setSelectedSeat(seat.id)}
 //                       className={`h-12 ${
-//                         !seat.isAvailable 
-//                           ? 'opacity-50 cursor-not-allowed' 
+//                         !seat.isAvailable
+//                           ? "opacity-50 cursor-not-allowed"
 //                           : selectedSeat === seat.id
-//                           ? 'bg-primary text-primary-foreground'
-//                           : 'hover:bg-accent'
+//                           ? "bg-primary text-primary-foreground"
+//                           : "hover:bg-accent"
 //                       }`}
 //                     >
 //                       <div className="text-center">
 //                         <div className="text-xs font-medium">{seat.name}</div>
 //                         <div className="text-xs opacity-75">
-//                           {seat.isAvailable ? 'Available' : 'Booked'}
+//                           {seat.isAvailable ? "Available" : "Booked"}
 //                         </div>
 //                       </div>
 //                     </Button>
@@ -546,7 +611,7 @@
 //                   <div className="flex justify-between">
 //                     <span className="text-muted-foreground">Seat:</span>
 //                     <span className="font-medium">
-//                       {filteredSeats.find(s => s.id === selectedSeat)?.name}
+//                       {filteredSeats.find((s) => s.id === selectedSeat)?.name}
 //                     </span>
 //                   </div>
 //                   <div className="flex justify-between">
@@ -560,18 +625,25 @@
 //                   <div className="flex justify-between">
 //                     <span className="text-muted-foreground">Time:</span>
 //                     <span className="font-medium">
-//                       {selectedTime} - {`${(parseInt(selectedTime.split(':')[0]) + duration).toString().padStart(2, '0')}:${selectedTime.split(':')[1]}`}
+//                       {selectedTime} -{" "}
+//                       {`${(parseInt(selectedTime.split(":")[0]) + duration)
+//                         .toString()
+//                         .padStart(2, "0")}:${selectedTime.split(":")[1]}`}
 //                     </span>
 //                   </div>
 //                 </div>
 //                 <div className="space-y-2">
 //                   <div className="flex justify-between">
 //                     <span className="text-muted-foreground">Duration:</span>
-//                     <span className="font-medium">{duration} hour{duration > 1 ? 's' : ''}</span>
+//                     <span className="font-medium">
+//                       {duration} hour{duration > 1 ? "s" : ""}
+//                     </span>
 //                   </div>
 //                   <div className="flex justify-between">
 //                     <span className="text-muted-foreground">Rate:</span>
-//                     <span className="font-medium">₹{selectedSeatType.pricePerHour}/hour</span>
+//                     <span className="font-medium">
+//                       ₹{selectedSeatType.pricePerHour}/hour
+//                     </span>
 //                   </div>
 //                   <Separator />
 //                   <div className="flex justify-between text-lg font-semibold">
@@ -582,9 +654,11 @@
 //               </div>
 //             </CardContent>
 //             <CardFooter>
-//               <Button 
-//                 onClick={handleBookSeat} 
-//                 disabled={bookingInProgress || !guestName || !guestEmail || !guestPhone}
+//               <Button
+//                 onClick={handleBookSeat}
+//                 disabled={
+//                   bookingInProgress || !guestName || !guestEmail || !guestPhone
+//                 }
 //                 className="w-full"
 //                 size="lg"
 //               >
@@ -611,10 +685,11 @@
 //               Booking Confirmed!
 //             </DialogTitle>
 //             <DialogDescription>
-//               Your seat has been successfully booked. You can download your booking bill below.
+//               Your seat has been successfully booked. You can download your
+//               booking bill below.
 //             </DialogDescription>
 //           </DialogHeader>
-          
+
 //           {bookingResult && (
 //             <div className="space-y-2 py-4">
 //               <div className="flex justify-between">
@@ -623,13 +698,18 @@
 //               </div>
 //               <div className="flex justify-between">
 //                 <span className="text-muted-foreground">Amount Paid:</span>
-//                 <span className="font-medium">₹{bookingResult.payment.amount}</span>
+//                 <span className="font-medium">
+//                   ₹{bookingResult.payment.amount}
+//                 </span>
 //               </div>
 //             </div>
 //           )}
 
 //           <DialogFooter className="flex-col gap-2 sm:flex-row">
-//             <Button variant="outline" onClick={() => setShowBillDownload(false)}>
+//             <Button
+//               variant="outline"
+//               onClick={() => setShowBillDownload(false)}
+//             >
 //               Close
 //             </Button>
 //             <Button onClick={handleDownloadBill} className="gap-2">
@@ -640,15 +720,32 @@
 //         </DialogContent>
 //       </Dialog>
 //     </div>
-//   )
+//   );
 // }
 
+// // import React from 'react'
 
+// // const page = () => {
+// //   return (
+// //     <div>you are guest</div>
+// //   )
+// // }
+
+// // export default page
 import React from 'react'
 
 const page = () => {
   return (
-    <div>you are guest</div>
+    <div>
+
+      Guest Booking Page
+      <p>
+        This page is for guest booking. Please log in to book a seat.
+      </p>
+      <p>
+        If you are a guest, please contact the library staff for assistance with booking a seat.
+      </p>
+    </div>
   )
 }
 

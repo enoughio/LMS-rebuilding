@@ -1,54 +1,45 @@
-import { NextResponse } from 'next/server';
+import { auth0 } from '@/lib/auth0';
+import { NextRequest, NextResponse } from 'next/server';
+const API_URL = process.env.NODE_BACKEND_URL || 'http://localhost:5000';
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ libraryId: string }> }
-) {
-
+// GET - Fetch all seat bookings for a library
+export const GET = (async function handler(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { libraryId } = await params;
+    // const { accessToken } = await getAccessToken(req, NextResponse.next());
+    const { id: libraryId } = await params;
+  
+    if (!libraryId) {
+      return NextResponse.json({ error: 'Library ID is required' }, { status: 400 });
+    }
+  
+    const session = await auth0.getSession()
+    if(!session){
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    const { searchParams } = new URL(request.url);
-    const page = searchParams.get('page') || '1';
-    const limit = searchParams.get('limit') || '10';
-    const search = searchParams.get('search') || '';
-    const status = searchParams.get('status') || '';
-    const startDate = searchParams.get('startDate') || '';
-    const endDate = searchParams.get('endDate') || '';
+    const { token: accessToken } = await auth0.getAccessToken()
+    if (!accessToken) {
+      return NextResponse.json({ error: 'Access token is required' }, { status: 401 });
+    }
 
-    const url = new URL(`/api/libraries/${libraryId}/bookings`, 
-      process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'
-    );
-    
-    // Add query parameters
-    url.searchParams.set('page', page);
-    url.searchParams.set('limit', limit);
-    if (search) url.searchParams.set('search', search);
-    if (status) url.searchParams.set('status', status);
-    if (startDate) url.searchParams.set('startDate', startDate);
-    if (endDate) url.searchParams.set('endDate', endDate);
-
-    const response = await fetch(url.toString(), {
+    const response = await fetch(`${API_URL}/api/seat-bookings/${libraryId}`, {
       method: 'GET',
       headers: {
+        'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
-        // Forward cookies for authentication
-        'Cookie': request.headers.get('cookie') || '',
       },
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      return NextResponse.json(errorData, { status: response.status });
+      const error = await response.json();
+      return NextResponse.json({ error: error.error || 'Failed to fetch bookings' }, { status: response.status });
     }
 
-    const data = await response.json();
-    return NextResponse.json(data);
+    const bookings = await response.json();
+    return NextResponse.json(bookings);
+
   } catch (error) {
-    console.error('Error fetching library bookings:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error', message: 'Failed to fetch library bookings' },
-      { status: 500 }
-    );
+    console.error('Error fetching seat bookings:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
+});

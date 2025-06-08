@@ -137,6 +137,7 @@ export type Seat = {
   id: string
   name: string // e.g., "A-001", "Computer-01", "Study Room-1"
   seatTypeId: string // Reference to SeatType
+  seatType?: SeatType // Nested SeatType object from new API response
   isAvailable?: boolean
   isActive?: boolean
   createdAt?: string
@@ -146,7 +147,8 @@ export type Seat = {
     x: number // X coordinate for UI representation
     y: number // Y coordinate for UI representation
   }
-  booking?: SeatBooking // Optional relation to latest booking  
+  booking?: SeatBooking // Optional relation to latest booking
+  bookings?: SeatBooking[] // Array of bookings from new API response
 }
 
 export type SeatBooking = {

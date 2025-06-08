@@ -26,6 +26,7 @@ export async function GET(
       );
     }
 
+    //get all seats for a library
     const response = await fetch(`${API_URL}/api/seats/library/${libraryId}/seats`, {
       method: "GET",
       headers: {

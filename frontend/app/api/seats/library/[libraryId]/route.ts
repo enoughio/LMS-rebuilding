@@ -15,6 +15,7 @@ export async function GET( request: Request,
       );
     }
 
+    console.log("Fetching seats for library ID:", id);
     const API_BASE_URL = process.env.NODE_BACKEND_URL || "http://localhost:5000";
     const response = await fetch(
       `${API_BASE_URL}/api/seats/${id}/`,
