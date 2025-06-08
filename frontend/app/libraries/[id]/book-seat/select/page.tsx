@@ -404,7 +404,7 @@ export default function SelectSeatPage() {
   const totalPrice = selectedSeatType ? selectedSeatType.pricePerHour * duration : 0
 
   return (
-    <div className="flex min-h-screen flex-col md:pb-30">
+    <div className="flex min-h-screen flex-col md:pb-30 p-2">
       {/* <Navbar /> */}
 
       <div className="container py-6 md:py-8">
@@ -477,7 +477,7 @@ export default function SelectSeatPage() {
                         <Button
                           key={seat.id}
                           variant={selectedSeat === seat.id ? "default" : "outline"}
-                          className={`h-12 bg-green-100 ${!seat.isAvailable ? "opacity-50 cursor-not-allowed" : ""}`}
+                          className={`h-12 bg-green-100 min-w-fit ${!seat.isAvailable ? "opacity-50 cursor-not-allowed" : ""}`}
                           disabled={!seat.isAvailable}
                           onClick={() => setSelectedSeat(seat.id)}
                         >

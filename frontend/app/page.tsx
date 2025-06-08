@@ -10,7 +10,7 @@ import Advertisement from "@/components/home/Advertisement";
 export default function App() {
   return (
 
-      <main className="max-w-[1920px] mx-auto">
+      <main className="sm:max-w-[100vw] xl:max-w-[1920px] mx-auto">
         <Hero />
         <Advertisement />
         <SmartLibrary />

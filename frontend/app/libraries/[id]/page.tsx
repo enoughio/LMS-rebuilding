@@ -183,7 +183,7 @@ export default function LibraryDetailsPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col w-full ">
+    <div className="flex min-h-screen flex-col w-full p-2">
 
       <div className="container py-6 md:py-8 w-full">
         <div className="flex flex-col gap-8">
@@ -240,14 +240,14 @@ export default function LibraryDetailsPage() {
           </div>
 
           {/* Library Details */}
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 max-w-[100vw]">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 ">
             <div className="lg:col-span-2">
-              <Tabs defaultValue="overview" >
-                <TabsList className="mb-4  rounded-lg">
-                  <TabsTrigger className="border-2 text-xl" value="overview">Overview</TabsTrigger>
-                  <TabsTrigger className="border-2 text-xl" value="seats">Seat Types</TabsTrigger>
-                  <TabsTrigger className="border-2 text-xl" value="amenities">Amenities</TabsTrigger>
-                  <TabsTrigger className="border-2 text-xl" value="hours">Opening Hours</TabsTrigger>
+              <Tabs defaultValue="overview overflow-scroll" >
+                <TabsList className="mb-4 rounded-lg gap-0">
+                  <TabsTrigger className="border-2 text-xs p-1.5  sm:text-xl" value="overview">Overview</TabsTrigger>
+                  <TabsTrigger className="border-2 text-xs p-1.5  sm:text-xl" value="seats">Seat Types</TabsTrigger>
+                  <TabsTrigger className="border-2 text-xs p-1.5  sm:text-xl" value="amenities">Amenities</TabsTrigger>
+                  <TabsTrigger className="border-2 text-xs p-1.5  sm:text-xl" value="hours">Opening Hours</TabsTrigger>
                 </TabsList>               
                 
                 <TabsContent value="overview" className="space-y-4">

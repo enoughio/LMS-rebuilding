@@ -217,7 +217,7 @@ const SearchBar = memo(({ search, onSearchChange, onSearch, onClear, onToggleFil
         <button className="text-gray-500 hover:text-black font-medium" onClick={onClear}>
           Clear
         </button>
-        <button className="ml-4 px-6 py-2 rounded-full bg-black text-white font-semibold" onClick={onSearch}>
+        <button className="ml-4 md:px-6 py-2 rounded-full bg-black text-white font-semibold" onClick={onSearch}>
           Search
         </button>
       </div>
@@ -234,7 +234,7 @@ const SearchBar = memo(({ search, onSearchChange, onSearch, onClear, onToggleFil
             onChange={(e) => onSearchChange(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && onSearch()}
           />
-          <button className="ml-2 px-6 py-2 rounded-full bg-black text-white font-semibold" onClick={onSearch}>
+          <button className="ml-2 px-2 text-sm  sm:px-6 sm:py-2 rounded-full bg-black text-white  sm:font-semibold" onClick={onSearch}>
             Search
           </button>
         </div>
@@ -634,7 +634,7 @@ const LibraryList: React.FC = () => {
 
 export default function LibrariesPage() {
   return (
-    <div className="bg-[#ECE3DA] text-black min-h-screen min-w-[100vw] font-sans w-full md:px-10 ">
+    <div className="bg-[#ECE3DA] text-black min-h-screen max-w-[100vw] xl:max-w-[1920px] font-sans w-full md:px-10 ">
       <Toaster position="top-right" />
       <div className="max-w-full mx-auto px-4 sm:px-4 md:px-8 lg:px-12 py-8">
         <h1 className="text-2xl sm:text-3xl font-thin mb-2 text-center ">

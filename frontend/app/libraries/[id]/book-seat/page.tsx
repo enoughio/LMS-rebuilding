@@ -171,7 +171,7 @@ export default function BookSeatPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col md:pb-30">
+    <div className="flex min-h-screen flex-col md:pb-30 p-2">
       {/* <Navbar /> */}
 
       <div className="container py-6 md:py-8">
