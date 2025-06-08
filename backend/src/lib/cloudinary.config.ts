@@ -4,7 +4,7 @@
 import { v2 as cloudinary } from 'cloudinary'
 //version-2 of cloudinary sdk
 
-require("dotenv").config()
+
 
 // Configure Cloudinary
 

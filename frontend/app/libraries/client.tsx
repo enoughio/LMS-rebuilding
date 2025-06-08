@@ -5,6 +5,8 @@ import { FiSearch, FiFilter } from "react-icons/fi";
 import { PiMapTrifoldBold } from "react-icons/pi";
 import toast, { Toaster } from 'react-hot-toast';
 import Image from "next/image";
+// import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 interface OpeningHour {
   id: string;
@@ -114,6 +116,9 @@ const LibraryCard = memo(({ lib }: { lib: Library }) => {
                 ? "Free"
                 : "Paid"}
             </span>
+            <span className="text-xs px-3 py-1 rounded-full font-medium bg-yellow-100 text-yellow-600">
+                {lib.availableSeats === 0 ? "Fully Booked" : "Seat Available"}
+            </span>
           </div>
         </div>
         <div className="flex items-center gap-2 mt-1">
@@ -145,7 +150,7 @@ const LibraryCard = memo(({ lib }: { lib: Library }) => {
             ))}
           </div>
           <div className="flex items-end">
-            <button
+            {/* <Button
               className={`px-8 py-2 rounded-full font-semibold ${
                 lib.availableSeats === 0
                   ? "bg-gray-200 text-gray-500 cursor-not-allowed"
@@ -154,11 +159,20 @@ const LibraryCard = memo(({ lib }: { lib: Library }) => {
               disabled={lib.availableSeats === 0}
               onClick={(e) => {
                 e.stopPropagation();
-                router.push(`libraries/${lib.id}/seatBooking`);
+                router.push(`libraries/${lib.id}/book-seat`);
               }}
             >
               {lib.availableSeats === 0 ? "Fully Booked" : "Book now"}
-            </button>
+            </Button> */}
+            <Button
+              className="px-8 py-2 rounded-full bg-black text-white font-semibold cursor-pointer hover:bg-gray-800 hover:scale-3d transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`libraries/${lib.id}`);
+              }}
+            >
+              {"View Details"}
+            </Button>
           </div>
         </div>
       </div>
@@ -438,7 +452,7 @@ const LibraryList: React.FC = () => {
 
   const fetchCities = useCallback(async () => {
     try {
-      const response = await fetch('/api/libraries?limit=100');
+      const response = await fetch('/api/libraries');
       const data: ApiResponse = await response.json();
       if (data.success) {
         const uniqueCities = Array.from(

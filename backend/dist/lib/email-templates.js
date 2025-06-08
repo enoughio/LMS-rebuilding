@@ -343,45 +343,45 @@ The Student Adda Team`,
         <div class="booking-details">
           <h3>📋 Booking Details</h3>
           <div class="detail-row">
-            <span class="detail-label">Booking ID:</span>
+            <span class="detail-label">Booking ID: </span>
             <span>${bookingId}</span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">Library:</span>
+            <span class="detail-label">Library: </span>
             <span>${libraryName}</span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">Seat:</span>
+            <span class="detail-label">Seat: </span>
             <span>${seatName}</span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">Date:</span>
+            <span class="detail-label">Date: </span>
             <span>${date}</span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">Time:</span>
+            <span class="detail-label">Time: </span>
             <span>${startTime} - ${endTime}</span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">Amount Paid:</span>
+            <span class="detail-label">Amount Paid: </span>
             <span><strong>₹${price}</strong></span>
           </div>
           ${libraryAddress ? `
           <div class="detail-row">
-            <span class="detail-label">Address:</span>
+            <span class="detail-label">Address: </span>
             <span>${libraryAddress}</span>
           </div>
           ` : ''}
           ${libraryPhone ? `
           <div class="detail-row">
-            <span class="detail-label">Phone:</span>
+            <span class="detail-label">Phone: </span>
             <span>${libraryPhone}</span>
           </div>
           ` : ''}
         </div>
         
         <div class="reminders">
-          <h3>📝 Important Reminders:</h3>
+          <h3>📝 Important Reminders: </h3>
           <ul>
             <li>🕐 Please arrive on time for your booking</li>
             <li>🆔 Bring a valid ID for verification</li>
@@ -453,23 +453,23 @@ The Student Adda Team`,
         <div class="booking-details">
           <h3>📋 Cancelled Booking Details</h3>
           <div class="detail-row">
-            <span class="detail-label">Booking ID:</span>
+            <span class="detail-label">Booking ID: </span>
             <span>${bookingId}</span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">Library:</span>
+            <span class="detail-label">Library: </span>
             <span>${libraryName}</span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">Seat:</span>
+            <span class="detail-label">Seat: </span>
             <span>${seatName}</span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">Date:</span>
+            <span class="detail-label">Date: </span>
             <span>${date}</span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">Time:</span>
+            <span class="detail-label">Time: </span>
             <span>${startTime} - ${endTime}</span>
           </div>
         </div>

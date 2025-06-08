@@ -13,6 +13,7 @@ import membershipRoutes from './routes/membershipRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import reportsRoutes from './routes/reportsRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
 const app = express();
 app.use(express.json());
 const allowedOrigins = [
@@ -42,6 +43,7 @@ app.use('/api/memberships', membershipRoutes);
 // app.use('/api/seed', seedDatabase);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/reports', reportsRoutes);
+app.use('/api/upload', uploadRoutes);
 // app.use('/api/auth', authRoutes);
 // Test route
 app.get('/api/test', (_req, res) => {

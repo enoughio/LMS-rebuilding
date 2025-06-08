@@ -69,7 +69,7 @@ export const getAllPosts = async (req, res) => {
 };
 export const createForumPost = async (req, res) => {
     try {
-        const { title, content, categoryId, tags, image } = req.body;
+        const { title, content, categoryId, tags, images } = req.body;
         const userId = req.user.id;
         console.log('Creating forum post with data:', {
             title,
@@ -95,6 +95,14 @@ export const createForumPost = async (req, res) => {
             });
             return;
         }
+        // Process images - for now, we'll store the first image URL in the existing image field
+        // TODO: Consider updating the schema to support multiple images
+        let processedImage;
+        if (images && Array.isArray(images) && images.length > 0) {
+            // Handle new format: Array<{ url: string; publicId?: string }>
+            const firstImage = images[0];
+            processedImage = typeof firstImage === 'string' ? firstImage : firstImage.url;
+        }
         const post = await prisma.forumPost.create({
             data: {
                 title,
@@ -102,7 +110,7 @@ export const createForumPost = async (req, res) => {
                 categoryId,
                 authorId: userId,
                 tags: tags || [],
-                image,
+                image: processedImage,
             },
             include: {
                 author: {
