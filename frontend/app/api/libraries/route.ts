@@ -12,28 +12,36 @@ export async function GET(request: Request) {
   const membership = searchParams.get('membership') || '';
   const minRating = searchParams.get('minRating') || '';
 
+  const API_URL = process.env.NODE_BACKEND_URL || 'http://localhost:5000';
+
   try {
-    const response = await fetch(
-      `${process.env.NODE_BACKEND_URL}/api/libraries?page=${page}&limit=${limit}&search=${encodeURIComponent(
-        search
-      )}&city=${encodeURIComponent(city)}&minSeats=${minSeats}&membership=${membership}&minRating=${minRating}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    const backendUrl = `${API_URL}/api/libraries?page=${page}&limit=${limit}&search=${encodeURIComponent(
+      search
+    )}&city=${encodeURIComponent(city)}&minSeats=${minSeats}&membership=${membership}&minRating=${minRating}`;
+
+    console.log('Fetching from backend URL:', backendUrl);
+
+    const response = await fetch(backendUrl, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch libraries from backend');
+      console.error('Backend response not ok:', response.status, response.statusText);
+      throw new Error(`Backend responded with status: ${response.status}`);
     }
 
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error in API route:', error);
+    let errorMessage = 'Unknown error';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return NextResponse.json(
-      { success: false, error: 'Internal server error', message: 'Failed to fetch libraries' },
+      { success: false, error: 'Internal server error', message: `Failed to fetch libraries: ${errorMessage}` },
       { status: 500 }
     );
   }

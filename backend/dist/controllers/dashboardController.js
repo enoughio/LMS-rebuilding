@@ -143,10 +143,10 @@ export const getSuperAdminDashboard = async (_req, res) => {
                     revenueBreakdown.membershipFees += payment.amount;
                     break;
                 case PaymentType.SEAT_BOOKING:
+                case PaymentType.GUEST_SEAT_BOOKING:
                     revenueBreakdown.seatBookings += payment.amount;
                     break;
                 case PaymentType.PENALTY:
-                case PaymentType.EBOOK_PURCHASE:
                 case PaymentType.OTHER:
                     revenueBreakdown.otherServices += payment.amount;
                     break;
@@ -322,9 +322,6 @@ export const getStatsController = async (_req, res) => {
         });
     }
 };
-// ==========================================
-// 2. REVENUE CONTROLLER
-// ==========================================
 export const getRevenueController = async (_req, res) => {
     try {
         // Date calculations
@@ -383,10 +380,10 @@ export const getRevenueController = async (_req, res) => {
                     revenueBreakdown.membershipFees += payment.amount;
                     break;
                 case PaymentType.SEAT_BOOKING:
+                case PaymentType.GUEST_SEAT_BOOKING:
                     revenueBreakdown.seatBookings += payment.amount;
                     break;
                 case PaymentType.PENALTY:
-                case PaymentType.EBOOK_PURCHASE:
                 case PaymentType.OTHER:
                     revenueBreakdown.otherServices += payment.amount;
                     break;
@@ -625,7 +622,7 @@ export const getMemberDashboard = async (req, res) => {
             res.status(401).json({ message: 'Unauthorized' });
             return;
         }
-        const [upcomingBookings, booksReadCount, readingHistory] = await Promise.all([
+        const [upcomingBookings, borrowedBooksCount, recentBookBorrowings] = await Promise.all([
             prisma.seatBooking.findMany({
                 where: {
                     userId,
@@ -636,19 +633,19 @@ export const getMemberDashboard = async (req, res) => {
                 orderBy: { date: 'asc' },
                 take: 1,
             }),
-            prisma.readingHistory.count({
+            prisma.bookBorrowing.count({
                 where: {
                     userId,
-                    isCompleted: true,
+                    status: 'BORROWED',
                 },
             }),
-            prisma.readingHistory.findMany({
+            prisma.bookBorrowing.findMany({
                 where: {
                     userId,
-                    isCompleted: false,
+                    status: 'BORROWED',
                 },
                 include: {
-                    eBook: true,
+                    book: true,
                 },
                 orderBy: { updatedAt: 'desc' },
                 take: 3,
@@ -657,11 +654,11 @@ export const getMemberDashboard = async (req, res) => {
         const totalStudyHours = user.totalStudyHours ?? 0;
         const streak = user.streak ?? 0;
         const quizzes = user.quizzesTaken ?? 0;
-        const currentlyReading = readingHistory.map((log) => ({
-            title: log.eBook?.title ?? 'Unknown',
-            progress: Math.floor((log.lastReadPage / log.totalPages) * 100),
-            page: log.lastReadPage,
-            total: log.totalPages,
+        const currentlyReading = recentBookBorrowings.map((borrowing) => ({
+            title: borrowing.book?.title ?? 'Unknown',
+            progress: 0, // Since we don't track reading progress for physical books
+            page: 0,
+            total: 0,
         }));
         res.status(200).json({
             success: true,
@@ -669,16 +666,16 @@ export const getMemberDashboard = async (req, res) => {
                 streak,
                 studyHours: totalStudyHours,
                 upcomingBookings: upcomingBookings.length,
-                booksRead: booksReadCount,
+                booksRead: borrowedBooksCount,
                 nextBooking: upcomingBookings[0]
                     ? `${new Date(upcomingBookings[0].date).toDateString()}, ${upcomingBookings[0].startTime} - ${upcomingBookings[0].endTime}`
                     : 'No upcoming booking',
                 currentlyReading,
                 studyGoals: {
                     readBooks: {
-                        current: booksReadCount,
+                        current: borrowedBooksCount,
                         target: 10,
-                        percentage: Math.min(100, Math.floor((booksReadCount / 10) * 100)),
+                        percentage: Math.min(100, Math.floor((borrowedBooksCount / 10) * 100)),
                     },
                     studyHours: {
                         current: totalStudyHours,

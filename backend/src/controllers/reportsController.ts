@@ -8,8 +8,7 @@ import { PaymentType } from '../../generated/prisma/index.js';
 export const getRevenueReports = async (req: Request, res: Response) => {
   try {
     const { startDate, endDate, libraryId } = req.query;
-    
-    // Parse date range
+      // Parse date range
     const start = startDate ? new Date(startDate as string) : new Date(new Date().setMonth(new Date().getMonth() - 12));
     const end = endDate ? new Date(endDate as string) : new Date();
       // Build where clause for library filtering
@@ -33,13 +32,6 @@ export const getRevenueReports = async (req: Request, res: Response) => {
           {
             bookBorrowing: {
               libraryId: libraryId
-            }
-          },
-          {
-            eBookAccess: {
-              eBook: {
-                libraryId: libraryId
-              }
             }
           }
         ]
@@ -80,11 +72,9 @@ export const getRevenueReports = async (req: Request, res: Response) => {
             }
           }
         })
-      ]);
-
-      monthlyRevenue.push({
+      ]);      monthlyRevenue.push({
         month: monthStart.toLocaleDateString('en-US', { month: 'short' }),
-        revenue: revenue._sum.amount || 0,
+        revenue: revenue._sum?.amount || 0,
         users: userCount
       });
     }    // Get revenue breakdown by payment type
@@ -99,13 +89,11 @@ export const getRevenueReports = async (req: Request, res: Response) => {
         },
         ...buildLibraryFilter(libraryId as string)
       }
-    });
-
-    const breakdown = {
+    });    const breakdown = {
       membership: 0,
       seatBooking: 0,
       penalty: 0,
-      eBookPurchase: 0,
+      guestSeatBooking: 0,
       other: 0
     };
 
@@ -116,12 +104,11 @@ export const getRevenueReports = async (req: Request, res: Response) => {
           break;
         case PaymentType.SEAT_BOOKING:
           breakdown.seatBooking = item._sum.amount || 0;
-          break;
-        case PaymentType.PENALTY:
+          break;        case PaymentType.PENALTY:
           breakdown.penalty = item._sum.amount || 0;
           break;
-        case PaymentType.EBOOK_PURCHASE:
-          breakdown.eBookPurchase = item._sum.amount || 0;
+        case PaymentType.GUEST_SEAT_BOOKING:
+          breakdown.guestSeatBooking = item._sum.amount || 0;
           break;
         case PaymentType.OTHER:
           breakdown.other = item._sum.amount || 0;
@@ -293,12 +280,10 @@ export const getLibraryPerformanceReports = async (req: Request, res: Response) 
             _sum: { amount: true },
             where: {
               status: 'COMPLETED',
-              createdAt: { gte: start, lte: end },
-              OR: [
+              createdAt: { gte: start, lte: end },              OR: [
                 { membership: { libraryId: library.id } },
                 { seatBooking: { libraryId: library.id } },
-                { bookBorrowing: { libraryId: library.id } },
-                { eBookAccess: { eBook: { libraryId: library.id } } }
+                { bookBorrowing: { libraryId: library.id } }
               ]
             }
           }),
@@ -312,12 +297,10 @@ export const getLibraryPerformanceReports = async (req: Request, res: Response) 
             _count: true,
             where: { libraryId: library.id }
           })
-        ]);
-
-        return {
+        ]);        return {
           id: library.id,
           name: library.name,
-          revenue: revenue._sum.amount || 0,
+          revenue: revenue._sum?.amount || 0,
           members: library._count.members,
           bookings,
           totalSeats: occupancyData._count,
@@ -415,19 +398,22 @@ export const getBookingAnalytics = async (req: Request, res: Response) => {
         createdAt: { gte: start, lte: end },
         ...libraryFilter
       }
-    });
-
-    // Get seat details to map seat types
+    });    // Get seat details to map seat types
     const seatIds = bookingsBySeatType.map(booking => booking.seatId);
-    const seats = await prisma.seat.findMany({
-      where: {
-        id: { in: seatIds },
+    const seats = await prisma.seat.findMany({      where: {
+        id: { in: seatIds }
+        // seatTypeId: { not: null } // Filter out seats with null seatTypeId
       },
       select: {
         id: true,
-        seatType: true,
+        seatType: {
+          select: {
+            id: true,
+            name: true,
+          }
+        },
       },
-    });    // Create seat type mapping
+    });// Create seat type mapping
     const seatTypeMap = new Map(seats.map(seat => [seat.id, seat.seatType]));
 
     // Aggregate by seat type
@@ -507,10 +493,9 @@ export const getBookingAnalytics = async (req: Request, res: Response) => {
         popularTimeSlots: popularTimeSlots.map(item => ({
           timeSlot: item.startTime,
           bookings: item._count
-        })),
-        summary: {
+        })),        summary: {
           totalBookings,
-          totalRevenue: totalRevenue._sum.amount || 0,
+          totalRevenue: totalRevenue._sum?.amount || 0,
           averageBookingValue: averageBookingValue._avg.amount || 0
         },
         period: {
@@ -557,18 +542,10 @@ export const getReportsOverview = async (req: Request, res: Response) => {
           {
             seatBooking: {
               libraryId: libraryId
-            }
-          },
+            }          },
           {
             bookBorrowing: {
               libraryId: libraryId
-            }
-          },
-          {
-            eBookAccess: {
-              eBook: {
-                libraryId: libraryId
-              }
             }
           }
         ]
@@ -635,10 +612,9 @@ export const getReportsOverview = async (req: Request, res: Response) => {
     ]);
 
     res.status(200).json({
-      success: true,
-      data: {
+      success: true,      data: {
         summary: {
-          monthlyRevenue: monthlyRevenue._sum.amount || 0,
+          monthlyRevenue: monthlyRevenue._sum?.amount || 0,
           monthlyBookings,
           activeUsers,
           newUsers

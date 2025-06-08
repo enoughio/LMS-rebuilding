@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react"
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Armchair, CreditCard, Loader2 } from "lucide-react"
+import { ArrowLeft, Armchair, CreditCard, Loader2, Download, CheckCircle } from "lucide-react"
 import toast from 'react-hot-toast'
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 // import Navbar from "@/components/navbar"
 // import Footer from "@/components/footer"
 import { Input } from "@/components/ui/input"
@@ -17,6 +18,20 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 // import type { Library, SeatType } from "@/types/library"
 import { useAuth } from "@/lib/context/AuthContext"
+
+// Interface for booking result from API
+interface BookingResult {
+  booking: {
+    id: string
+    seatName: string
+    date: string
+    startTime: string
+    endTime: string
+  }
+  payment: {
+    amount: number
+  }
+}
 
 // Interface for seat data from API
 interface SeatData {
@@ -72,14 +87,6 @@ interface LibraryData {
   phone: string
 }
 
-// interface LibrarySeatsResponse {
-//   success: boolean
-//   data: {
-//     library: LibraryData
-//     seats: SeatData[]
-//   }
-// }
-
 export default function SelectSeatPage() {
   const { id } = useParams()
   const searchParams = useSearchParams()
@@ -92,6 +99,7 @@ export default function SelectSeatPage() {
   const [filteredSeats, setFilteredSeats] = useState<SeatData[]>([])
   const [selectedSeat, setSelectedSeat] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0])
+  const [selectedTime, setSelectedTime] = useState<string>('09:00')
   const [duration, setDuration] = useState<number>(1)
   const [loading, setLoading] = useState(true)
   const [loadingAvailability, setLoadingAvailability] = useState(false)
@@ -230,6 +238,9 @@ export default function SelectSeatPage() {
     setSelectedSeat(null) // Clear selection when date changes
   }
 
+  const [bookingResult, setBookingResult] = useState<BookingResult | null>(null)
+  const [showBillDownload, setShowBillDownload] = useState(false)
+
   const handleBookSeat = async () => {
     if (!selectedSeat) {
       toast.error('Please select a seat to continue', { duration: 2000 })
@@ -239,18 +250,101 @@ export default function SelectSeatPage() {
     setBookingInProgress(true)
 
     try {
-      // Simulate API call - you can implement actual booking here later
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      
       const selectedSeatData = filteredSeats.find(s => s.id === selectedSeat)
-      toast.success(`Your ${selectedSeatData?.seatType.name} seat has been booked for ${duration} hour${duration > 1 ? "s" : ""}`, { duration: 2000 })
+      if (!selectedSeatData) {
+        toast.error('Selected seat data not found', { duration: 2000 })
+        return
+      }
 
-      router.push(`/dashboard/member`)
+      // Calculate end time based on start time and duration
+      const startHour = parseInt(selectedTime.split(':')[0])
+      const startMinute = parseInt(selectedTime.split(':')[1])
+      const endHour = startHour + duration
+      const endMinute = startMinute
+      const endTime = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`
+
+      const bookingData = {
+        seatId: selectedSeat,
+        date: selectedDate,
+        startTime: selectedTime,
+        endTime: endTime,
+        duration: duration,
+        paymentMethod: 'OFFLINE'
+      }
+
+      const response = await fetch(`/api/seats/library/${id}/book`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(bookingData)
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to book seat')
+      }
+
+      if (!result.success) {
+        throw new Error(result || 'Booking failed')
+      }
+
+      setBookingResult(result.data)
+      setShowBillDownload(true)
+      toast.success(`Your ${selectedSeatData.seatType.name} seat has been booked successfully!`, { duration: 3000 })
+
+      // Update seat availability immediately
+      const updatedSeats = filteredSeats.map(seat => 
+        seat.id === selectedSeat ? { ...seat, isAvailable: false } : seat
+      )
+      setFilteredSeats(updatedSeats)
+      setSelectedSeat(null) // Clear selection
+
+      } catch (error: unknown) {
+  console.error("Error booking seat:", error)
+  const errorMessage = error instanceof Error ? error.message : 'There was an error booking your seat. Please try again.'
+  toast.error(errorMessage, { duration: 3000 })
+} finally {
+  setBookingInProgress(false)
+}
+
+  }
+  const handleDownloadBill = async () => {
+    if (!bookingResult?.booking?.id) {
+      toast.error('Booking information not available', { duration: 2000 })
+      return
+    }
+
+    try {
+
+      console.log("Bill download initiated for booking ID:", bookingResult.booking.id)
+      console.log("For user:", user?.email || 'Unknown user')
+
+
+      const response = await fetch(`/api/seats/download-bill/${bookingResult.booking.id}`, {
+        method: 'GET'
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to download bill')
+      }
+
+      // Create blob and download
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `booking_bill_${bookingResult.booking.id}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+
+      toast.success('Bill downloaded successfully!', { duration: 2000 })
     } catch (error) {
-      console.error("Error booking seat:", error)
-      toast.error('There was an error booking your seat. Please try again.', { duration: 2000 })
-    } finally {
-      setBookingInProgress(false)
+      console.error("Error downloading bill:", error)
+      toast.error('Failed to download bill. Please try again.', { duration: 2000 })
     }
   }
 
@@ -421,6 +515,16 @@ export default function SelectSeatPage() {
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
+                        <Label htmlFor="start-time">Start Time</Label>
+                        <Input
+                          id="start-time"
+                          type="time"
+                          value={selectedTime}
+                          onChange={(e) => setSelectedTime(e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
                         <Label htmlFor="duration">Duration (hours)</Label>
                         <Input
                           id="duration"
@@ -432,9 +536,21 @@ export default function SelectSeatPage() {
                           className="mt-1"
                         />
                       </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label>Rate</Label>
                         <div className="mt-2 text-lg font-medium">₹{selectedSeatType?.pricePerHour || 0}/hour</div>
+                      </div>
+                      <div>
+                        <Label>End Time</Label>
+                        <div className="mt-2 text-lg font-medium">
+                          {(() => {
+                            const [hours, minutes] = selectedTime.split(':').map(Number)
+                            const endHours = hours + duration
+                            return `${endHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+                          })()}
+                        </div>
                       </div>
                     </div>
 
@@ -556,6 +672,58 @@ export default function SelectSeatPage() {
       <div className="mt-auto">
         {/* <Footer /> */}
       </div>
+
+      {/* Booking Success Dialog */}
+      <Dialog open={showBillDownload} onOpenChange={setShowBillDownload}>
+        <DialogContent className="sm:max-w-md bg-amber-50">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              Booking Confirmed!
+            </DialogTitle>
+            <DialogDescription>
+              Your seat has been successfully booked. You can download your booking bill below.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {bookingResult && (
+            <div className="space-y-4">
+              <div className="rounded-lg border p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Booking ID:</span>
+                  <span className="font-mono">{bookingResult.booking?.id}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Seat:</span>
+                  <span>{bookingResult.booking?.seatName}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Date:</span>
+                  <span>{new Date(bookingResult.booking?.date).toDateString()}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Time:</span>
+                  <span>{bookingResult.booking?.startTime} - {bookingResult.booking?.endTime}</span>
+                </div>
+                <div className="flex justify-between text-sm font-medium">
+                  <span className="text-muted-foreground">Amount Paid:</span>
+                  <span>₹{bookingResult.payment?.amount}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowBillDownload(false)}>
+              Close
+            </Button>
+            <Button onClick={handleDownloadBill} className="flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              Download Bill
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

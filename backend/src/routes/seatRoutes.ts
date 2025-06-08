@@ -7,13 +7,16 @@ import {
   createSeat,
   updateSeat,
   deleteSeat,
-//   bookSeat,
-//   getUserBookings,
-//   cancelBooking,
+  bookSeat,
+  getUserBookings,
+  cancelBooking,
+  downloadBill,
 } from '../controllers/seatController.js';
 
 
 import { createSeatType, deleteSeatType, getSeatTypes, updateSeatType } from '../controllers/seatTypeController.js';
+import { authenticate, verifyToken } from '../middelware/authMiddelware.js';
+// import { authenticate, verifyToken } from '../middelware/authMiddelware.js';
 
 
 const router = express.Router();
@@ -48,14 +51,20 @@ router.delete(
   deleteSeat
 );
 
-// // Book a seat
-// router.post('/book', bookSeat);
+// Book a seat
+router.post('/:libraryId/book', verifyToken, authenticate, bookSeat);
 
-// // Get user's bookings
-// router.get('/my-bookings', getUserBookings);
+// Book a seat as guest (no authentication required)
+router.post('/:libraryId/book-guest', bookSeat);
 
-// // Cancel booking
-// router.post('/cancel/:bookingId', cancelBooking);
+// Get user's bookings
+router.get('/my-bookings', verifyToken, authenticate, getUserBookings);
+
+// Cancel booking
+router.post('/cancel/:bookingId', verifyToken, authenticate, cancelBooking);
+
+// Download booking bill
+router.get('/download-bill/:bookingId', verifyToken, authenticate, downloadBill);
 
 
 // Seat Type Routes

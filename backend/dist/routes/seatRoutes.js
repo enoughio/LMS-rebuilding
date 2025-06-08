@@ -1,12 +1,10 @@
 import express from 'express';
 // import { authenticate, authorizeRoles } from '../middelware/authMiddelware.js';
 // import { UserRole } from '../../generated/prisma/index.js';
-import { getLibrarySeats, getSeatAvailability, createSeat, updateSeat, deleteSeat,
-//   bookSeat,
-//   getUserBookings,
-//   cancelBooking,
- } from '../controllers/seatController.js';
+import { getLibrarySeats, getSeatAvailability, createSeat, updateSeat, deleteSeat, bookSeat, getUserBookings, cancelBooking, downloadBill, } from '../controllers/seatController.js';
 import { createSeatType, deleteSeatType, getSeatTypes, updateSeatType } from '../controllers/seatTypeController.js';
+import { authenticate, verifyToken } from '../middelware/authMiddelware.js';
+// import { authenticate, verifyToken } from '../middelware/authMiddelware.js';
 const router = express.Router();
 // Middleware to authenticate all seat routes
 // router.use(authenticate);
@@ -26,12 +24,16 @@ updateSeat);
 router.delete('/seats/:seatId', 
 // authorizeRoles([UserRole.ADMIN, UserRole.SUPER_ADMIN]),
 deleteSeat);
-// // Book a seat
-// router.post('/book', bookSeat);
-// // Get user's bookings
-// router.get('/my-bookings', getUserBookings);
-// // Cancel booking
-// router.post('/cancel/:bookingId', cancelBooking);
+// Book a seat
+router.post('/:libraryId/book', verifyToken, authenticate, bookSeat);
+// Book a seat as guest (no authentication required)
+router.post('/:libraryId/book-guest', bookSeat);
+// Get user's bookings
+router.get('/my-bookings', verifyToken, authenticate, getUserBookings);
+// Cancel booking
+router.post('/cancel/:bookingId', verifyToken, authenticate, cancelBooking);
+// Download booking bill
+router.get('/download-bill/:bookingId', verifyToken, authenticate, downloadBill);
 // Seat Type Routes
 router.get('/seattype/:libraryId', getSeatTypes);
 router.post('/seattype/:libraryId', createSeatType);
