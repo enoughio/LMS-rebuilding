@@ -238,9 +238,11 @@ export default function LibraryProfilePage() {
         return openingHoursArray;
       };
 
-      // Prepare data for backend
+      // Prepare data for backend - EXCLUDE images
+      const { images, ...formDataWithoutImages } = formData;
+      
       const saveData = {
-        ...formData,
+        ...formDataWithoutImages,
         amenities: convertAmenitiesToBackend(
           (formData.amenities || []).filter((a): a is LibraryAmenity =>
             typeof a === "string" && Object.keys(amenityLabels).includes(a)
