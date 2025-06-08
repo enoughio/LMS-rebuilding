@@ -239,7 +239,7 @@ export default function LibraryProfilePage() {
       };
 
       // Prepare data for backend - EXCLUDE images
-      const { images: _images, ...formDataWithoutImages } = formData;
+      const { ...formDataWithoutImages } = formData;
       
       const saveData = {
         ...formDataWithoutImages,
