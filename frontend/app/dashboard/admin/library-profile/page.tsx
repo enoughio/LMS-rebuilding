@@ -360,8 +360,8 @@ export default function LibraryProfilePage() {
         toast.error(`${file.name} is not an image file`)
         return false
       }
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast.error(`${file.name} is too large. Maximum size is 5MB`)
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        toast.error(`${file.name} is too large. Maximum size is 10MB`)
         return false
       }
       return true
@@ -751,7 +751,7 @@ export default function LibraryProfilePage() {
                     <div className="flex flex-col items-center gap-2 p-4 text-center">
                       <p className="text-sm font-medium">Add Image</p>
                       <p className="text-xs text-muted-foreground">
-                        Upload up to {remainingSlots} more image{remainingSlots > 1 ? 's' : ''} (Max 5MB each)
+                        Upload up to {remainingSlots} more image{remainingSlots > 1 ? 's' : ''} (Max 10MB each)
                       </p>
                       <label htmlFor="image-upload">
                         <Button 

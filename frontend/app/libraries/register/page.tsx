@@ -203,8 +203,8 @@ export default function LibraryRegistrationForm() {
         toast.error(`${file.name} is not an image file`);
         return false;
       }
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast.error(`${file.name} is too large. Maximum size is 5MB`);
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        toast.error(`${file.name} is too large. Maximum size is 10MB`);
         return false;
       }
       return true;
@@ -577,7 +577,7 @@ export default function LibraryRegistrationForm() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
                   />
                   <p className="text-sm text-gray-500 mt-1">
-                    Select up to 4 images. Maximum 5MB per image. Supported formats: JPG, PNG, GIF
+                    Select up to 4 images. Maximum 10MB per image. Supported formats: JPG, PNG, GIF
                   </p>
                   
                   {/* Image Previews */}
