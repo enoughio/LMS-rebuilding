@@ -1,7 +1,5 @@
 "use client"
-
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
@@ -52,6 +50,7 @@ export default function LibraryProfilePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState<Partial<Library>>({})
+  const [imageUploading, setImageUploading] = useState(false)
 
   useEffect(() => {
     const fetchLibrary = async () => {
@@ -334,6 +333,121 @@ export default function LibraryProfilePage() {
     }
   }
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    
+    if (files.length === 0) return
+    
+    // Check current image count
+    const currentImages = formData.images || []
+    const remainingSlots = 4 - currentImages.length
+    
+    if (remainingSlots <= 0) {
+      toast.error('Maximum 4 images allowed. Please remove an existing image first.')
+      return
+    }
+    
+    if (files.length > remainingSlots) {
+      toast.error(`You can only add ${remainingSlots} more image(s). Current: ${currentImages.length}/4`)
+      return
+    }
+
+    // Validate file types and sizes
+    const validFiles = files.filter(file => {
+      if (!file.type.startsWith('image/')) {
+        toast.error(`${file.name} is not an image file`)
+        return false
+      }
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error(`${file.name} is too large. Maximum size is 5MB`)
+        return false
+      }
+      return true
+    })
+
+    if (validFiles.length === 0) return
+
+    setImageUploading(true)
+
+    try {
+      // Create FormData for upload
+      const uploadFormData = new FormData()
+      validFiles.forEach((file) => {
+        uploadFormData.append('images', file)
+      })
+
+      const response = await fetch(`/api/libraries/${user?.libraryId}/images`, {
+        method: 'POST',
+        body: uploadFormData,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to upload images')
+      }
+
+      const result = await response.json()
+      const newImageUrls = result.imageUrls || []
+
+      // Update formData with new image URLs
+      setFormData(prev => ({
+        ...prev,
+        images: [...(prev.images || []), ...newImageUrls]
+      }))
+
+      // Update library state
+      setLibrary(prev => prev ? {
+        ...prev,
+        images: [...(prev.images || []), ...newImageUrls]
+      } : null)
+
+      toast.success(`${validFiles.length} image(s) uploaded successfully`)
+
+    } catch (error) {
+      console.error('Error uploading images:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to upload images')
+    } finally {
+      setImageUploading(false)
+      // Clear the file input
+      e.target.value = ''
+    }
+  }
+
+  const handleImageRemove = async (index: number, imageUrl: string) => {
+    try {
+      const response = await fetch(`/api/libraries/${user?.libraryId}/images`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ imageUrl }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to remove image')
+      }
+
+      // Update formData
+      setFormData(prev => ({
+        ...prev,
+        images: (prev.images || []).filter((_, i) => i !== index)
+      }))
+
+      // Update library state
+      setLibrary(prev => prev ? {
+        ...prev,
+        images: (prev.images || []).filter((_, i) => i !== index)
+      } : null)
+
+      toast.success('Image removed successfully')
+
+    } catch (error) {
+      console.error('Error removing image:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to remove image')
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex h-full w-full items-center justify-center min-w-[70vw] ">
@@ -357,6 +471,11 @@ export default function LibraryProfilePage() {
       </div>
     )
   }
+
+  // Get current image count and remaining slots
+  const currentImageCount = (formData.images || []).length
+  const remainingSlots = 4 - currentImageCount
+  const canAddMore = remainingSlots > 0
 
   return (
     <div className="container mx-0 max-w-none px-0 min-w-[70vw] pb-20">
@@ -598,11 +717,14 @@ export default function LibraryProfilePage() {
           <Card className="w-full border-0 shadow-none">
             <CardHeader className="px-0">
               <CardTitle>Library Images</CardTitle>
-              <CardDescription>Upload and manage images of your library</CardDescription>
+              <CardDescription>
+                Upload and manage images of your library ({currentImageCount}/4 images)
+              </CardDescription>
             </CardHeader>
             <CardContent className="px-0">
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {(library?.images || []).map((image, index) => (
+                {/* Display existing images */}
+                {(formData.images || []).map((image, index) => (
                   <div key={index} className="relative aspect-square overflow-hidden rounded-md border">
                     <Image
                       src={image || "/placeholder.svg"}
@@ -614,27 +736,78 @@ export default function LibraryProfilePage() {
                       variant="destructive"
                       size="sm"
                       className="absolute right-2 top-2"
-                      onClick={() => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          images: (prev.images || []).filter((_, i) => i !== index),
-                        }))
-                      }}
+                      onClick={() => handleImageRemove(index, image)}
                     >
                       Remove
                     </Button>
                   </div>
                 ))}
-                <div className="flex aspect-square items-center justify-center rounded-md border border-dashed">
-                  <div className="flex flex-col items-center gap-2 p-4 text-center">
-                    <p className="text-sm font-medium">Add Image</p>
-                    <p className="text-xs text-muted-foreground">Upload a new image of your library</p>
-                    <Button variant="outline" size="sm" className="mt-2">
-                      Upload
-                    </Button>
+                
+                {/* Upload new image card - only show if can add more */}
+                {canAddMore && (
+                  <div className="flex aspect-square items-center justify-center rounded-md border border-dashed">
+                    <div className="flex flex-col items-center gap-2 p-4 text-center">
+                      <p className="text-sm font-medium">Add Image</p>
+                      <p className="text-xs text-muted-foreground">
+                        Upload up to {remainingSlots} more image{remainingSlots > 1 ? 's' : ''} (Max 5MB each)
+                      </p>
+                      <label htmlFor="image-upload">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-2" 
+                          disabled={imageUploading}
+                          asChild
+                        >
+                          <span>
+                            {imageUploading ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Uploading...
+                              </>
+                            ) : (
+                              'Upload'
+                            )}
+                          </span>
+                        </Button>
+                      </label>
+                      <input
+                        id="image-upload"
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
+              
+              {/* Status messages */}
+              {currentImageCount >= 4 && (
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                  <p className="text-sm text-yellow-800">
+                    📸 You have reached the maximum limit of 4 images. Remove an existing image to upload a new one.
+                  </p>
+                </div>
+              )}
+              
+              {currentImageCount === 0 && (
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <p className="text-sm text-blue-800">
+                    💡 Upload images of your library to attract more users. You can add up to 4 images.
+                  </p>
+                </div>
+              )}
+              
+              {currentImageCount > 0 && currentImageCount < 4 && (
+                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                  <p className="text-sm text-green-800">
+                    ✅ You can add {remainingSlots} more image{remainingSlots > 1 ? 's' : ''} to reach the maximum of 4.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
