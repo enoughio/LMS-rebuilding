@@ -240,7 +240,7 @@ export default function LibraryDetailsPage() {
           </div>
 
           {/* Library Details */}
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 max-w-[100vw]">
             <div className="lg:col-span-2">
               <Tabs defaultValue="overview" >
                 <TabsList className="mb-4  rounded-lg">
