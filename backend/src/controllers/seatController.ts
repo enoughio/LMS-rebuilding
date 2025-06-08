@@ -4,6 +4,8 @@ import { BookingStatus, PaymentType, PaymentMedium, PaymentStatus } from '../../
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
+import { sendMail } from '../lib/nodemailer.config.js';
+import { getSeatBookingConfirmationTemplate, getSeatBookingCancellationTemplate } from '../lib/email-templates.js';
 
 // Get all seats in a library
 export const getLibrarySeats = async (req: Request, res: Response) => {
@@ -535,10 +537,36 @@ export const bookSeat = async (req: Request, res: Response) => {
       });
 
       return { booking, payment };    });    // Generate PDF bill (optional - for future download)
-    // const billPath = await generateBookingBill(result.booking, result.payment);
+    // const billPath = await generateBookingBill(result.booking, result.payment);    // Send confirmation email to user
+    try {
+      const userEmail = !isGuestBooking ? user?.email : guestBooking?.email;
+      const userName = !isGuestBooking ? user?.name : guestBooking?.name;
+        if (userEmail && userName) {        const emailTemplate = getSeatBookingConfirmationTemplate({
+          userName,
+          userEmail,
+          bookingId: result.booking.id,
+          libraryName: seat.library.name,
+          seatName: seat.name,
+          date: bookingDate.toDateString(),
+          startTime,
+          endTime,
+          price: bookingPrice,
+          libraryAddress: seat.library.address,
+          libraryPhone: seat.library.phone || 'N/A'
+        });
 
-    // TODO: Send confirmation email to user
-    // await sendBookingConfirmationEmail(user.email, result.booking, billPath);
+        await sendMail({
+          to: userEmail,
+          subject: emailTemplate.subject,
+          html: emailTemplate.html,
+          text: emailTemplate.text
+        });
+        console.log(`Booking confirmation email sent to ${userEmail}`);
+      }
+    } catch (emailError) {
+      console.error('Failed to send booking confirmation email:', emailError);
+      // Don't fail the booking if email fails
+    }
 
     res.status(201).json({
       success: true,
@@ -791,9 +819,7 @@ export const cancelBooking = async (req: Request, res: Response) => {
     if (existingBooking.status === BookingStatus.COMPLETED) {
       res.status(400).json({ success: false, error: 'Cannot cancel completed booking' });
       return;
-    }
-
-    // Update booking status
+    }    // Update booking status
     const booking = await prisma.seatBooking.update({
       where: {
         id: bookingId,
@@ -808,16 +834,60 @@ export const cancelBooking = async (req: Request, res: Response) => {
             library: {
               select: {
                 name: true,
-                address: true
+                address: true,
+                email: true,
+                phone: true
               }
             }
           }
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true
+          }
+        },
+        guestUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true
+          }
         }
       }
-    });
+    });    // Send cancellation email to user
+    try {      const user = booking.user || booking.guestUser;
+      if (user?.email && user?.name) {        const emailTemplate = getSeatBookingCancellationTemplate({
+          userName: user.name,
+          userEmail: user.email,
+          bookingId: booking.id,
+          libraryName: booking.seat.library.name,
+          seatName: booking.seatName,
+          date: booking.date.toDateString(),
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          price: booking.bookingPrice,
+          libraryAddress: booking.seat.library.address,
+          libraryPhone: booking.seat.library.phone || 'N/A'
+        });
+
+        await sendMail({
+          to: user.email,
+          subject: emailTemplate.subject,
+          html: emailTemplate.html,
+          text: emailTemplate.text
+        });
+        console.log(`Booking cancellation email sent to ${user.email}`);
+      }
+    } catch (emailError) {
+      console.error('Failed to send booking cancellation email:', emailError);
+      // Don't fail the cancellation if email fails
+    }
 
     // TODO: Process refund if applicable
-    // TODO: Send cancellation email
 
     res.json({ 
       success: true, 

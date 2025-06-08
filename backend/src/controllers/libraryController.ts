@@ -1,5 +1,11 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma.js";
+import { sendMail } from "../lib/nodemailer.config.js";
+import { 
+  getLibraryRegistrationTemplate, 
+  getLibraryApprovalTemplate, 
+  getLibraryRejectionTemplate 
+} from "../lib/email-templates.js";
 
 export const getAllLibraries = async (req: Request, res: Response) => {
   const page = Math.max(1, parseInt(req.query.page as string) || 1);
@@ -627,10 +633,29 @@ export const registerLibrary = async (
         await tx.openingHour.createMany({
           data: openingHoursData,
         });
-      }
-
-      return { library, user };
+      }      return { library, user };
     });
+
+    // Send registration confirmation email
+    try {
+      const registrationTemplate = getLibraryRegistrationTemplate({
+        userName: result?.user.name || userName,
+        userEmail: result?.user.email || userEmail,
+        libraryName: result?.library.name || name
+      });
+      
+      await sendMail({
+        to: result?.user.email || userEmail,
+        subject: registrationTemplate.subject,
+        text: registrationTemplate.text,
+        html: registrationTemplate.html
+      });
+      
+      console.log(`Library registration confirmation email sent to: ${result?.user.email || userEmail}`);
+    } catch (emailError) {
+      console.error("Failed to send registration confirmation email:", emailError);
+      // Continue execution even if email fails
+    }
 
     res.status(201).json({
       success: true,
@@ -813,10 +838,36 @@ export const approveLibrary = async (req: Request, res: Response) => {
           role: "ADMIN",
           libraryId: updatedLibrary.id, // Associate user with the library
         },
+      });      return updatedLibrary;
+    });
+
+    // Send approval email to the library admin
+    try {
+      const admin = await prisma.user.findUnique({
+        where: { id: adminId },
+        select: { name: true, email: true }
       });
 
-      return updatedLibrary;
-    });
+      if (admin) {
+        const approvalTemplate = getLibraryApprovalTemplate({
+          userName: admin.name,
+          userEmail: admin.email,
+          libraryName: updatedLibrary.name
+        });
+        
+        await sendMail({
+          to: admin.email,
+          subject: approvalTemplate.subject,
+          text: approvalTemplate.text,
+          html: approvalTemplate.html
+        });
+        
+        console.log(`Library approval email sent to: ${admin.email}`);
+      }
+    } catch (emailError) {
+      console.error("Failed to send library approval email:", emailError);
+      // Continue execution even if email fails
+    }
 
     res.status(200).json({
       success: true,
@@ -874,21 +925,56 @@ export const rejectLibrary = async (req: Request, res: Response) => {
         message: `Library is in ${library.status} status`,
       });
       return;
-    }
-
-    // Update library status to REJECTED
+    }    // Update library status to REJECTED
     const updatedLibrary = await prisma.library.update({
       where: { id: libraryId },
       data: {
         status: "REJECTED",
         isActive: false, // Deactivate the library
       },
+      include: {
+        admin: {
+          select: {
+            name: true,
+            email: true
+          }
+        }
+      }
     });
+
+    // Send rejection email to the library admin
+    try {
+      if (updatedLibrary.admin) {
+        const rejectionTemplate = getLibraryRejectionTemplate({
+          userName: updatedLibrary.admin.name,
+          userEmail: updatedLibrary.admin.email,
+          libraryName: updatedLibrary.name,
+          rejectionReason: "Please review our library guidelines and ensure all required information is provided. You may resubmit your application after making the necessary improvements."
+        });
+        
+        await sendMail({
+          to: updatedLibrary.admin.email,
+          subject: rejectionTemplate.subject,
+          text: rejectionTemplate.text,
+          html: rejectionTemplate.html
+        });
+        
+        console.log(`Library rejection email sent to: ${updatedLibrary.admin.email}`);
+      }
+    } catch (emailError) {
+      console.error("Failed to send library rejection email:", emailError);
+      // Continue execution even if email fails
+    }
 
     res.status(200).json({
       success: true,
       message: "Library rejected successfully",
-      data: updatedLibrary,
+      data: {
+        id: updatedLibrary.id,
+        name: updatedLibrary.name,
+        status: updatedLibrary.status,
+        isActive: updatedLibrary.isActive
+      },
     });
   } catch (error) {
     console.error("Error rejecting library:", error);

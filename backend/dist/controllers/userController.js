@@ -1,5 +1,7 @@
 import prisma from "../lib/prisma.js";
 import { UserRole } from "../../generated/prisma/index.js";
+import { sendMail } from "../lib/nodemailer.config.js";
+import { getWelcomeEmailTemplate } from "../lib/email-templates.js";
 // Get basic user information
 export const getCurrentUser = async (req, res) => {
     try {
@@ -143,6 +145,24 @@ export const syncUser = async (req, res) => {
                 updatedAt: true,
             },
         });
+        // Send welcome email for new users
+        try {
+            const welcomeTemplate = getWelcomeEmailTemplate({
+                userName: user.name,
+                userEmail: user.email
+            });
+            await sendMail({
+                to: user.email,
+                subject: welcomeTemplate.subject,
+                text: welcomeTemplate.text,
+                html: welcomeTemplate.html
+            });
+            console.log(`Welcome email sent to new user: ${user.email}`);
+        }
+        catch (emailError) {
+            console.error("Failed to send welcome email:", emailError);
+            // Continue execution even if email fails
+        }
         // console.log("User synced successfully by creation:", user);
         res.status(201).json({
             success: true,
