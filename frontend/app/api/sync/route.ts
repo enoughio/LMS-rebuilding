@@ -16,6 +16,14 @@ export const POST = async function syncUser() {
 
     const res = new NextResponse();
     const { token: accessToken } = await auth0.getAccessToken();
+
+    if (!accessToken) {
+      return NextResponse.json(
+        { error: "Access token is required" },
+        { status: 401 }
+      );
+    }
+
     const API_BASE_URL =
       process.env.NODE_BACKEND_URL || "http://localhost:5000";
     const response = await fetch(`${API_BASE_URL}/api/user/sync-user`, {
