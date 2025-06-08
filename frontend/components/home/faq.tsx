@@ -8,7 +8,7 @@ interface FAQItem {
 }
 
 const FAQ = () => {
-  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
@@ -30,15 +30,15 @@ const FAQ = () => {
   ];
 
   return (
-    <div className='bg-[#ECE3DA]'>
+    <div className="bg-[#ECE3DA]">
       <div className="container mx-auto px-4 max-w-[1030px] py-16 font-sans">
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 h-full">
           
           {/* Left Image Grid */}
-          <div className="hidden lg:block lg:w-2/5 xl:w-1/3">
-            <div className="grid grid-cols-2 gap-4 h-fit">
+          <div className="hidden lg:block lg:w-2/5 xl:w-1/3 h-full">
+            <div className="grid grid-cols-2 gap-4 h-full">
               {/* Large image - spans 2 rows */}
-              <div className="row-span-2">
+              <div className="row-span-2 h-full">
                 <Image
                   src="/home/faq1.png"
                   alt="Library bookshelf aisle"
@@ -73,18 +73,18 @@ const FAQ = () => {
           </div>
 
           {/* Right FAQ Content */}
-          <div className="w-full lg:w-3/5 xl:w-2/3">
+          <div className="w-full lg:w-3/5 xl:w-2/3 flex flex-col justify-between">
             <div className="text-left mb-2">
-              <span className="text-sm text-gray-600 font-medium block mb-3">
+              <span className="text-sm text-gray-600 font-medium block mb-2">
                 ASK QUESTION ～～〉
               </span>
-              <h1 className="text-4xl lg:text-5xl font-bold text-gray-800 leading-tight">
+              <h1 className="text-4xl lg:text-4xl font-bold text-gray-800 leading-tight">
                 FAQ & Help Center
               </h1>
             </div>
             
             {faqData.map((faq, index) => (
-              <div key={index} className="mb-4">
+              <div key={index} className="mb-2">
                 <div className="bg-[#ECE3DA] rounded-2xl border border-gray-200 overflow-hidden">
                   <div 
                     className="flex justify-between items-center p-6 cursor-pointer hover:bg-[#e4d7c9] transition-colors"
