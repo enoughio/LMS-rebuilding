@@ -322,9 +322,6 @@ export const getStatsController = async (_req, res) => {
         });
     }
 };
-// ==========================================
-// 2. REVENUE CONTROLLER
-// ==========================================
 export const getRevenueController = async (_req, res) => {
     try {
         // Date calculations

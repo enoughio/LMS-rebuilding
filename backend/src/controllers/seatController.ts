@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma.js';
-// import { BookingStatus, PaymentType, PaymentMedium, PaymentStatus } from '../../generated/prisma/index.js';
+import { BookingStatus, PaymentType, PaymentMedium, PaymentStatus } from '../../generated/prisma/index.js';
+import PDFDocument from 'pdfkit';
+import fs from 'fs';
+import path from 'path';
 
 // Get all seats in a library
 export const getLibrarySeats = async (req: Request, res: Response) => {
@@ -21,11 +24,9 @@ export const getLibrarySeats = async (req: Request, res: Response) => {
         address: true,
         description: true,
         email: true,
-        phone: true,
-        
+        phone: true, 
       }
     });
-
 
     const seats = await prisma.seat.findMany({
       where: {
@@ -297,188 +298,537 @@ export const deleteSeat = async (req: Request, res: Response) => {
 };
 
 
-// // Book a seat
-// export const bookSeat = async (req: Request, res: Response) => {
-//   try {
-//     const userId = (req as any).user.id;
-//     const { seatId, date, startTime, endTime, paymentMedium, paymentMethod } = req.body;
+// Book a seat
+export const bookSeat = async (req: Request, res: Response) => {
+  try {
+    const { libraryId } = req.params;
+    const { 
+      seatId, 
+      date, 
+      startTime, 
+      endTime, 
+      duration,
+      paymentMethod = 'OFFLINE',
+      guestBooking // For guest bookings
+    } = req.body;
 
-//     // Check if user has an active membership
-//     const userMembership = await prisma.membership.findFirst({
-//       where: {
-//         userId,
-//         status: 'ACTIVE',
-//         endDate: {
-//           gte: new Date(),
-//         },
-//       },
-//     });
+    // Check if this is a guest booking route
+    const isGuestBooking = req.path.includes('/book-guest');
+    
+    // Get user ID from authenticated request (only for regular bookings)
+    const userId = (req as any).user?.id;
+    
+    // Validate authentication based on booking type
+    if (!isGuestBooking && !userId) {
+      res.status(401).json({ success: false, error: 'Authentication required' });
+      return;
+    }
+    
+    if (isGuestBooking && !guestBooking) {
+      res.status(400).json({ success: false, error: 'Guest booking information required' });
+      return;
+    }
 
-//     if (!userMembership) {
-//       res.status(403).json({
-//         success: false,
-//         error: 'Active membership required for booking',
-//       });
-//       return
-//     }
+    // Validate required fields
+    if (!seatId || !date || !startTime || !endTime || !duration) {
+      res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields: seatId, date, startTime, endTime, duration' 
+      });
+      return;
+    }
 
-//     // Get seat details and pricing
-//     const seatDetails = await prisma.seat.findUnique({
-//       where: { id: seatId },
-//       include: {
-//         library: {
-//           include: {
-//             seatPrices: true,
-//           },
-//         },
-//       },
-//     });
+    // Parse and validate date
+    const bookingDate = new Date(date);
+    if (isNaN(bookingDate.getTime())) {
+      res.status(400).json({ success: false, error: 'Invalid date format' });
+      return;
+    }
 
-//     if (!seatDetails) {
-//        res.status(404).json({
-//         success: false,
-//         error: 'Seat not found',
-//       });
-//       return
-//     }
+    // Check if the booking date is not in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    bookingDate.setHours(0, 0, 0, 0);
+    
+    if (bookingDate < today) {
+      res.status(400).json({ success: false, error: 'Cannot book seats for past dates' });
+      return;
+    }
 
-//     // Calculate duration and price
-//     const [startHour, startMinute] = startTime.split(':').map(Number);
-//     const [endHour, endMinute] = endTime.split(':').map(Number);
-//     const duration = (endHour - startHour) + (endMinute - startMinute) / 60;
+    // Get seat details with library and seat type info
+    const seat = await prisma.seat.findUnique({
+      where: { id: seatId },
+      include: {
+        seatType: true,
+        library: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+            email: true,
+            phone: true
+          }
+        }
+      }
+    });
 
-//     const seatPrice = seatDetails.library.seatPrices.find(
-//       price => price.seatType === seatDetails.seatType
-//     );
-//     const bookingPrice = seatPrice ? (seatPrice.isHourly ? seatPrice.price * duration : seatPrice.price) : 0;
+    if (!seat) {
+      res.status(404).json({ success: false, error: 'Seat not found' });
+      return;
+    }
 
-//     // Check if the seat is available for the requested time
-//     const existingBooking = await prisma.seatBooking.findFirst({
-//       where: {
-//         seatId,
-//         date: new Date(date),
-//         status: BookingStatus.CONFIRMED,
-//         OR: [
-//           {
-//             AND: [
-//               { startTime: { lte: startTime } },
-//               { endTime: { gt: startTime } },
-//             ],
-//           },
-//           {
-//             AND: [
-//               { startTime: { lt: endTime } },
-//               { endTime: { gte: endTime } },
-//             ],
-//           },
-//         ],
-//       },
-//     });
+    if (!seat.isAvailable || !seat.isActive) {
+      res.status(400).json({ success: false, error: 'Seat is not available for booking' });
+      return;
+    }
 
-//     if (existingBooking) {
-//       res.status(400).json({
-//         success: false,
-//         error: 'Seat is not available for the requested time slot',
-//       });
-//       return;
-//     }
+    if (seat.libraryId !== libraryId) {
+      res.status(400).json({ success: false, error: 'Seat does not belong to the specified library' });
+      return;
+    }
 
-//     // Create the booking
-//     const booking = await prisma.seatBooking.create({
-//       data: {
-//         date: new Date(date),
-//         startTime,
-//         endTime,
-//         duration,
-//         bookingPrice,
-//         status: BookingStatus.CONFIRMED,
-//         user: { connect: { id: userId } },
-//         seat: { connect: { id: seatId } },
-//         library: { connect: { id: seatDetails.library.id } },
-//       },
-//       include: {
-//         seat: true,
-//         library: true,
-//       },
-//     });
+    // Check for existing bookings on the same date and time slot
+    const conflictingBookings = await prisma.seatBooking.findFirst({
+      where: {
+        seatId,
+        date: {
+          gte: new Date(bookingDate.toDateString()),
+          lt: new Date(bookingDate.getTime() + 24 * 60 * 60 * 1000)
+        },
+        status: {
+          in: [BookingStatus.CONFIRMED, BookingStatus.PENDING]
+        },
+        OR: [
+          {
+            AND: [
+              { startTime: { lte: startTime } },
+              { endTime: { gt: startTime } }
+            ]
+          },
+          {
+            AND: [
+              { startTime: { lt: endTime } },
+              { endTime: { gte: endTime } }
+            ]
+          },
+          {
+            AND: [
+              { startTime: { gte: startTime } },
+              { endTime: { lte: endTime } }
+            ]
+          }
+        ]
+      }
+    });
 
-//     // Create payment record for the seat booking
-//     const payment = await prisma.payment.create({
-//       data: {
-//         amount: booking.bookingPrice,
-//         currency: booking.currency,
-//         type: PaymentType.SEAT_BOOKING,
-//         status: PaymentStatus.PENDING,
-//         medium: paymentMedium || PaymentMedium.OFFLINE,
-//         paymentMethod,
-//         user: { connect: { id: userId } },
-//         seatBooking: { connect: { id: booking.id } },
-//       },
-//     });
+    if (conflictingBookings) {
+      res.status(400).json({ 
+        success: false, 
+        error: 'Seat is already booked for the selected time slot' 
+      });
+      return;
+    }    // Calculate booking price
+    const bookingPrice = seat.seatType.pricePerHour * duration;    // Get user details for the booking or use guest info
+    let user;
+    if (!isGuestBooking && userId) {
+      user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true
+        }
+      });
 
-//     res.status(201).json({ success: true, data: { booking, payment } });
-//   } catch (error) {
-//     console.error('Error booking seat:', error);
-//     res.status(500).json({ success: false, error: 'Internal server error' });
-//   }
-// };
+      if (!user) {
+        res.status(404).json({ success: false, error: 'User not found' });
+        return;
+      }
+    } else if (isGuestBooking) {
+      // Use guest booking info
+      user = {
+        id: null,
+        name: guestBooking.name,
+        email: guestBooking.email,
+        phone: guestBooking.phone
+      };
+    }// Create booking and payment in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Create the seat booking
+      const bookingData: any = {
+        date: bookingDate,
+        seatName: seat.name,
+        startTime,
+        endTime,
+        bookingPrice,
+        status: BookingStatus.CONFIRMED, // Auto-confirm for now
+        isGuest: !userId, // Set guest flag
+        seat: { connect: { id: seatId } },
+        library: { connect: { id: libraryId } }
+      };      // Connect user if authenticated, otherwise create guest booking
+      if (!isGuestBooking && userId) {
+        bookingData.user = { connect: { id: userId } };
+      } else if (isGuestBooking) {
+        // Create a guest record if needed
+        const guest = await tx.guestUser.create({
+          data: {
+            name: guestBooking.name,
+            email: guestBooking.email,
+            phone: guestBooking.phone
+          }
+        });
+        bookingData.guestUser = { connect: { id: guest.id } };
+      }const booking = await tx.seatBooking.create({
+        data: bookingData,
+        include: {
+          seat: {
+            include: {
+              seatType: true,
+              library: {
+                select: {
+                  id: true,
+                  name: true,
+                  address: true,
+                  email: true,
+                  phone: true
+                }
+              }
+            }
+          },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              phone: true
+            }
+          },
+          guestUser: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              phone: true
+            }
+          }
+        }
+      });      // Create payment record
+      const paymentData: any = {
+        amount: bookingPrice,
+        type: !isGuestBooking ? PaymentType.SEAT_BOOKING : PaymentType.GUEST_SEAT_BOOKING,
+        status: PaymentStatus.COMPLETED, // Auto-complete for offline payments
+        medium: paymentMethod === 'OFFLINE' ? PaymentMedium.OFFLINE : PaymentMedium.ONLINE,
+        paymentMethod,
+        notes: `Seat booking payment for ${seat.name} on ${bookingDate.toDateString()}`,
+        seatBooking: { connect: { id: booking.id } }
+      };
 
-// // Get user's bookings
-// export const getUserBookings = async (req: Request, res: Response) => {
-//   try {
-//     const userId = (req as any).user.id;
+      if (!isGuestBooking && userId) {
+        paymentData.user = { connect: { id: userId } };
+      } else if (isGuestBooking) {
+        paymentData.guestUser = { connect: { id: booking.guestUser!.id } };
+      }
 
-//     const bookings = await prisma.seatBooking.findMany({
-//       where: {
-//         userId,
-//       },
-//       include: {
-//         seat: {
-//           include: {
-//             library: {
-//               select: {
-//                 id: true,
-//                 name: true,
-//                 address: true,
-//               },
-//             },
-//           },
-//         },
-//       },
-//       orderBy: {
-//         date: 'desc',
-//       },
-//     });
+      const payment = await tx.payment.create({
+        data: paymentData
+      });
 
-//     res.json({ success: true, data: bookings });
-//   } catch (error) {
-//     console.error('Error fetching user bookings:', error);
-//     res.status(500).json({ success: false, error: 'Internal server error' });
-//   }
-// };
+      return { booking, payment };    });    // Generate PDF bill (optional - for future download)
+    // const billPath = await generateBookingBill(result.booking, result.payment);
 
-// // Cancel booking
-// export const cancelBooking = async (req: Request, res: Response) => {
-//   try {
-//     const { bookingId } = req.params;
-//     const userId = (req as any).user.id;
+    // TODO: Send confirmation email to user
+    // await sendBookingConfirmationEmail(user.email, result.booking, billPath);
 
-//     const booking = await prisma.seatBooking.update({
-//       where: {
-//         id: bookingId,
-//         userId, // Ensure the booking belongs to the user
-//       },
-//       data: {
-//         status: BookingStatus.CANCELLED,
-//       },
-//     });
+    res.status(201).json({
+      success: true,
+      message: 'Seat booked successfully',
+      data: {
+        booking: result.booking,
+        payment: result.payment,
+        billUrl: `/api/seats/download-bill/${result.booking.id}`
+      }
+    });
 
-//     res.json({ success: true, data: booking });
-//   } catch (error) {
-//     console.error('Error cancelling booking:', error);
-//     res.status(500).json({ success: false, error: 'Internal server error' });
-//   }
-// };
+  } catch (error) {
+    console.error('Error booking seat:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+};
+
+
+
+// Generate PDF bill for booking
+const generateBookingBill = async (booking: any, payment: any): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    try {
+      // Create bills directory if it doesn't exist
+      const billsDir = path.join(process.cwd(), 'bills');
+      if (!fs.existsSync(billsDir)) {
+        fs.mkdirSync(billsDir, { recursive: true });
+      }
+
+      const fileName = `bill_${booking.id}_${Date.now()}.pdf`;
+      const filePath = path.join(billsDir, fileName);
+
+      // Create PDF document
+      const doc = new PDFDocument();
+      const stream = fs.createWriteStream(filePath);
+      doc.pipe(stream);
+
+      // Header
+      doc.fontSize(20).text('SEAT BOOKING BILL', { align: 'center' });
+      doc.moveDown();
+
+      // Library Info
+      doc.fontSize(16).text('Library Details:', { underline: true });
+      doc.fontSize(12)
+        .text(`Name: ${booking.seat.library.name}`)
+        .text(`Address: ${booking.seat.library.address}`)
+        .text(`Email: ${booking.seat.library.email}`)
+        .text(`Phone: ${booking.seat.library.phone}`);
+      doc.moveDown();
+
+      // Customer Info
+      doc.fontSize(16).text('Customer Details:', { underline: true });
+      doc.fontSize(12)
+        .text(`Name: ${booking.user.name}`)
+        .text(`Email: ${booking.user.email}`)
+        .text(`Phone: ${booking.user.phone || 'N/A'}`);
+      doc.moveDown();
+
+      // Booking Details
+      doc.fontSize(16).text('Booking Details:', { underline: true });
+      doc.fontSize(12)
+        .text(`Booking ID: ${booking.id}`)
+        .text(`Seat: ${booking.seatName}`)
+        .text(`Seat Type: ${booking.seat.seatType.name}`)
+        .text(`Date: ${new Date(booking.date).toDateString()}`)
+        .text(`Time: ${booking.startTime} - ${booking.endTime}`)
+        .text(`Status: ${booking.status}`);
+      doc.moveDown();
+
+      // Payment Details
+      doc.fontSize(16).text('Payment Details:', { underline: true });
+      doc.fontSize(12)
+        .text(`Payment ID: ${payment.id}`)
+        .text(`Amount: ${payment.currency} ${payment.amount}`)
+        .text(`Payment Method: ${payment.paymentMethod}`)
+        .text(`Payment Status: ${payment.status}`)
+        .text(`Transaction Date: ${new Date(payment.createdAt).toLocaleString()}`);
+      doc.moveDown();
+
+      // Footer
+      doc.fontSize(10).text('Thank you for choosing our library!', { align: 'center' });
+      doc.text('This is a computer-generated bill.', { align: 'center' });
+
+      doc.end();
+
+      stream.on('finish', () => {
+        resolve(filePath);
+      });
+
+      stream.on('error', (error) => {
+        reject(error);
+      });
+
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+// Download bill endpoint
+export const downloadBill = async (req: Request, res: Response) => {
+  try {
+    const { bookingId } = req.params;
+    const userId = (req as any).user?.id;
+
+    if (!userId) {
+      res.status(401).json({ success: false, error: 'Authentication required' });
+      return;
+    }
+
+    // Get booking with all necessary details
+    const booking = await prisma.seatBooking.findFirst({
+      where: {
+        id: bookingId,
+        userId: userId // Ensure user can only download their own bills
+      },
+      include: {
+        seat: {
+          include: {
+            seatType: true,
+            library: {
+              select: {
+                id: true,
+                name: true,
+                address: true,
+                email: true,
+                phone: true
+              }
+            }
+          }
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true
+          }
+        },
+        payment: true
+      }
+    });
+
+    if (!booking) {
+      res.status(404).json({ success: false, error: 'Booking not found' });
+      return;
+    }
+
+    if (!booking.payment) {
+      res.status(404).json({ success: false, error: 'Payment record not found' });
+      return;
+    }
+
+    // Generate PDF bill
+    const billPath = await generateBookingBill(booking, booking.payment);
+
+    // Send file for download
+    res.download(billPath, `booking_bill_${booking.id}.pdf`, (err) => {
+      if (err) {
+        console.error('Error sending file:', err);
+        res.status(500).json({ success: false, error: 'Error downloading bill' });
+      }
+    });
+
+  } catch (error) {
+    console.error('Error downloading bill:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+};
+
+// Get user's bookings
+export const getUserBookings = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+
+    if (!userId) {
+      res.status(401).json({ success: false, error: 'Authentication required' });
+      return;
+    }
+
+    const bookings = await prisma.seatBooking.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        seat: {
+          include: {
+            seatType: true,
+            library: {
+              select: {
+                id: true,
+                name: true,
+                address: true,
+              },
+            },
+          },
+        },
+        payment: {
+          select: {
+            id: true,
+            amount: true,
+            currency: true,
+            status: true,
+            paymentMethod: true,
+            createdAt: true
+          }
+        }
+      },
+      orderBy: {
+        date: 'desc',
+      },
+    });
+
+    res.json({ success: true, data: bookings });
+  } catch (error) {
+    console.error('Error fetching user bookings:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+};
+
+// Cancel booking
+export const cancelBooking = async (req: Request, res: Response) => {
+  try {
+    const { bookingId } = req.params;
+    const userId = (req as any).user?.id;
+
+    if (!userId) {
+      res.status(401).json({ success: false, error: 'Authentication required' });
+      return;
+    }
+
+    // Check if booking exists and belongs to user
+    const existingBooking = await prisma.seatBooking.findFirst({
+      where: {
+        id: bookingId,
+        userId: userId
+      }
+    });
+
+    if (!existingBooking) {
+      res.status(404).json({ success: false, error: 'Booking not found' });
+      return;
+    }
+
+    if (existingBooking.status === BookingStatus.CANCELLED) {
+      res.status(400).json({ success: false, error: 'Booking is already cancelled' });
+      return;
+    }
+
+    if (existingBooking.status === BookingStatus.COMPLETED) {
+      res.status(400).json({ success: false, error: 'Cannot cancel completed booking' });
+      return;
+    }
+
+    // Update booking status
+    const booking = await prisma.seatBooking.update({
+      where: {
+        id: bookingId,
+      },
+      data: {
+        status: BookingStatus.CANCELLED,
+      },
+      include: {
+        seat: {
+          include: {
+            seatType: true,
+            library: {
+              select: {
+                name: true,
+                address: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // TODO: Process refund if applicable
+    // TODO: Send cancellation email
+
+    res.json({ 
+      success: true, 
+      message: 'Booking cancelled successfully',
+      data: booking 
+    });
+  } catch (error) {
+    console.error('Error cancelling booking:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+};
 
 
 

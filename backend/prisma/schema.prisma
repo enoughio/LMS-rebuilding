@@ -33,12 +33,10 @@ model User {
   libraryId     String?   @db.ObjectId // for admin of a library
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
   // ... all your existing relationships ...
   memberships       Membership[]
   seatBookings      SeatBooking[]
   bookBorrowings    BookBorrowing[]
-  eBookAccesses     EBookAccess[]
   forumPosts        ForumPost[]
   forumComments     ForumComment[]
   forumPostLikes    ForumPostLike[]  // New relationship for liked posts
@@ -51,9 +49,6 @@ model User {
   adminOf           Library?         @relation("LibraryAdmin")
   libraryStaff      LibraryStaff[]
   studyStreak       StudyStreak?
-  readingHistory    ReadingHistory[]
-  bookmarks         Bookmark[]
-  notes             Note[]
   reviews           Review[]
   registeredLibraryIds String[]  @db.ObjectId
   registeredLibraries Library[]   @relation(fields: [registeredLibraryIds], references: [id])
@@ -101,7 +96,6 @@ model Library {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
   // Relationships
   admin             User               @relation("LibraryAdmin", fields: [adminId], references: [id])
   adminId           String             @unique  @db.ObjectId
@@ -113,7 +107,6 @@ model Library {
   seatBookings      SeatBooking[]
   physicalBooks     PhysicalBook[]
   bookBorrowings    BookBorrowing[]
-  eBooks            EBook[]
   events            Event[]
   announcements     Announcement[]
   maintenanceRecords MaintenanceRecord[]
@@ -279,12 +272,15 @@ model SeatBooking {
   bookingPrice  Float         // Final price calculated at booking time
   currency      String        @default("INR")
   status        BookingStatus @default(PENDING)
+  isGuest       Boolean       @default(false) // Flag to indicate if this is a guest booking
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   
   // Relationships
-  user          User          @relation(fields: [userId], references: [id])
-  userId        String        @db.ObjectId
+  user          User?         @relation(fields: [userId], references: [id]) // Optional for guest bookings
+  userId        String?       @db.ObjectId
+  guestUser     GuestUser?    @relation(fields: [guestUserId], references: [id]) // For guest bookings
+  guestUserId   String?       @db.ObjectId
   seat          Seat          @relation(fields: [seatId], references: [id])
   seatId        String        @db.ObjectId
   library       Library       @relation(fields: [libraryId], references: [id])
@@ -292,6 +288,22 @@ model SeatBooking {
   payment       Payment?
 
   @@map("seat_bookings")
+}
+
+// Guest User model for non-registered users who want to book seats
+model GuestUser {
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  email         String
+  phone         String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  // Relationships
+  seatBookings  SeatBooking[]
+  payments      Payment[]
+
+  @@map("guest_users")
 }
 
 enum BookingStatus {
@@ -352,55 +364,6 @@ enum BookCondition {
   POOR
 }
 
-
-enum EBookStatus {
-  AVAILABLE
-  CHECKED_OUT
-}
-
-
-
-// E-Books
-model EBook {
-  id            String   @id @default(auto()) @map("_id")   @db.ObjectId
-  title         String
-  author        String
-  isbn          String?
-  coverImage    String?
-  description   String?
-  publishedYear Int?
-  publisher     String?
-  pageCount     Int?
-  language      String   @default("English")
-  genre         String[]
-  tags          String[]
-  fileUrl       String
-  fileFormat    String
-  fileSize      Int      // in KB
-  price         Float    // Added field for ebook price
-  currency      String   @default("INR")
-  isPremium     Boolean  @default(false)
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  status        EBookStatus @default(AVAILABLE)
-  
-  // Relationships
-  category      BookCategory   @relation(fields: [categoryId], references: [id])
-  categoryId    String       @db.ObjectId 
-  accesses      EBookAccess[]
-  reviews       Review[]
-  readingHistory ReadingHistory[]
-  bookmarks     Bookmark[]
-  notes         Note[]
-
-  libraryId  String   @db.ObjectId
-  library    Library  @relation(fields: [libraryId], references: [id])
-
-  @@map("ebooks")
-}
-
 // Book Categories
 model BookCategory {
   id          String   @id @default(auto()) @map("_id")   @db.ObjectId
@@ -411,7 +374,6 @@ model BookCategory {
   
   // Relationships
   physicalBooks PhysicalBook[]
-  eBooks        EBook[]
 
   @@map("book_categories")
 }
@@ -445,82 +407,6 @@ enum BorrowingStatus {
   RETURNED
   OVERDUE
   LOST
-}
-
-// E-Book Access
-model EBookAccess {
-  id            String   @id @default(auto()) @map("_id")   @db.ObjectId
-  startDate     DateTime
-  endDate       DateTime
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  // Relationships
-  user          User     @relation(fields: [userId], references: [id])
-  userId        String    @db.ObjectId  
-  eBook         EBook    @relation(fields: [eBookId], references: [id])
-  eBookId       String        @db.ObjectId
-  payment       Payment?
-
-  @@map("ebook_accesses")
-}
-
-// Reading History
-model ReadingHistory {
-  id            String   @id @default(auto()) @map("_id")   @db.ObjectId
-  startDate     DateTime
-  lastReadDate  DateTime
-  lastReadPage  Int
-  totalPages    Int
-  isCompleted   Boolean  @default(false)
-  completedDate DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  // Relationships
-  user          User     @relation(fields: [userId], references: [id])
-  userId        String   @db.ObjectId
-  eBook         EBook    @relation(fields: [eBookId], references: [id])
-  eBookId       String   @db.ObjectId
-
-  @@map("reading_history")
-}
-
-// Bookmarks
-model Bookmark {
-  id            String   @id @default(auto()) @map("_id")   @db.ObjectId
-  page          Int
-  position      String?  // Position on page if applicable
-  title         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  // Relationships
-  user          User     @relation(fields: [userId], references: [id])
-  userId        String    @db.ObjectId
-  eBook         EBook    @relation(fields: [eBookId], references: [id])
-  eBookId       String    @db.ObjectId
-
-  @@map("bookmarks")
-}
-
-// Notes
-model Note {
-  id            String   @id @default(auto()) @map("_id")   @db.ObjectId
-  page          Int
-  content       String
-  color         String?  // For highlighting color
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  // Relationships
-  user          User     @relation(fields: [userId], references: [id])
-  userId        String   @db.ObjectId
-  eBook         EBook    @relation(fields: [eBookId], references: [id])
-  eBookId       String   @db.ObjectId
-
-  @@map("notes")
 }
 
 // Forum Categories
@@ -820,16 +706,16 @@ model Payment {
   updatedAt     DateTime      @updatedAt
   
   // Relationships
-  user          User          @relation(fields: [userId], references: [id])
-  userId        String          @db.ObjectId
+  user          User?         @relation(fields: [userId], references: [id]) // Optional for guest payments
+  userId        String?       @db.ObjectId
+  guestUser     GuestUser?    @relation(fields: [guestUserId], references: [id]) // For guest payments
+  guestUserId   String?       @db.ObjectId
   membership    Membership?   @relation(fields: [membershipId], references: [id])
   membershipId  String?       @db.ObjectId
   seatBooking   SeatBooking?  @relation(fields: [seatBookingId], references: [id])
   seatBookingId String?       @unique   @db.ObjectId
   bookBorrowing BookBorrowing? @relation(fields: [bookBorrowingId], references: [id])
   bookBorrowingId String?     @db.ObjectId
-  eBookAccess   EBookAccess?  @relation(fields: [eBookAccessId], references: [id])
-  eBookAccessId String?       @unique  @db.ObjectId
 
   @@map("payments")
 }
@@ -842,8 +728,8 @@ enum PaymentMedium {
 enum PaymentType {
   MEMBERSHIP
   SEAT_BOOKING
+  GUEST_SEAT_BOOKING
   PENALTY
-  EBOOK_PURCHASE
   OTHER
 }
 
@@ -904,8 +790,6 @@ model Review {
   libraryId   String?  @db.ObjectId
   physicalBook PhysicalBook? @relation(fields: [physicalBookId], references: [id])
   physicalBookId String?   @db.ObjectId
-  eBook       EBook?   @relation(fields: [eBookId], references: [id])
-  eBookId     String?   @db.ObjectId
 
   @@map("reviews")
 }

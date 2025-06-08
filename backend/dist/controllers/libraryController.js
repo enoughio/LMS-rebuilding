@@ -80,14 +80,24 @@ export const getAllLibraries = async (req, res) => {
                         isClosed: true,
                     },
                     orderBy: { dayOfWeek: "asc" },
-                },
-                seats: {
+                }, seats: {
                     select: {
                         id: true,
-                        seatType: true,
+                        seatTypeId: true,
                         isAvailable: true,
+                        seatType: {
+                            select: {
+                                id: true,
+                                name: true,
+                                pricePerHour: true,
+                                color: true,
+                            }
+                        }
                     },
-                    where: { isActive: true },
+                    where: {
+                        isActive: true,
+                        // seatTypeId: { not: null } // Filter out seats with null seatTypeId
+                    },
                 },
                 _count: {
                     select: {

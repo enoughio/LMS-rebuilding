@@ -17,6 +17,7 @@
     "@types/cors": "^2.8.18",
     "@types/express": "^5.0.2",
     "@types/node": "^22.15.23",
+    "@types/pdfkit": "^0.13.9",
     "nodemon": "^3.1.10",
     "prisma": "^6.8.2",
     "ts-node": "^10.9.2",
@@ -29,6 +30,7 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-oauth2-jwt-bearer": "^1.6.1",
-    "mongoose": "^8.15.1"
+    "mongoose": "^8.15.1",
+    "pdfkit": "^0.17.1"
   }
 }

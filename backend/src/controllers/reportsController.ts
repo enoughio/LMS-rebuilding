@@ -415,19 +415,22 @@ export const getBookingAnalytics = async (req: Request, res: Response) => {
         createdAt: { gte: start, lte: end },
         ...libraryFilter
       }
-    });
-
-    // Get seat details to map seat types
+    });    // Get seat details to map seat types
     const seatIds = bookingsBySeatType.map(booking => booking.seatId);
-    const seats = await prisma.seat.findMany({
-      where: {
-        id: { in: seatIds },
+    const seats = await prisma.seat.findMany({      where: {
+        id: { in: seatIds }
+        // seatTypeId: { not: null } // Filter out seats with null seatTypeId
       },
       select: {
         id: true,
-        seatType: true,
+        seatType: {
+          select: {
+            id: true,
+            name: true,
+          }
+        },
       },
-    });    // Create seat type mapping
+    });// Create seat type mapping
     const seatTypeMap = new Map(seats.map(seat => [seat.id, seat.seatType]));
 
     // Aggregate by seat type
