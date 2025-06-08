@@ -134,28 +134,18 @@ export const updateLibraryProfile = async (req, res) => {
         }
         const libraryId = user.adminOf.id;
         const { name, description, address, amenities, totalSeats, images, openingHours, } = req.body;
-        // Convert images from new format to database format if needed
-        let processedImages;
-        if (images) {
-            if (Array.isArray(images)) {
-                // Handle new format: Array<{ url: string; publicId?: string }>
-                processedImages = images.map((img) => typeof img === 'string' ? img : img.url);
-            }
-            else {
-                processedImages = undefined;
-            }
-        }
         // Start transaction to update library and opening hours
         const updatedLibrary = await prisma.$transaction(async (tx) => {
             // Update library basic information
             const library = await tx.library.update({
-                where: { id: libraryId }, data: {
+                where: { id: libraryId },
+                data: {
                     ...(name && { name }),
                     ...(description && { description }),
                     ...(address && { address }),
                     ...(amenities && { amenities }),
                     ...(totalSeats && { totalSeats: parseInt(totalSeats) }),
-                    ...(processedImages && { images: processedImages }),
+                    ...(images && { images }),
                 },
             });
             // Update opening hours if provided

@@ -1,7 +1,6 @@
 // Import the Cloudinary v2 API as 'cloudinary'
 import { v2 as cloudinary } from 'cloudinary';
 //version-2 of cloudinary sdk
-require("dotenv").config();
 // Configure Cloudinary
 cloudinary.config({
     cloud_name: 'dbuqitn5w', //cloud name which is account identifier

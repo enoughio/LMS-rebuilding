@@ -428,17 +428,6 @@ export const updateLibrary = async (req, res) => {
 export const registerLibrary = async (req, res) => {
     try {
         const { name, description, address, city, state, country, postalCode, email, phone, images, amenities, totalSeats, additionalInformation, adminBio, adminCompleteAddress, adminPhone, adminGovernmentId, adminPhoto, openingHours, adminId, userEmail, userName, } = req.body;
-        // Convert images from new format to database format if needed
-        let processedImages = [];
-        if (images) {
-            if (Array.isArray(images)) {
-                // Handle new format: Array<{ url: string; publicId?: string }>
-                processedImages = images.map((img) => typeof img === 'string' ? img : img.url);
-            }
-            else {
-                processedImages = [];
-            }
-        }
         // Check for existing library outside transaction first
         const existingLibraryCheck = await prisma.library.findFirst({
             where: {
@@ -482,7 +471,8 @@ export const registerLibrary = async (req, res) => {
                     message: "A user can only be an admin of one library at a time.",
                 });
                 return;
-            } // 3. Create the library
+            }
+            // 3. Create the library
             const library = await tx.library.create({
                 data: {
                     name,
@@ -494,7 +484,7 @@ export const registerLibrary = async (req, res) => {
                     postalCode,
                     email,
                     phone,
-                    images: processedImages,
+                    images,
                     amenities,
                     totalSeats,
                     additinalInformation: additionalInformation, // Note: matches schema typo
