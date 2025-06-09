@@ -7,6 +7,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import Image from "next/image";
 // import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { SeparatorVertical } from "lucide-react";
 
 interface OpeningHour {
   id: string;
@@ -63,25 +64,78 @@ const LibraryCard = memo(({ lib }: { lib: Library }) => {
     router.push(`/libraries/${lib.id}`);
   };
 
-  const isOpen = lib.openingHours.some(
-    (hour) => !hour.isClosed && new Date().getHours() >= parseInt(hour.openTime.split(':')[0]) && new Date().getHours() < parseInt(hour.closeTime.split(':')[0])
-  );
+  // Helper function to format time (24h to 12h format)
+  const formatTime = (time: string) => {
+    if (time === "00:00") return "Closed";
+    const [hour, minute] = time.split(':').map(Number);
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12;
+    return `${hour12}:${minute.toString().padStart(2, '0')} ${period}`;
+  };
+  // Helper function to get current day's opening hours and status
+  const getCurrentDayInfo = () => {
+    // Handle case where openingHours is empty or undefined
+    if (!lib.openingHours || lib.openingHours.length === 0) {
+      return {
+        isOpen: false,
+        displayHours: "Hours Not Available",
+        status: "Closed"
+      };
+    }
+
+    const now = new Date();
+    const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTimeInMinutes = currentHour * 60 + currentMinute;
+
+    // Find today's opening hours
+    const todaysHours = lib.openingHours.find(hour => hour.dayOfWeek === currentDay);
+    
+    if (!todaysHours || todaysHours.isClosed || todaysHours.openTime === "00:00" || todaysHours.closeTime === "00:00") {
+      return {
+        isOpen: false,
+        displayHours: "Closed Today",
+        status: "Closed"
+      };
+    }
+
+    // Parse opening and closing times
+    const [openHour, openMinute] = todaysHours.openTime.split(':').map(Number);
+    const [closeHour, closeMinute] = todaysHours.closeTime.split(':').map(Number);
+    const openTimeInMinutes = openHour * 60 + openMinute;
+    const closeTimeInMinutes = closeHour * 60 + closeMinute;
+
+    // Check if currently open
+    const isCurrentlyOpen = currentTimeInMinutes >= openTimeInMinutes && currentTimeInMinutes < closeTimeInMinutes;
+
+    return {
+      isOpen: isCurrentlyOpen,
+      displayHours: `${formatTime(todaysHours.openTime)} - ${formatTime(todaysHours.closeTime)}`,
+      status: isCurrentlyOpen ? "Open Now" : "Closed"
+    };
+  };
+
+  const dayInfo = getCurrentDayInfo();
 
   return (
     <div
       className="flex flex-col sm:flex-row bg-white rounded-2xl shadow-sm p-4 gap-4 sm:gap-6 items-center cursor-pointer hover:shadow-md transition"
       onClick={handleCardClick}
     >
-      <div className="relative w-full sm:w-64 h-40 sm:h-40 flex-shrink-0">
-        <Image
-          src={ "/libraries/libraries2.jpg"}
+      <div className="relative w-full sm:w-64 h-40 sm:h-40 flex-shrink-0">        <Image
+          src={ "/placeholder.svg"}
           alt={lib.name}
           fill
           className="w-full h-full object-cover rounded-xl"
-        />
-        {!isOpen && (
+        />        {(!dayInfo.isOpen) && (
           <span className="absolute bottom-2 left-2 text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
-            Closed
+            {dayInfo.status}
+          </span>
+        )}
+        {dayInfo.isOpen && (
+          <span className="absolute bottom-2 left-2 text-xs bg-green-100 text-green-600 px-2 py-1 rounded">
+            {dayInfo.status}
           </span>
         )}
       </div>
@@ -95,15 +149,18 @@ const LibraryCard = memo(({ lib }: { lib: Library }) => {
               </span>
               {lib.address}, {lib.city}
             </div>
-          </div>
-          <div className="flex flex-col items-end gap-1">
+          </div>          <div className="flex flex-col items-end gap-1">
             <span className="text-xs text-gray-600">
-              {lib.openingHours[0]?.openTime} to {lib.openingHours[0]?.closeTime}
+              {dayInfo.displayHours}
             </span>
-            <span className={`text-xs px-3 py-1 rounded-full font-medium ${lib.availableSeats > 0 ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}>
+            <span className={`text-xs px-3 py-1 rounded-full font-medium ${dayInfo.isOpen ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}>
+              {dayInfo.status}
+            </span>
+            {/* <span className={`text-xs px-3 py-1 rounded-full font-medium ${lib.availableSeats > 0 ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}>
               {lib.availableSeats > 0 ? `${lib.availableSeats} Seats Available` : "Currently Full"}
-            </span>
-            <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+            </span>  */}
+            
+                       <span className={`text-xs px-3 py-1 rounded-full font-medium ${
               lib.hasFreeMembership && lib.hasPaidMembership
                 ? "bg-purple-100 text-purple-600"
                 : lib.hasFreeMembership
@@ -116,9 +173,6 @@ const LibraryCard = memo(({ lib }: { lib: Library }) => {
                 ? "Free"
                 : "Paid"}
             </span>
-            <span className="text-xs px-3 py-1 rounded-full font-medium bg-yellow-100 text-yellow-600">
-                {lib.availableSeats === 0 ? "Fully Booked" : "Seat Available"}
-            </span>
           </div>
         </div>
         <div className="flex items-center gap-2 mt-1">
@@ -130,7 +184,8 @@ const LibraryCard = memo(({ lib }: { lib: Library }) => {
             {Array.from({ length: Math.ceil(lib.amenities.length / 2) }).map((_, i) => (
               <div key={i} className="flex gap-4">
                 {lib.amenities.slice(i * 2, i * 2 + 2).map((tag) => (
-                  <div key={tag} className="flex items-center gap-1 text-sm text-gray-700">
+                 < div className="flex items-center gap-1" key={tag}>
+                  <div key={tag} className="flex items-center gap-1 text-sm text-black p-1 ">
                     {tag === "Wifi" && (
                       <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M12 18a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm-4.24-2.83a6 6 0 0 1 8.48 0l1.42-1.42a8 8 0 0 0-11.32 0l1.42 1.42zm-2.83-2.83a10 10 0 0 1 14.14 0l1.42-1.42a12 12 0 0 0-17 0l1.42 1.42z" fill="#222"/></svg>
                     )}
@@ -144,26 +199,15 @@ const LibraryCard = memo(({ lib }: { lib: Library }) => {
                       <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><rect x="6" y="8" width="12" height="8" rx="2" fill="#222"/><path d="M18 10h1a2 2 0 0 1 0 4h-1" stroke="#222" strokeWidth="1.5"/></svg>
                     )}
                     {tag}
-                  </div>
+                  </div> 
+                  <SeparatorVertical className={` h-4 w-px bg-gray-300`} />
+                 </ div> 
                 ))}
               </div>
             ))}
           </div>
           <div className="flex items-end">
-            {/* <Button
-              className={`px-8 py-2 rounded-full font-semibold ${
-                lib.availableSeats === 0
-                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                  : "bg-black text-white"
-              }`}
-              disabled={lib.availableSeats === 0}
-              onClick={(e) => {
-                e.stopPropagation();
-                router.push(`libraries/${lib.id}/book-seat`);
-              }}
-            >
-              {lib.availableSeats === 0 ? "Fully Booked" : "Book now"}
-            </Button> */}
+      
             <Button
               className="px-8 py-2 rounded-full bg-black text-white font-semibold cursor-pointer hover:bg-gray-800 hover:scale-3d transition-colors"
               onClick={(e) => {
@@ -558,7 +602,7 @@ const LibraryList: React.FC = () => {
   }, [router, searchParams]);
 
   return (
-    <div>
+    <div className="max-w-[80vw] " >
       <SearchBar
         search={search}
         onSearchChange={setSearch}
@@ -577,7 +621,7 @@ const LibraryList: React.FC = () => {
           cities={cities}
           onFilterChange={handleFilterChange}
         />
-        <main className="flex-1">
+        <main className="flex-1 w-full min-sm:max-w-[75vw] bg-[#ECE3DA] rounded-2xl p-4 lg:p-6 shadow-sm min-w-[60vw]">
           {isLoading ? (
             <div className="text-center">Loading...</div>
           ) : libraries.length === 0 ? (
@@ -634,9 +678,9 @@ const LibraryList: React.FC = () => {
 
 export default function LibrariesPage() {
   return (
-    <div className="bg-[#ECE3DA] text-black min-h-screen max-w-[100vw] xl:max-w-[1920px] font-sans w-full md:px-10 ">
+    <div className="bg-[#ECE3DA] text-black min-h-screen max-w-[100vw] min-w-[80vw] xl:max-w-[1920px] font-sans w-full md:px-10 ">
       <Toaster position="top-right" />
-      <div className="max-w-full mx-auto px-4 sm:px-4 md:px-8 lg:px-12 py-8">
+      <div className="max-w-full mx-auto px-4 sm:px-4 md:px-8 lg:px-12 py-8 ">
         <h1 className="text-2xl sm:text-3xl font-thin mb-2 text-center ">
           <span className="font-semibold">Explore</span> Libraries Near You
         </h1>

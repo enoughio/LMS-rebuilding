@@ -186,12 +186,6 @@ export default function SeatBookingPage() {
           <p className="text-muted-foreground">Manage seat bookings and reservations</p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:gap-4">
-          <Button asChild variant="outline">
-            <Link href="/dashboard/admin/seat-booking/manual-booking">
-              <UserPlus className="mr-2 h-4 w-4" />
-              Manual Booking
-            </Link>
-          </Button>
           <Button asChild>
             <Link href={`/dashboard/admin/seat-booking/guest`}>
               <UserPlus className="mr-2 h-4 w-4" />

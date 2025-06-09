@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const JoinUs = () => {
   return (
@@ -30,7 +31,7 @@ const JoinUs = () => {
                 </p>              </div>
               
               {/* Google Sign up button */}
-              <button className="w-full bg-black text-white py-3 px-4 rounded-full flex items-center justify-center gap-3 mb-6 hover:bg-gray-800 transition-colors duration-300 shadow-lg hover:shadow-xl">
+              <Link href={'/auth/login'} className="w-full bg-black text-white py-3 px-4 rounded-full flex items-center justify-center gap-3 mb-6 hover:bg-gray-800 transition-colors duration-300 shadow-lg hover:shadow-xl">
                 <Image
                   src="/about/google.png"
                   alt="Google"
@@ -38,7 +39,7 @@ const JoinUs = () => {
                   height={20}
                 />
                 <span className="font-medium">Sign up with Google</span>
-              </button>
+              </Link>
               
               {/* Lorem ipsum text to maintain length */}
               <div className="mt-8 space-y-4 text-white/80">

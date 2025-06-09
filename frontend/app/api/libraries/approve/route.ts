@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-         const session = await auth0.getSession();
+        const session = await auth0.getSession();
         
         if (!session) {
             return NextResponse.json(

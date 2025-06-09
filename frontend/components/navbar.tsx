@@ -117,7 +117,7 @@ export default function Navbar() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="hidden md:flex text-[#435058] hover:bg-[#435058] hover:text-[#FEEDC1]"
+                className="hidden md:flex bg-gray-900 text-white  hover:bg-[#435058] hover:text-[#FEEDC1]"
                 onClick={logout}
               >
                 Logout
@@ -126,7 +126,7 @@ export default function Navbar() {
           ) : (
             <>
               <Link href="/auth/login">
-                <Button variant="ghost" size="sm" className="hidden md:flex">
+                <Button variant="ghost" size="sm" className="hidden bg-gray-900 text-white md:flex">
                   Login
                 </Button>
               </Link>
