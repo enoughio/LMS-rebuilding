@@ -1,22 +1,46 @@
 import cloudinary from "../cloudinary.config.js";
 //file upload
-export const uploadToCloudinary = async (file, // base64 or file path (file to upload)
-folder = 'uploads' // folder name where file will ve stored  on cloudinary
+export const uploadToCloudinary = async (file, // base64, file path, or buffer (file to upload)
+folder = 'uploads' // folder name where file will be stored on cloudinary
 ) => {
     try {
-        //to upload file with the specified folder
-        const result = await cloudinary.uploader.upload(file, {
-            folder
-        });
+        let uploadResult;
+        if (Buffer.isBuffer(file)) {
+            // Handle buffer (from multer)
+            uploadResult = await new Promise((resolve, reject) => {
+                cloudinary.uploader.upload_stream({
+                    folder,
+                    resource_type: 'auto', // auto-detect file type
+                    quality: 'auto', // auto-optimize quality
+                    fetch_format: 'auto' // auto-optimize format
+                }, (error, result) => {
+                    if (error)
+                        reject(error);
+                    else
+                        resolve(result);
+                }).end(file);
+            });
+        }
+        else {
+            // Handle string (base64 or file path)
+            uploadResult = await cloudinary.uploader.upload(file, {
+                folder,
+                resource_type: 'auto',
+                quality: 'auto',
+                fetch_format: 'auto'
+            });
+        }
+        const result = uploadResult;
         return {
-            //this return url (to access the uploaded file ) 
-            //and public_id as unique identifier of the file
+            // this returns url (to access the uploaded file) 
+            // and public_id as unique identifier of the file
             url: result.secure_url,
             public_id: result.public_id,
         };
     }
     catch (err) {
-        //error if upload fails
+        // error if upload fails
+        console.error('Cloudinary upload error:', err);
         throw new Error('Cloudinary upload failed: ' + err);
     }
 };

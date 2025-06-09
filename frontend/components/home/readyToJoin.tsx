@@ -4,12 +4,15 @@ import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/context/AuthContext";
+import { Button } from "../ui/button";
 
 export default function Ready() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
 
   const handleStudentClick = () => {
+    if (isLoading) return; // Prevent action while loading
+
     if (user) {
       router.push("/dashboard/member");
     } else {
@@ -18,6 +21,8 @@ export default function Ready() {
   };
 
   const handleLibraryClick = () => {
+    if (isLoading) return; // Prevent action while loading
+
     if (user) {
       router.push("/libraries/register");
     } else {
@@ -42,7 +47,7 @@ export default function Ready() {
 
       <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:gap-10 max-w-4xl mx-auto">
         {/* Individual Card */}
-        <div
+        <Button
           onClick={handleStudentClick}
           className="bg-[#fbf5e9] rounded-xl p-3 sm:p-6 lg:p-8 shadow-md cursor-pointer hover:shadow-lg hover:bg-[#dcc5b3] transition-all duration-300"
         >
@@ -69,10 +74,10 @@ export default function Ready() {
               <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5" />
             </div>
           </div>
-        </div>
+        </Button>
 
         {/* Business Card */}
-        <div
+        <Button
           onClick={handleLibraryClick}
           className="bg-[#fbf5e9] rounded-xl p-3 sm:p-6 lg:p-8 shadow-md cursor-pointer hover:shadow-lg hover:bg-[#dcc5b3] transition-all duration-300"
         >
@@ -99,7 +104,7 @@ export default function Ready() {
               <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5" />
             </div>
           </div>
-        </div>
+        </Button>
       </div>
     </div>
   );

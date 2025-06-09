@@ -122,9 +122,15 @@ const LibraryCard = memo(({ lib }: { lib: Library }) => {
     <div
       className="flex flex-col sm:flex-row bg-white rounded-2xl shadow-sm p-4 gap-4 sm:gap-6 items-center cursor-pointer hover:shadow-md transition"
       onClick={handleCardClick}
-    >
-      <div className="relative w-full sm:w-64 h-40 sm:h-40 flex-shrink-0">        <Image
-          src={ "/placeholder.svg"}
+
+    >      <div className="relative w-full sm:w-64 h-40 sm:h-40 flex-shrink-0">        <Image
+          src={lib.images && lib.images.length > 0 
+            ? (lib.images[0].startsWith('http') 
+                ? lib.images[0] 
+                : `/libraries/${lib.images[0]}`)
+            : "/placeholder.svg"
+          }
+
           alt={lib.name}
           fill
           className="w-full h-full object-cover rounded-xl"

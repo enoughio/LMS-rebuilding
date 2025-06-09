@@ -1,11 +1,10 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { Coffee, Loader2, Monitor, Save, Users, VolumeX, Wifi, Zap, Car, Lock, Shield, Printer } from "lucide-react"
+import { Coffee, Loader2, Monitor, Save, Users, VolumeX, Wifi, Zap, Car, Lock, Shield, Printer, Upload, X, Trash2 } from "lucide-react"
 import toast from "react-hot-toast"
 
 import { Button } from "@/components/ui/button"
@@ -52,24 +51,29 @@ export default function LibraryProfilePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState<Partial<Library>>({})
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [uploading, setUploading] = useState(false)
+  const [imagesToDelete, setImagesToDelete] = useState<string[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const fetchLibrary = async () => {
       setLoading(true)
       try {
-        if(!user?.libraryId) {
-          toast.error("No library found for this user")
-          router.push("/")
-          return
-        }
+        const response = await fetch('/api/library/profile', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
 
-        const response = await fetch(`/api/libraries/${user.libraryId}`)
         if (!response.ok) {
           const errorData = await response.json()
           throw new Error(errorData.message || "Failed to fetch library data")
         }
-        const data  = await response.json()
-        console.log("Library data fetched successfully:", data)
+        
+        const data = await response.json()
+        // console.log("Library data fetched successfully:", data)
         const libraryData: Library = data.data || data
         
         // Convert openingHours array to object format for frontend
@@ -195,6 +199,120 @@ export default function LibraryProfilePage() {
     });
   }
 
+  // Handle file selection
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files) return
+
+    const fileArray = Array.from(files)
+    
+    // Validate file types
+    const invalidFiles = fileArray.filter(file => !file.type.startsWith('image/'))
+    if (invalidFiles.length > 0) {
+      toast.error('Please select only image files')
+      return
+    }
+
+    // Validate file sizes (5MB limit)
+    const oversizedFiles = fileArray.filter(file => file.size > 5 * 1024 * 1024)
+    if (oversizedFiles.length > 0) {
+      toast.error('Please select images smaller than 5MB')
+      return
+    }
+
+    // Check total image count (max 10)
+    const currentImageCount = (formData.images || []).length
+    const totalImageCount = currentImageCount + fileArray.length
+    if (totalImageCount > 10) {
+      toast.error(`Maximum 10 images allowed. You can add ${10 - currentImageCount} more images.`)
+      return
+    }
+
+    setSelectedFiles(prev => [...prev, ...fileArray])
+    
+    // Reset file input
+    if (event.target) {
+      event.target.value = ''
+    }
+  }
+
+  // Remove selected file before upload
+  const removeSelectedFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index))
+  }
+
+  // Mark image for deletion
+  const markImageForDeletion = (imageUrl: string, index: number) => {
+    setImagesToDelete(prev => [...prev, imageUrl])
+    setFormData(prev => ({
+      ...prev,
+      images: (prev.images || []).filter((_, i) => i !== index)
+    }))
+  }
+
+  // Upload selected files
+  const uploadFiles = async () => {
+    if (selectedFiles.length === 0) return
+
+    setUploading(true)
+    try {
+      const formDataObj = new FormData()
+      
+      // Add all form fields
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key === 'images') return // Skip images, we'll handle them separately
+        if (key === 'amenities' && Array.isArray(value)) {
+          formDataObj.append(key, JSON.stringify(value))
+        } else if (key === 'openingHours' && typeof value === 'object') {
+          formDataObj.append(key, JSON.stringify(value))
+        } else if (value !== undefined && value !== null) {
+          formDataObj.append(key, value.toString())
+        }
+      })
+
+      // Add images to delete
+      if (imagesToDelete.length > 0) {
+        formDataObj.append('imagesToDelete', JSON.stringify(imagesToDelete))
+      }
+
+      // Add new image files
+      selectedFiles.forEach((file) => {
+        formDataObj.append(`images`, file)
+      })
+
+      const response = await fetch('/api/library/profile', {
+        method: 'PUT',
+        body: formDataObj,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to upload images')
+      }
+
+      const result = await response.json()
+      const updatedLibrary = result.data
+
+      // Update library state
+      setLibrary(updatedLibrary)
+      setFormData(prev => ({
+        ...prev,
+        images: updatedLibrary.images || []
+      }))
+
+      // Clear selected files and images to delete
+      setSelectedFiles([])
+      setImagesToDelete([])
+
+      toast.success('Images uploaded successfully!')
+    } catch (error) {
+      console.error('Error uploading files:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to upload images')
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const handleSave = async () => {
     if (!formData) return
 
@@ -239,28 +357,75 @@ export default function LibraryProfilePage() {
         return openingHoursArray;
       };
 
-      // Prepare data for backend
-      const saveData = {
-        ...formData,
-        amenities: convertAmenitiesToBackend(
-          (formData.amenities || []).filter((a): a is LibraryAmenity =>
-            typeof a === "string" && Object.keys(amenityLabels).includes(a)
-          )
-        ),
-        openingHours: convertOpeningHoursToArray(
-          (formData.openingHours && typeof formData.openingHours === 'object' && !Array.isArray(formData.openingHours))
-            ? formData.openingHours as Record<string, unknown>
-            : {}
-        )
-      };
+      // Check if we need to use FormData (for file uploads) or JSON
+      const hasFilesToUpload = selectedFiles.length > 0 || imagesToDelete.length > 0
 
-      const response = await fetch(`/api/libraries/${user?.libraryId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(saveData),
-      })
+      let response: Response
+
+      if (hasFilesToUpload) {
+        // Use FormData for file uploads
+        const formDataObj = new FormData()
+        
+        // Add all form fields
+        Object.entries(formData).forEach(([key, value]) => {
+          if (key === 'images') return // Skip images, we'll handle them separately
+          if (key === 'amenities' && Array.isArray(value)) {
+            const backendAmenities = convertAmenitiesToBackend(
+              value.filter((a): a is LibraryAmenity =>
+                typeof a === "string" && Object.keys(amenityLabels).includes(a)
+              )
+            )
+            formDataObj.append(key, JSON.stringify(backendAmenities))
+          } else if (key === 'openingHours' && typeof value === 'object') {
+            const openingHoursArray = convertOpeningHoursToArray(
+              (value && typeof value === 'object' && !Array.isArray(value))
+                ? value as Record<string, unknown>
+                : {}
+            )
+            formDataObj.append(key, JSON.stringify(openingHoursArray))
+          } else if (value !== undefined && value !== null) {
+            formDataObj.append(key, value.toString())
+          }
+        })
+
+        // Add images to delete
+        if (imagesToDelete.length > 0) {
+          formDataObj.append('imagesToDelete', JSON.stringify(imagesToDelete))
+        }
+
+        // Add new image files
+        selectedFiles.forEach((file) => {
+          formDataObj.append(`images`, file)
+        })
+
+        response = await fetch('/api/library/profile', {
+          method: 'PUT',
+          body: formDataObj,
+        })
+      } else {
+        // Use JSON for regular updates
+        const saveData = {
+          ...formData,
+          amenities: convertAmenitiesToBackend(
+            (formData.amenities || []).filter((a): a is LibraryAmenity =>
+              typeof a === "string" && Object.keys(amenityLabels).includes(a)
+            )
+          ),
+          openingHours: convertOpeningHoursToArray(
+            (formData.openingHours && typeof formData.openingHours === 'object' && !Array.isArray(formData.openingHours))
+              ? formData.openingHours as Record<string, unknown>
+              : {}
+          )
+        };
+
+        response = await fetch('/api/library/profile', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(saveData),
+        })
+      }
 
       if (!response.ok) {
         const errorData = await response.json()
@@ -323,6 +488,10 @@ export default function LibraryProfilePage() {
         amenities: normalizeAmenities(updatedLibrary.amenities),
         openingHours: convertOpeningHours(updatedLibrary.openingHours)
       })
+
+      // Clear selected files and images to delete
+      setSelectedFiles([])
+      setImagesToDelete([])
 
       toast.success("Library profile updated successfully")
 
@@ -598,50 +767,137 @@ export default function LibraryProfilePage() {
           <Card className="w-full border-0 shadow-none">
             <CardHeader className="px-0">
               <CardTitle>Library Images</CardTitle>
-              <CardDescription>Upload and manage images of your library</CardDescription>
+              <CardDescription>Upload and manage images of your library (Maximum 10 images, 5MB each)</CardDescription>
             </CardHeader>
-            <CardContent className="px-0">
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {(library?.images || []).map((image, index) => (
-                  <div key={index} className="relative aspect-square overflow-hidden rounded-md border">
-                    <Image
-                      src={image || "/placeholder.svg"}
-                      alt={`Library image ${index + 1}`}
-                      fill
-                      className="object-cover"
-                    />
+            <CardContent className="px-0 space-y-6">
+              {/* File Upload Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading || (formData.images || []).length >= 10}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Select Images
+                  </Button>
+                  {selectedFiles.length > 0 && (
                     <Button
-                      variant="destructive"
-                      size="sm"
-                      className="absolute right-2 top-2"
-                      onClick={() => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          images: (prev.images || []).filter((_, i) => i !== index),
-                        }))
-                      }}
+                      type="button"
+                      onClick={uploadFiles}
+                      disabled={uploading}
                     >
-                      Remove
+                      {uploading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        `Upload ${selectedFiles.length} image${selectedFiles.length > 1 ? 's' : ''}`
+                      )}
                     </Button>
-                  </div>
-                ))}
-                <div className="flex aspect-square items-center justify-center rounded-md border border-dashed">
-                  <div className="flex flex-col items-center gap-2 p-4 text-center">
-                    <p className="text-sm font-medium">Add Image</p>
-                    <p className="text-xs text-muted-foreground">Upload a new image of your library</p>
-                    <Button variant="outline" size="sm" className="mt-2">
-                      Upload
-                    </Button>
+                  )}
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                <p className="text-sm text-muted-foreground">
+                  Select up to {10 - (formData.images || []).length} more images (JPG, PNG, WebP - max 5MB each)
+                </p>
+              </div>
+
+              {/* Selected Files Preview */}
+              {selectedFiles.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium">Selected Files:</h4>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+                    {selectedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 border rounded">
+                        <span className="text-sm truncate flex-1">{file.name}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeSelectedFile(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
                   </div>
                 </div>
+              )}
+
+              {/* Current Images Grid */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-medium">Current Images:</h4>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                  {(formData.images || []).map((image, index) => (
+                    <div key={index} className="relative aspect-square overflow-hidden rounded-md border group">
+                      <Image
+                        src={image || "/placeholder.svg"}
+                        alt={`Library image ${index + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity flex items-center justify-center">
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => markImageForDeletion(image, index)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {/* Add New Image Placeholder */}
+                  {(formData.images || []).length < 10 && (
+                    <div 
+                      className="flex aspect-square items-center justify-center rounded-md border border-dashed cursor-pointer hover:border-gray-400 transition-colors"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <div className="flex flex-col items-center gap-2 p-4 text-center">
+                        <Upload className="h-8 w-8 text-muted-foreground" />
+                        <p className="text-sm font-medium">Add Image</p>
+                        <p className="text-xs text-muted-foreground">Click to upload</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* Images marked for deletion */}
+              {imagesToDelete.length > 0 && (
+                <div className="space-y-2 p-4 bg-destructive/10 rounded-md border border-destructive/20">
+                  <h4 className="text-sm font-medium text-destructive">Images to be deleted:</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {imagesToDelete.length} image{imagesToDelete.length > 1 ? 's' : ''} will be deleted when you save changes.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
       <div className="flex justify-end mt-8">
-        <Button onClick={handleSave} disabled={saving} size="lg" className="bg-gray-600 text-white" >
+        <Button 
+          onClick={handleSave} 
+          disabled={saving || uploading} 
+          size="lg" 
+          className="bg-gray-600 text-white"
+        >
           {saving ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

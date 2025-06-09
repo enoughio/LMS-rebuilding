@@ -104,6 +104,8 @@ export default function LibraryDetailsPage() {
             libraryData.message || "Failed to fetch library data"
           );
         }
+        
+        
 
         setLibrary(libraryData.data);
 
@@ -184,10 +186,12 @@ export default function LibraryDetailsPage() {
                 : "The library you are looking for does not exist or has been removed."}
             </p>
             <div className="flex gap-2">
+
               <Button
                 variant="outline"
                 onClick={() => router.push("/libraries")}
               >
+
                 Back to Libraries
               </Button>
               {error && (
