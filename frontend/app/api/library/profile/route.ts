@@ -70,15 +70,38 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    // Check if the request contains FormData (for file uploads)
+    const contentType = request.headers.get('content-type') || '';
+    let body;
+    let headers: Record<string, string> = {
+      'Authorization': `Bearer ${accessToken}`,
+    };
+
+    if (contentType.includes('multipart/form-data')) {
+      // Handle FormData (files + other data)
+      const formData = await request.formData();
+      
+      // Create a new FormData to forward to the backend
+      const backendFormData = new FormData();
+      
+      // Copy all form fields to the new FormData
+      for (const [key, value] of formData.entries()) {
+        backendFormData.append(key, value);
+      }
+      
+      body = backendFormData;
+      // Don't set Content-Type header, let the browser set it with boundary
+    } else {
+      // Handle regular JSON data
+      const jsonBody = await request.json();
+      body = JSON.stringify(jsonBody);
+      headers['Content-Type'] = 'application/json';
+    }
 
     const response = await fetch(`${BACKEND_URL}/api/library/profile`, {
       method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
+      headers,
+      body,
     });
 
     const data = await response.json();
@@ -89,7 +112,8 @@ export async function PUT(request: NextRequest) {
         { status: response.status }
       );
     }
-
+    
+    console.log('Library profile updated successfully:', data);
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error in library profile PUT:', error);

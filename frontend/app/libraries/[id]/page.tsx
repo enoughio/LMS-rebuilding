@@ -94,6 +94,8 @@ export default function LibraryDetailsPage() {
         if (!libraryData.success) {
           throw new Error(libraryData.message || 'Failed to fetch library data')
         }
+        
+        
 
         setLibrary(libraryData.data)
 
