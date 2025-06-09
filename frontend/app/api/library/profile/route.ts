@@ -73,7 +73,7 @@ export async function PUT(request: NextRequest) {
     // Check if the request contains FormData (for file uploads)
     const contentType = request.headers.get('content-type') || '';
     let body;
-    let headers: Record<string, string> = {
+    const headers: Record<string, string> = {
       'Authorization': `Bearer ${accessToken}`,
     };
 

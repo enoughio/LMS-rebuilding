@@ -169,7 +169,7 @@ export default function LibraryDetailsPage() {
               {error ? 'Please try again later or contact support if the problem persists.' : 'The library you are looking for does not exist or has been removed.'}
             </p>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => router.push("/libraries")}>
+              <Button  onClick={() => router.push("/libraries")}>
                 Back to Libraries
               </Button>
               {error && (

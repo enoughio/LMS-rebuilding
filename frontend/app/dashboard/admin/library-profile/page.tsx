@@ -73,7 +73,7 @@ export default function LibraryProfilePage() {
         }
         
         const data = await response.json()
-        console.log("Library data fetched successfully:", data)
+        // console.log("Library data fetched successfully:", data)
         const libraryData: Library = data.data || data
         
         // Convert openingHours array to object format for frontend
@@ -276,7 +276,7 @@ export default function LibraryProfilePage() {
       }
 
       // Add new image files
-      selectedFiles.forEach((file, index) => {
+      selectedFiles.forEach((file) => {
         formDataObj.append(`images`, file)
       })
 
