@@ -39,8 +39,10 @@ export const uploadToCloudinary = async (
 
     const result = uploadResult as any;
     return {
+
       // this returns url (to access the uploaded file) 
       // and public_id as unique identifier of the file
+
       url: result.secure_url,
       public_id: result.public_id,
     };
@@ -53,7 +55,6 @@ export const uploadToCloudinary = async (
 
 
 //file delete
-
 export const deleteFromCloudinary = async (publicId: string): Promise<void> => {
   try {
     //use the unique identifier of file as public_id from cloudinary

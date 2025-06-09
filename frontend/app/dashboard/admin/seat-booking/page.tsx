@@ -179,19 +179,13 @@ export default function SeatBookingPage() {
   )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-[70vw]">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Seat Booking Management</h1>
           <p className="text-muted-foreground">Manage seat bookings and reservations</p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:gap-4">
-          <Button asChild variant="outline">
-            <Link href="/dashboard/admin/seat-booking/manual-booking">
-              <UserPlus className="mr-2 h-4 w-4" />
-              Manual Booking
-            </Link>
-          </Button>
           <Button asChild>
             <Link href={`/dashboard/admin/seat-booking/guest`}>
               <UserPlus className="mr-2 h-4 w-4" />
