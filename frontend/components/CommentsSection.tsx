@@ -26,6 +26,8 @@ export default function PostComments({ postId }: PostCommentsProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentInput, setCommentInput] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   /* --------- Helpers --------- */
   const fetchComments = useCallback(async () => {
     try {
@@ -33,43 +35,48 @@ export default function PostComments({ postId }: PostCommentsProps) {
       {
         cache: 'no-store',
       });
-      
-      if (!res.ok) throw new Error('Failed to fetch comments');
+        if (!res.ok) throw new Error('Failed to fetch comments');
       const {data} = await res.json();
       console.log('Fetched comments:', data);
-      setComments([...data].reverse());
+      // Set comments in reverse order (most recent first)
+      setComments(Array.isArray(data) ? [...data].reverse() : []);
     } catch (err) {
       toast.error('Unable to load comments');
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [postId]);
-
-  const submitComment = async () => {
+  }, [postId]);  const submitComment = async () => {
     if (!commentInput.trim()) {
       toast('Please enter a comment');
       return;
     }
 
+    // Prevent multiple submissions
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+
     try {
       const res = await fetch(`/api/forum/posts/${postId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: commentInput }),
+        body: JSON.stringify({ content: commentInput.trim() }),
       });
 
       if (!res.ok) throw new Error('Network response was not ok');
 
+      const { data } = await res.json();
+      
+      // Add the new comment to the beginning of the array (most recent first)
+      setComments((prev) => [data, ...prev]);
       setCommentInput('');
-
-      const {data} = await res.json();
-      setComments((prev) => [...prev, data].reverse());
-
       toast.success('Comment submitted!');
     } catch (err) {
       toast.error('Failed to submit comment');
       console.error('Error submitting comment:', err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -91,12 +98,16 @@ export default function PostComments({ postId }: PostCommentsProps) {
           className="flex-grow bg-transparent p-3 sm:p-4 rounded-lg shadow-inner focus:ring-2 focus:ring-gray-500 text-[clamp(14px,3.5vw,16px)]"
           value={commentInput}
           onChange={(e) => setCommentInput(e.target.value)}
-        />
-        <Button
-          className="bg-gray-600 text-white px-4 py-2 rounded-lg w-full sm:w-auto text-[clamp(14px,3.5vw,16px)]"
+        />        <Button
+          className={`${
+            isSubmitting 
+              ? "bg-gray-400 cursor-not-allowed" 
+              : "bg-gray-600 hover:bg-gray-700"
+          } text-white px-4 py-2 rounded-lg w-full sm:w-auto text-[clamp(14px,3.5vw,16px)]`}
           onClick={submitComment}
+          disabled={isSubmitting}
         >
-          Submit
+          {isSubmitting ? "Submitting..." : "Submit"}
         </Button>
       </div>
 

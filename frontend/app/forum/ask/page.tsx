@@ -17,9 +17,9 @@ const AskQuestion: React.FC = () => {
   const [notify, setNotify] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
-  const [currentTag, setCurrentTag] = useState<string>("");
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [currentTag, setCurrentTag] = useState<string>("");  const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const router = useRouter();
 
   // Fetch categories on mount
@@ -72,26 +72,33 @@ const AskQuestion: React.FC = () => {
       setCurrentTag("");
     }
   };
-
   const handleTagRemove = (tag: string) => {
     setTags(tags.filter((t) => t !== tag));
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // Prevent multiple submissions
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
     setError("");
     setSuccess("");
 
     if (!title.trim()) {
       setError("Question title is required.");
+      setIsSubmitting(false);
       return;
     }
     if (!description.trim()) {
       setError("Description is required.");
+      setIsSubmitting(false);
       return;
     }
     if (!selectedCategory) {
       setError("Please select a category.");
+      setIsSubmitting(false);
       return;
     }
 
@@ -122,6 +129,8 @@ const AskQuestion: React.FC = () => {
     } catch (err) {
       setError("Error posting question. Please try again.");
       console.error("Error posting question:", err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -255,13 +264,17 @@ const AskQuestion: React.FC = () => {
             </label>
           </div>
 
-          {/* Submit */}
-          <div className="flex gap-4 shadow-t-md px-4 rounded-lg">
+          {/* Submit */}          <div className="flex gap-4 shadow-t-md px-4 rounded-lg">
             <button
               type="submit"
-              className="bg-black text-white px-4 py-1 sm:px-6 sm:py-2 rounded-full text-xs text-nowrap sm:text-sm hover:bg-gray-800"
+              disabled={isSubmitting}
+              className={`${
+                isSubmitting 
+                  ? "bg-gray-400 cursor-not-allowed" 
+                  : "bg-black hover:bg-gray-800"
+              } text-white px-4 py-1 sm:px-6 sm:py-2 rounded-full text-xs text-nowrap sm:text-sm`}
             >
-              Post Question
+              {isSubmitting ? "Posting..." : "Post Question"}
             </button>
             <button
               type="button"
